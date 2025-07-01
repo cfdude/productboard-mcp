@@ -13,6 +13,7 @@ dist/
 
 # Config files
 .productboard-config.json
+productboard_openapi.yaml
 
 # IDE and editor files
 .vscode/
