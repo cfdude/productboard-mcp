@@ -1,0 +1,38 @@
+{
+  "instances": {
+    "production": {
+      "apiToken": "pb_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "baseUrl": "https://api.productboard.com",
+      "rateLimitPerMinute": 60,
+      "workspaces": ["workspace-prod-1", "workspace-prod-2"]
+    },
+    "staging": {
+      "apiToken": "pb_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 
+      "baseUrl": "https://api.productboard.com",
+      "rateLimitPerMinute": 100,
+      "workspaces": ["workspace-staging"]
+    }
+  },
+  "workspaces": {
+    "workspace-prod-1": {
+      "instance": "production",
+      "workspaceId": "workspace-prod-1",
+      "customFields": {
+        "priority": "Priority Level",
+        "effort": "Development Effort"
+      }
+    },
+    "workspace-prod-2": {
+      "instance": "production", 
+      "workspaceId": "workspace-prod-2",
+      "customFields": {
+        "category": "Feature Category"
+      }
+    },
+    "workspace-staging": {
+      "instance": "staging",
+      "workspaceId": "workspace-staging"
+    }
+  },
+  "defaultInstance": "production"
+}
