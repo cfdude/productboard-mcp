@@ -1,6 +1,6 @@
 {
   "name": "productboard-mcp",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Access Productboard's API with 119+ dynamically loaded tools organized by categories",
   "author": "Productboard MCP Contributors",
   "license": "MIT",

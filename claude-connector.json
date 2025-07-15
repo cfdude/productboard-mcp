@@ -1,7 +1,7 @@
 {
   "$schema": "https://schemas.claude.ai/connector/v1",
   "name": "Productboard MCP",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Connect to Productboard for product management, customer feedback, and roadmap planning",
   "icon": "📊",
   "vendor": "productboard-community",
