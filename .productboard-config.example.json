@@ -1,0 +1,21 @@
+{
+  "instances": {
+    "default": {
+      "apiToken": "YOUR_API_TOKEN_HERE",
+      "baseUrl": "https://api.productboard.com",
+      "rateLimitPerMinute": 60
+    }
+  },
+  "workspaces": {},
+  "defaultInstance": "default",
+  "toolCategories": {
+    "enabled": ["notes", "features", "companies", "releases"],
+    "profiles": {
+      "product-manager": ["features", "releases", "objectives", "keyresults", "initiatives"],
+      "customer-success": ["notes", "companies", "users", "companies & users"],
+      "developer": ["webhooks", "pluginintegrations", "jiraintegrations"],
+      "full": ["*"]
+    },
+    "activeProfile": "product-manager"
+  }
+}

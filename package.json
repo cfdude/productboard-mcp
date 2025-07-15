@@ -14,7 +14,9 @@
     "prepare": "npm run build",
     "watch": "tsc --watch",
     "inspector": "npx @modelcontextprotocol/inspector build/index.js",
-    "dev": "npm run build && npm run inspector"
+    "dev": "npm run build && npm run inspector",
+    "generate-manifest": "tsx scripts/generate-manifest.ts",
+    "generate-tools": "tsx scripts/generate-tools.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.6.0",
@@ -22,6 +24,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.11.24",
+    "tsx": "^4.20.3",
     "typescript": "^5.3.3"
   },
   "keywords": [

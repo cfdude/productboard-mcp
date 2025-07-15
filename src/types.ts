@@ -13,6 +13,15 @@ export interface MultiInstanceProductboardConfig {
   instances: Record<string, ProductboardInstanceConfig>;
   workspaces: Record<string, ProductboardWorkspaceConfig>;
   defaultInstance?: string;
+  toolCategories?: ToolCategoryConfig;
+}
+
+export interface ToolCategoryConfig {
+  enabled?: string[];
+  disabled?: string[];
+  profiles?: Record<string, string[]>;
+  activeProfile?: string;
+  customGroups?: Record<string, string[]>;
 }
 
 export interface ProductboardInstanceConfig {
