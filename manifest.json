@@ -136,7 +136,7 @@
   },
   "installation": {
     "npm": {
-      "package": "productboard-mcp",
+      "package": "@the_cfdude/productboard-mcp",
       "global": false
     },
     "docker": {

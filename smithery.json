@@ -55,5 +55,10 @@
     "quickstart": "README.md#-installation",
     "configuration": "README.md#-configuration",
     "tools": "README.md#-tool-categories"
+  },
+  "npm": {
+    "package": "@the_cfdude/productboard-mcp",
+    "version": "1.0.0",
+    "registry": "https://registry.npmjs.org"
   }
 }

@@ -1,6 +1,6 @@
 # Productboard MCP Server
 
-[![Version](https://img.shields.io/npm/v/productboard-mcp)](https://www.npmjs.com/package/productboard-mcp)
+[![Version](https://img.shields.io/npm/v/@the_cfdude/productboard-mcp)](https://www.npmjs.com/package/@the_cfdude/productboard-mcp)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![MCP Version](https://img.shields.io/badge/MCP-1.0.0-green)](https://modelcontextprotocol.io)
 [![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org)
@@ -64,7 +64,7 @@ docker run -d \
 ### Option 3: NPM Package
 
 ```bash
-npm install productboard-mcp
+npm install @the_cfdude/productboard-mcp
 ```
 
 ### Option 4: From Source

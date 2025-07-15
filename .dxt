@@ -27,7 +27,7 @@ docker run -d \
 
 ### NPM
 ```bash
-npm install productboard-mcp
+npm install @the_cfdude/productboard-mcp
 ```
 
 ### From Source
