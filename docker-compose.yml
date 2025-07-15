@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  productboard-mcp:
+    build: .
+    image: productboard-mcp:latest
+    container_name: productboard-mcp-server
+    restart: unless-stopped
+    environment:
+      # Required: Set your Productboard API token
+      PRODUCTBOARD_API_TOKEN: ${PRODUCTBOARD_API_TOKEN}
+      
+      # Optional: Set default workspace
+      PRODUCTBOARD_WORKSPACE_ID: ${PRODUCTBOARD_WORKSPACE_ID:-}
+      
+      # Optional: Set base URL (defaults to production)
+      PRODUCTBOARD_BASE_URL: ${PRODUCTBOARD_BASE_URL:-https://api.productboard.com}
+      
+      # Optional: Rate limiting
+      PRODUCTBOARD_RATE_LIMIT: ${PRODUCTBOARD_RATE_LIMIT:-60}
+    
+    # Mount config file if using file-based configuration
+    volumes:
+      - ./config:/app/config:ro
+      - productboard-cache:/app/.cache
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('OK')"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    
+    # Logging
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Network
+    networks:
+      - mcp-network
+
+  # Optional: MCP Inspector for testing
+  mcp-inspector:
+    image: node:20-alpine
+    container_name: mcp-inspector
+    working_dir: /app
+    volumes:
+      - .:/app:ro
+    command: npx @modelcontextprotocol/inspector productboard-mcp
+    environment:
+      PRODUCTBOARD_API_TOKEN: ${PRODUCTBOARD_API_TOKEN}
+    networks:
+      - mcp-network
+    profiles:
+      - debug
+
+volumes:
+  productboard-cache:
+
+networks:
+  mcp-network:
+    driver: bridge

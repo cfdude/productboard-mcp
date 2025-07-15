@@ -1,0 +1,114 @@
+{
+  "$schema": "https://schemas.claude.ai/connector/v1",
+  "name": "Productboard MCP",
+  "version": "0.1.0",
+  "description": "Connect to Productboard for product management, customer feedback, and roadmap planning",
+  "icon": "📊",
+  "vendor": "productboard-community",
+  "sourceUrl": "https://github.com/cfdude/productboard-mcp",
+  "documentationUrl": "https://github.com/cfdude/productboard-mcp#readme",
+  "privacyPolicyUrl": "https://github.com/cfdude/productboard-mcp/blob/main/PRIVACY.md",
+  "server": {
+    "type": "stdio",
+    "command": "node",
+    "args": ["${serverPath}/build/index.js"],
+    "env": {
+      "NODE_ENV": "production"
+    }
+  },
+  "configurationSchema": {
+    "type": "object",
+    "required": ["apiToken"],
+    "properties": {
+      "apiToken": {
+        "type": "string",
+        "title": "API Token",
+        "description": "Your Productboard API token",
+        "secret": true,
+        "order": 1
+      },
+      "workspaceId": {
+        "type": "string",
+        "title": "Workspace ID",
+        "description": "Default workspace ID (optional)",
+        "order": 2
+      },
+      "toolProfile": {
+        "type": "string",
+        "title": "Tool Profile",
+        "description": "Pre-configured tool set based on your role",
+        "enum": [
+          "full",
+          "product-manager",
+          "customer-success",
+          "developer"
+        ],
+        "enumDescriptions": [
+          "All 119 tools available",
+          "Features, releases, objectives, and planning tools",
+          "Customer notes, companies, and user management",
+          "Webhooks and integration tools"
+        ],
+        "default": "full",
+        "order": 3
+      },
+      "customCategories": {
+        "type": "array",
+        "title": "Custom Tool Categories",
+        "description": "Select specific tool categories (overrides profile)",
+        "items": {
+          "type": "string",
+          "enum": [
+            "notes",
+            "features",
+            "companies",
+            "users",
+            "releases",
+            "objectives",
+            "initiatives",
+            "webhooks"
+          ]
+        },
+        "uniqueItems": true,
+        "order": 4
+      }
+    }
+  },
+  "oauth": {
+    "supported": false
+  },
+  "capabilities": {
+    "tools": true,
+    "resources": false,
+    "prompts": false,
+    "notifications": false
+  },
+  "examples": [
+    {
+      "title": "Create customer feedback note",
+      "description": "Capture customer feedback as a note in Productboard",
+      "configuration": {
+        "toolProfile": "customer-success"
+      }
+    },
+    {
+      "title": "Manage product roadmap",
+      "description": "Work with features, releases, and objectives",
+      "configuration": {
+        "toolProfile": "product-manager"  
+      }
+    }
+  ],
+  "troubleshooting": {
+    "connectionIssues": [
+      {
+        "issue": "Authentication failed",
+        "solution": "Verify your API token is correct and has not expired. Generate a new token from Productboard settings."
+      },
+      {
+        "issue": "No tools available",
+        "solution": "Check your tool profile settings or ensure the manifest has been generated with 'npm run generate-manifest'."
+      }
+    ]
+  }
+}

@@ -1,13 +1,20 @@
 {
   "name": "productboard-mcp",
   "version": "0.1.0",
-  "description": "Model Context Protocol server for Productboard REST API",
+  "description": "Model Context Protocol server for Productboard REST API with dynamic tool loading",
   "type": "module",
   "bin": {
     "productboard-server": "./build/index.js"
   },
   "files": [
-    "build"
+    "build",
+    "generated",
+    "scripts",
+    "smithery.json",
+    "manifest.json",
+    "claude-connector.json",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
@@ -30,8 +37,23 @@
   "keywords": [
     "mcp",
     "productboard",
-    "model-context-protocol"
+    "model-context-protocol",
+    "api",
+    "dynamic-loading",
+    "product-management",
+    "customer-feedback"
   ],
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cfdude/productboard-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cfdude/productboard-mcp/issues"
+  },
+  "homepage": "https://github.com/cfdude/productboard-mcp#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "Productboard MCP Contributors",
   "license": "MIT"
 }

@@ -1,0 +1,55 @@
+# Git
+.git
+.gitignore
+
+# Node modules
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript
+*.ts
+!*.d.ts
+src/
+scripts/*.ts
+
+# Config files (will be mounted as volumes)
+.productboard-config.json
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Testing
+coverage/
+.nyc_output/
+jest.config.js
+tests/
+
+# Development
+.serena/
+.claude/
+
+# Build artifacts we don't need
+*.map
+tsconfig.json
+tsconfig.*.json
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore

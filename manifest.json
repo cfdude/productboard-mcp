@@ -1,0 +1,158 @@
+{
+  "name": "productboard-mcp",
+  "version": "0.1.0",
+  "description": "Access Productboard's API with 119+ dynamically loaded tools organized by categories",
+  "author": "Productboard MCP Contributors",
+  "license": "MIT",
+  "homepage": "https://github.com/cfdude/productboard-mcp",
+  "vendor": "productboard-community",
+  "mcp_version": "1.0.0",
+  "config": {
+    "mcpServers": {
+      "productboard": {
+        "command": "node",
+        "args": ["./build/index.js"],
+        "cwd": "${configDir}",
+        "env": {
+          "NODE_ENV": "production"
+        },
+        "settings": {
+          "apiToken": {
+            "type": "string",
+            "description": "Your Productboard API token",
+            "required": true,
+            "secret": true,
+            "env": "PRODUCTBOARD_API_TOKEN"
+          },
+          "workspaceId": {
+            "type": "string",
+            "description": "Default workspace ID (optional)",
+            "required": false,
+            "env": "PRODUCTBOARD_WORKSPACE_ID"
+          },
+          "baseUrl": {
+            "type": "string",
+            "description": "Productboard API base URL",
+            "required": false,
+            "default": "https://api.productboard.com",
+            "env": "PRODUCTBOARD_BASE_URL"
+          },
+          "enabledCategories": {
+            "type": "array",
+            "description": "Tool categories to enable (leave empty for all)",
+            "required": false,
+            "default": ["*"],
+            "items": {
+              "type": "string",
+              "enum": [
+                "*",
+                "notes",
+                "features",
+                "companies",
+                "users",
+                "releases",
+                "webhooks",
+                "objectives",
+                "initiatives",
+                "keyresults",
+                "components",
+                "products",
+                "custom-fields",
+                "plugin-integrations",
+                "jira-integrations"
+              ]
+            }
+          },
+          "profile": {
+            "type": "string",
+            "description": "Pre-configured role profile",
+            "required": false,
+            "enum": [
+              "product-manager",
+              "customer-success",
+              "developer",
+              "full"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "categories": {
+    "productivity": {
+      "description": "Product management and roadmapping"
+    },
+    "api-integration": {
+      "description": "API access and automation"
+    },
+    "customer-feedback": {
+      "description": "Customer insights and feedback management"
+    }
+  },
+  "keywords": [
+    "productboard",
+    "product-management",
+    "roadmap",
+    "customer-feedback",
+    "api",
+    "dynamic-loading",
+    "okr",
+    "planning"
+  ],
+  "requirements": {
+    "node": ">=18.0.0",
+    "mcp": ">=1.0.0"
+  },
+  "capabilities": {
+    "tools": {
+      "count": 119,
+      "dynamic": true,
+      "categories": [
+        {
+          "name": "notes",
+          "description": "Customer feedback and insights",
+          "toolCount": 15
+        },
+        {
+          "name": "features",
+          "description": "Feature management and roadmapping",
+          "toolCount": 22
+        },
+        {
+          "name": "objectives",
+          "description": "Strategic objectives and OKRs",
+          "toolCount": 11
+        },
+        {
+          "name": "releases",
+          "description": "Release planning and tracking",
+          "toolCount": 13
+        }
+      ]
+    },
+    "resources": false,
+    "prompts": false,
+    "notifications": false
+  },
+  "installation": {
+    "npm": {
+      "package": "productboard-mcp",
+      "global": false
+    },
+    "docker": {
+      "image": "ghcr.io/cfdude/productboard-mcp:latest",
+      "compose": true
+    },
+    "smithery": {
+      "package": "productboard"
+    },
+    "source": {
+      "repository": "https://github.com/cfdude/productboard-mcp.git",
+      "buildCommands": [
+        "npm install",
+        "npm run generate-manifest",
+        "npm run build"
+      ]
+    }
+  }
+}

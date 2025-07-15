@@ -14,13 +14,61 @@ A Model Context Protocol (MCP) server that provides comprehensive access to Prod
 
 ## 📦 Installation
 
+### Option 1: Via Smithery (Recommended)
+
+```bash
+smithery install productboard
+```
+
+Then add to your Claude Desktop config:
+
+```json
+{
+  "mcpServers": {
+    "productboard": {
+      "command": "node",
+      "args": ["${SMITHERY_PATH}/productboard/build/index.js"],
+      "env": {
+        "PRODUCTBOARD_API_TOKEN": "your-api-token"
+      }
+    }
+  }
+}
+```
+
+### Option 2: Docker
+
+```bash
+# Using Docker Compose (recommended)
+git clone https://github.com/cfdude/productboard-mcp.git
+cd productboard-mcp
+
+# Create .env file
+echo "PRODUCTBOARD_API_TOKEN=your-api-token" > .env
+
+# Run the server
+docker-compose up -d
+
+# Or using Docker directly
+docker run -d \
+  --name productboard-mcp \
+  -e PRODUCTBOARD_API_TOKEN="your-api-token" \
+  ghcr.io/cfdude/productboard-mcp:latest
+```
+
+### Option 3: NPM Package
+
 ```bash
 npm install productboard-mcp
+```
 
-# Or clone and build locally
-git clone https://github.com/your-username/productboard-mcp.git
+### Option 4: From Source
+
+```bash
+git clone https://github.com/cfdude/productboard-mcp.git
 cd productboard-mcp
 npm install
+npm run generate-manifest
 npm run build
 ```
 
@@ -129,6 +177,17 @@ Create a `.productboard-config.json` file in your project root:
 ## 🎯 Usage Examples
 
 ### With Claude Desktop
+
+#### Option A: Using Claude Desktop Connectors (New!)
+
+1. Open Claude Desktop settings
+2. Navigate to "Connectors" section
+3. Click "Add Connector"
+4. Search for "Productboard MCP"
+5. Enter your API token and select your preferred tool profile
+6. Click "Connect"
+
+#### Option B: Manual Configuration
 
 Add to your Claude Desktop configuration:
 

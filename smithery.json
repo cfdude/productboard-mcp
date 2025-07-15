@@ -1,0 +1,59 @@
+{
+  "schema_version": "v1",
+  "name": "productboard",
+  "description": "MCP server for Productboard API with dynamic tool loading and category-based filtering",
+  "author": "Productboard MCP Contributors",
+  "license": "MIT",
+  "homepage": "https://github.com/cfdude/productboard-mcp",
+  "repository": "https://github.com/cfdude/productboard-mcp.git",
+  "issues": "https://github.com/cfdude/productboard-mcp/issues",
+  "categories": ["productivity", "project-management", "api-integration"],
+  "keywords": [
+    "productboard",
+    "mcp",
+    "api",
+    "product-management",
+    "customer-feedback",
+    "roadmap",
+    "dynamic-loading"
+  ],
+  "config": {
+    "mcpServers": {
+      "productboard": {
+        "command": "node",
+        "args": ["${SMITHERY_PATH}/build/index.js"],
+        "env": {
+          "PRODUCTBOARD_API_TOKEN": {
+            "type": "string",
+            "description": "Your Productboard API token",
+            "required": true
+          },
+          "PRODUCTBOARD_WORKSPACE_ID": {
+            "type": "string",
+            "description": "Default workspace ID (optional)",
+            "required": false
+          }
+        }
+      }
+    }
+  },
+  "build": {
+    "script": "npm run build && npm run generate-manifest",
+    "output": "build/"
+  },
+  "runtime": {
+    "type": "node",
+    "version": ">=18.0.0"
+  },
+  "features": {
+    "dynamicLoading": true,
+    "categoryFiltering": true,
+    "multiWorkspace": true,
+    "autoGeneration": true
+  },
+  "documentation": {
+    "quickstart": "README.md#-installation",
+    "configuration": "README.md#-configuration",
+    "tools": "README.md#-tool-categories"
+  }
+}
