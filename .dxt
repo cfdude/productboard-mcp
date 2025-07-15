@@ -1,0 +1,206 @@
+# Productboard MCP Server
+
+## Overview
+Model Context Protocol server for Productboard API with dynamic tool loading, category-based filtering, and role-based profiles. Provides 119+ tools across 15+ categories for comprehensive product management automation.
+
+## Features
+- Dynamic tool loading with lazy initialization
+- Category-based tool organization
+- Role-based profiles (product-manager, customer-success, developer)
+- Multi-workspace support
+- Auto-generated tools from OpenAPI spec
+- Full TypeScript support
+
+## Installation
+
+### Smithery (Recommended)
+```bash
+smithery install productboard
+```
+
+### Docker
+```bash
+docker run -d \
+  -e PRODUCTBOARD_API_TOKEN="your-token" \
+  ghcr.io/cfdude/productboard-mcp:latest
+```
+
+### NPM
+```bash
+npm install productboard-mcp
+```
+
+### From Source
+```bash
+git clone https://github.com/cfdude/productboard-mcp.git
+cd productboard-mcp
+npm install
+npm run generate-manifest
+npm run build
+```
+
+## Configuration
+
+### Environment Variables
+- `PRODUCTBOARD_API_TOKEN` (required): Your Productboard API token
+- `PRODUCTBOARD_WORKSPACE_ID` (optional): Default workspace ID
+- `PRODUCTBOARD_BASE_URL` (optional): API base URL (defaults to https://api.productboard.com)
+
+### Configuration File
+Create `.productboard-config.json`:
+```json
+{
+  "instances": {
+    "default": {
+      "apiToken": "YOUR_API_TOKEN",
+      "baseUrl": "https://api.productboard.com"
+    }
+  },
+  "toolCategories": {
+    "enabled": ["*"]  // or specific categories
+  }
+}
+```
+
+## Tool Categories
+
+### Core Product Management
+- `features` (22 tools): Feature management and roadmapping
+- `releases` (13 tools): Release planning and tracking
+- `objectives` (11 tools): Strategic objectives and OKRs
+- `initiatives` (11 tools): High-level strategic initiatives
+
+### Customer Insights
+- `notes` (15 tools): Customer feedback and insights
+- `companies` (5 tools): Company/account management
+- `users` (2 tools): User profiles
+
+### Integrations
+- `webhooks` (4 tools): Event notifications
+- `plugin-integrations` (10 tools): Third-party integrations
+- `jira-integrations` (4 tools): Jira integration
+
+## Development
+
+### Prerequisites
+- Node.js >= 18.0.0
+- TypeScript
+- Productboard API token
+
+### Setup
+```bash
+# Install dependencies
+npm install
+
+# Generate tool manifest from OpenAPI
+npm run generate-manifest
+
+# Generate missing tool implementations
+npm run generate-tools
+
+# Build TypeScript
+npm run build
+
+# Run with MCP inspector
+npm run dev
+```
+
+### Project Structure
+```
+productboard-mcp/
+├── src/
+│   ├── tools/
+│   │   ├── registry.ts        # Dynamic loading system
+│   │   ├── index-dynamic.ts   # Dynamic handler
+│   │   └── *.ts              # Tool implementations
+│   └── productboard-server.ts # Main server
+├── generated/
+│   ├── manifest.json          # Tool metadata
+│   └── tools/                 # Auto-generated tools
+├── scripts/
+│   ├── generate-manifest.ts   # Manifest generator
+│   └── generate-tools.ts      # Tool generator
+└── .productboard-config.json  # Configuration
+```
+
+### Testing
+```bash
+# Test dynamic loading
+npx tsx scripts/test-dynamic-loading.ts
+
+# Run with inspector
+npm run dev
+```
+
+## Usage Examples
+
+### Create Note
+```typescript
+productboard_notes_create({
+  title: "Feature request",
+  content: "Customer wants dark mode",
+  tags: ["ui", "enhancement"]
+})
+```
+
+### List Features
+```typescript
+productboard_features_list({
+  limit: 50,
+  status: "in-progress"
+})
+```
+
+### Create Release
+```typescript
+productboard_releases_create({
+  name: "Q1 2025",
+  description: "Major updates",
+  startDate: "2025-01-01",
+  endDate: "2025-03-31"
+})
+```
+
+## Architecture
+
+### Dynamic Loading Flow
+1. **Discovery**: Tool manifest provides metadata
+2. **Registration**: Tools registered with lazy loaders
+3. **Execution**: Implementation loaded on first call
+
+### Performance
+- Initial load: ~50ms (manifest only)
+- First tool call: ~100ms (dynamic import)
+- Subsequent calls: <10ms (cached)
+- Memory: ~20MB base + 1-2MB per category
+
+## Troubleshooting
+
+### No tools available
+- Run `npm run generate-manifest`
+- Check `.productboard-config.json` categories
+- Verify API token permissions
+
+### Authentication failed
+- Verify API token is valid
+- Check token has required scopes
+- Ensure workspace ID is correct
+
+### Tool not found
+- Check tool name in manifest.json
+- Verify category is enabled
+- Run `npm run generate-tools`
+
+## Contributing
+1. Fork repository
+2. Create feature branch
+3. Run `npm run generate-manifest` after API changes
+4. Submit pull request
+
+## License
+MIT
+
+## Support
+- Issues: https://github.com/cfdude/productboard-mcp/issues
+- Docs: https://github.com/cfdude/productboard-mcp#readme
+- API Reference: https://developer.productboard.com/
