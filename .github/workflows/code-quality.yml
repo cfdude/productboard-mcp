@@ -1,0 +1,70 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Check TypeScript types
+      run: npx tsc --noEmit
+    
+    - name: Check code formatting with Prettier
+      run: |
+        npx prettier --check "src/**/*.ts" "scripts/**/*.ts" "*.json" "*.md" || {
+          echo "Code formatting issues found. Run 'npx prettier --write .' to fix."
+          exit 1
+        }
+    
+    - name: Lint TypeScript files
+      run: |
+        # Basic TypeScript linting without ESLint config
+        npx tsc --noEmit --strict --noUnusedLocals --noUnusedParameters --exactOptionalPropertyTypes
+    
+    - name: Check for common issues
+      run: |
+        # Check for console.log statements (should use proper logging)
+        if grep -r "console\.log" src/ --include="*.ts" --exclude-dir=node_modules; then
+          echo "Found console.log statements. Use proper logging instead."
+          exit 1
+        fi
+        
+        # Check for TODO/FIXME comments
+        if grep -r "TODO\|FIXME" src/ --include="*.ts" --exclude-dir=node_modules; then
+          echo "Found TODO/FIXME comments. Please address before merging."
+          exit 1
+        fi
+        
+        # Check for any .only in test files (if any)
+        if find . -name "*.test.ts" -o -name "*.spec.ts" | xargs grep -l "\.only(" 2>/dev/null; then
+          echo "Found .only() in test files. Remove before merging."
+          exit 1
+        fi
+        
+        echo "Code quality checks passed!"
+    
+    - name: Check manifest is up to date
+      run: |
+        npm run generate-manifest
+        if [ -n "$(git status --porcelain generated/manifest.json)" ]; then
+          echo "Manifest is out of date. Run 'npm run generate-manifest' and commit the changes."
+          git diff generated/manifest.json
+          exit 1
+        fi
+        echo "Manifest is up to date!"

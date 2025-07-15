@@ -1,0 +1,44 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  claude-review:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Claude Code Review
+      uses: anthropics/claude-code-review@v1
+      with:
+        anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        # Review focus areas
+        focus-areas: |
+          - TypeScript type safety
+          - API error handling
+          - Security best practices
+          - Code organization and structure
+          - Performance considerations
+          - Documentation completeness
+        # File patterns to review
+        include-patterns: |
+          - "src/**/*.ts"
+          - "scripts/**/*.ts"
+          - "*.json"
+          - "*.md"
+        # Skip certain files
+        exclude-patterns: |
+          - "build/**/*"
+          - "node_modules/**/*"
+          - "generated/tools/**/*"
+        # Review mode
+        review-mode: "comprehensive"
+        # Only review changed files
+        review-changed-files-only: true
