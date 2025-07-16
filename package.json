@@ -24,7 +24,7 @@
     "dev": "npm run build && npm run inspector",
     "generate-manifest": "tsx scripts/generate-manifest.ts",
     "generate-tools": "tsx scripts/generate-tools.ts",
-    "test": "jest",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "tsc --noEmit --strict"
