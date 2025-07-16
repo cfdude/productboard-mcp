@@ -104,11 +104,11 @@ export function createToolContext(
       instance,
       axios: axiosInstance,
     };
-    
+
     if (workspaceId) {
       context.workspaceId = workspaceId;
     }
-    
+
     return context;
   } catch (error) {
     if (error instanceof McpError) {

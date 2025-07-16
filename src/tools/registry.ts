@@ -206,11 +206,11 @@ export class ToolRegistry {
           properties,
         },
       };
-      
+
       if (toolInfo.requiredParams.length > 0) {
         toolDef.inputSchema.required = toolInfo.requiredParams;
       }
-      
+
       definitions.push(toolDef);
     }
 
