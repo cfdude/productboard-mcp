@@ -1,26 +1,33 @@
 /**
  * Unit tests for retry logic
  */
-import { describe, it, expect, jest } from "@jest/globals";
+import { describe, it, expect } from "@jest/globals";
 import { withRetry, CircuitBreaker } from "../utils/retry.js";
 import { NetworkError, RateLimitError } from "../errors/index.js";
 
 describe("Retry Logic", () => {
   describe("withRetry", () => {
     it("should succeed on first attempt", async () => {
-      const fn = jest.fn().mockResolvedValue("success");
-      const result = await withRetry(fn);
+      let attempts = 0;
+      const fn = async () => {
+        attempts++;
+        return "success";
+      };
       
+      const result = await withRetry(fn);
       expect(result).toBe("success");
-      expect(fn).toHaveBeenCalledTimes(1);
+      expect(attempts).toBe(1);
     });
 
     it("should retry on retryable errors", async () => {
-      const fn = jest
-        .fn()
-        .mockRejectedValueOnce(new NetworkError("Connection failed"))
-        .mockRejectedValueOnce(new NetworkError("Connection failed"))
-        .mockResolvedValue("success");
+      let attempts = 0;
+      const fn = async () => {
+        attempts++;
+        if (attempts < 3) {
+          throw new NetworkError("Connection failed");
+        }
+        return "success";
+      };
 
       const result = await withRetry(fn, {
         maxRetries: 3,
@@ -28,14 +35,18 @@ describe("Retry Logic", () => {
       });
 
       expect(result).toBe("success");
-      expect(fn).toHaveBeenCalledTimes(3);
+      expect(attempts).toBe(3);
     });
 
     it("should respect rate limit retry-after", async () => {
-      const fn = jest
-        .fn()
-        .mockRejectedValueOnce(new RateLimitError(1)) // 1 second
-        .mockResolvedValue("success");
+      let attempts = 0;
+      const fn = async () => {
+        attempts++;
+        if (attempts === 1) {
+          throw new RateLimitError(1); // 1 second
+        }
+        return "success";
+      };
 
       const start = Date.now();
       const result = await withRetry(fn, {
@@ -45,38 +56,47 @@ describe("Retry Logic", () => {
       const duration = Date.now() - start;
 
       expect(result).toBe("success");
-      expect(fn).toHaveBeenCalledTimes(2);
+      expect(attempts).toBe(2);
       expect(duration).toBeGreaterThanOrEqual(900); // At least 900ms
       expect(duration).toBeLessThan(2000); // But less than 2s
     });
 
     it("should fail after max retries", async () => {
+      let attempts = 0;
       const error = new NetworkError("Persistent failure");
-      const fn = jest.fn().mockRejectedValue(error);
+      const fn = async () => {
+        attempts++;
+        throw error;
+      };
 
       await expect(
         withRetry(fn, { maxRetries: 2, initialDelay: 10 })
       ).rejects.toThrow(error);
 
-      expect(fn).toHaveBeenCalledTimes(2);
+      expect(attempts).toBe(2);
     });
 
     it("should not retry non-retryable errors", async () => {
+      let attempts = 0;
       const error = new Error("Not retryable");
-      const fn = jest.fn().mockRejectedValue(error);
+      const fn = async () => {
+        attempts++;
+        throw error;
+      };
 
       await expect(withRetry(fn)).rejects.toThrow(error);
-      expect(fn).toHaveBeenCalledTimes(1);
+      expect(attempts).toBe(1);
     });
 
     it("should handle axios-like errors", async () => {
-      const axiosError = {
-        response: { status: 503 },
+      let attempts = 0;
+      const fn = async () => {
+        attempts++;
+        if (attempts === 1) {
+          throw { response: { status: 503 } };
+        }
+        return "success";
       };
-      const fn = jest
-        .fn()
-        .mockRejectedValueOnce(axiosError)
-        .mockResolvedValue("success");
 
       const result = await withRetry(fn, {
         maxRetries: 2,
@@ -84,71 +104,95 @@ describe("Retry Logic", () => {
       });
 
       expect(result).toBe("success");
-      expect(fn).toHaveBeenCalledTimes(2);
+      expect(attempts).toBe(2);
     });
   });
 
   describe("CircuitBreaker", () => {
     it("should allow calls when closed", async () => {
       const breaker = new CircuitBreaker(3, 100);
-      const fn = jest.fn().mockResolvedValue("success");
+      let calls = 0;
+      const fn = async () => {
+        calls++;
+        return "success";
+      };
 
       const result = await breaker.execute(fn);
       expect(result).toBe("success");
-      expect(fn).toHaveBeenCalledTimes(1);
+      expect(calls).toBe(1);
     });
 
     it("should open after threshold failures", async () => {
       const breaker = new CircuitBreaker(3, 100);
-      const fn = jest.fn().mockRejectedValue(new Error("fail"));
+      let calls = 0;
+      const fn = async () => {
+        calls++;
+        throw new Error("fail");
+      };
 
       // Fail 3 times to open the breaker
       for (let i = 0; i < 3; i++) {
         await expect(breaker.execute(fn)).rejects.toThrow("fail");
       }
+      expect(calls).toBe(3);
 
       // Circuit should be open now
       await expect(breaker.execute(fn)).rejects.toThrow(
         "Circuit breaker is open"
       );
-      expect(fn).toHaveBeenCalledTimes(3); // Not called on 4th attempt
+      expect(calls).toBe(3); // Not called on 4th attempt
     });
 
     it("should enter half-open state after timeout", async () => {
       const breaker = new CircuitBreaker(2, 50); // 50ms timeout
-      const fn = jest
-        .fn()
-        .mockRejectedValueOnce(new Error("fail1"))
-        .mockRejectedValueOnce(new Error("fail2"))
-        .mockResolvedValue("success");
+      let calls = 0;
+      let shouldFail = true;
+      
+      const fn = async () => {
+        calls++;
+        if (shouldFail) {
+          throw new Error("fail");
+        }
+        return "success";
+      };
 
       // Open the breaker
-      await expect(breaker.execute(fn)).rejects.toThrow("fail1");
-      await expect(breaker.execute(fn)).rejects.toThrow("fail2");
+      await expect(breaker.execute(fn)).rejects.toThrow("fail");
+      await expect(breaker.execute(fn)).rejects.toThrow("fail");
+      expect(calls).toBe(2);
 
       // Should be open
       await expect(breaker.execute(fn)).rejects.toThrow(
         "Circuit breaker is open"
       );
+      expect(calls).toBe(2);
 
       // Wait for timeout
       await new Promise(resolve => setTimeout(resolve, 60));
 
       // Should allow one attempt (half-open)
+      shouldFail = false;
       const result = await breaker.execute(fn);
       expect(result).toBe("success");
-      expect(fn).toHaveBeenCalledTimes(3);
+      expect(calls).toBe(3);
     });
 
     it("should reset on successful half-open call", async () => {
       const breaker = new CircuitBreaker(2, 50);
-      const fn = jest
-        .fn()
-        .mockRejectedValueOnce(new Error("fail1"))
-        .mockRejectedValueOnce(new Error("fail2"))
-        .mockResolvedValue("success");
+      let calls = 0;
+      let failCount = 0;
+      
+      const fn = async () => {
+        calls++;
+        if (failCount > 0) {
+          failCount--;
+          throw new Error("fail");
+        }
+        return "success";
+      };
 
       // Open the breaker
+      failCount = 2;
       await expect(breaker.execute(fn)).rejects.toThrow();
       await expect(breaker.execute(fn)).rejects.toThrow();
 
@@ -156,11 +200,11 @@ describe("Retry Logic", () => {
       await new Promise(resolve => setTimeout(resolve, 60));
       await breaker.execute(fn);
 
-      // Should be fully closed now
-      fn.mockClear();
+      // Should be fully closed now - reset call count
+      calls = 0;
       await breaker.execute(fn);
       await breaker.execute(fn);
-      expect(fn).toHaveBeenCalledTimes(2);
+      expect(calls).toBe(2);
     });
   });
 });

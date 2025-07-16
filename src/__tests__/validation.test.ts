@@ -99,7 +99,7 @@ describe("Validation Utilities", () => {
     });
 
     it("should throw when required fields missing", () => {
-      expect(() => validateRequired({ a: 1 }, ["a", "b"])).toThrow(
+      expect(() => validateRequired({ a: 1, b: undefined }, ["a", "b"])).toThrow(
         ValidationError
       );
       expect(() => validateRequired({ a: null }, ["a"])).toThrow(

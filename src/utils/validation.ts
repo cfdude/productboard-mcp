@@ -186,7 +186,7 @@ export function sanitizeObject<T extends Record<string, unknown>>(
   
   for (const [key, value] of Object.entries(obj)) {
     if (value !== undefined && value !== null) {
-      cleaned[key as keyof T] = value;
+      cleaned[key as keyof T] = value as T[keyof T];
     }
   }
   

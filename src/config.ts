@@ -4,7 +4,11 @@
  */
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
-import { MultiInstanceProductboardConfig } from "./types.js";
+import { 
+  MultiInstanceProductboardConfig,
+  ProductboardInstanceConfig,
+  ProductboardWorkspaceConfig 
+} from "./types.js";
 
 const CONFIG_FILE = ".productboard-config.json";
 
@@ -131,7 +135,7 @@ export function getWorkspace(
   config: MultiInstanceProductboardConfig,
   workspaceId: string,
 ): { instance: string; workspaceId: string } {
-  const workspace = config.workspaces[workspaceId];
+  const workspace = config.workspaces?.[workspaceId];
   if (!workspace) {
     // Return default workspace config
     return {
@@ -139,5 +143,9 @@ export function getWorkspace(
       workspaceId,
     };
   }
-  return workspace;
+  // Ensure workspaceId is always set
+  return {
+    ...workspace,
+    workspaceId: workspace.workspaceId || workspaceId,
+  };
 }

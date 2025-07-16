@@ -22,7 +22,7 @@ export interface ToolDefinition {
   name: string;
   description: string;
   inputSchema: {
-    type: "object";
+    type: string;
     properties: Record<string, unknown>;
     required?: string[];
   };
