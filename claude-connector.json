@@ -37,12 +37,7 @@
         "type": "string",
         "title": "Tool Profile",
         "description": "Pre-configured tool set based on your role",
-        "enum": [
-          "full",
-          "product-manager",
-          "customer-success",
-          "developer"
-        ],
+        "enum": ["full", "product-manager", "customer-success", "developer"],
         "enumDescriptions": [
           "All 119 tools available",
           "Features, releases, objectives, and planning tools",
@@ -95,7 +90,7 @@
       "title": "Manage product roadmap",
       "description": "Work with features, releases, and objectives",
       "configuration": {
-        "toolProfile": "product-manager"  
+        "toolProfile": "product-manager"
       }
     }
   ],

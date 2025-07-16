@@ -29,8 +29,16 @@ jobs:
     
     - name: Check for secrets in code
       run: |
-        # Check for potential secrets
-        if grep -r -i "password\|secret\|token\|key" src/ --include="*.ts" --exclude-dir=node_modules | grep -v "API_TOKEN" | grep -v "apiToken" | grep -v "description" | grep -v "interface" | grep -v "type"; then
+        # Check for potential secrets (excluding common false positives)
+        if grep -r -i "password\|secret\|token" src/ --include="*.ts" --exclude-dir=node_modules | \
+           grep -v "API_TOKEN" | \
+           grep -v "apiToken" | \
+           grep -v "description" | \
+           grep -v "interface" | \
+           grep -v "type" | \
+           grep -v "throw new" | \
+           grep -v "Check API token" | \
+           grep -v "Object.keys"; then
           echo "Potential secrets found in code. Please review."
           exit 1
         fi

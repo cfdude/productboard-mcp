@@ -13,18 +13,18 @@ export function setupWebhooksTools() {
         properties: {
           instance: {
             type: "string",
-            description: "Productboard instance name (optional)"
+            description: "Productboard instance name (optional)",
           },
           workspaceId: {
             type: "string",
-            description: "Workspace ID (optional)"
+            description: "Workspace ID (optional)",
           },
           includeRaw: {
             type: "boolean",
-            description: "Include raw API response"
-          }
-        }
-      }
+            description: "Include raw API response",
+          },
+        },
+      },
     },
     {
       name: "productboard_webhooks_create",
@@ -34,27 +34,27 @@ export function setupWebhooksTools() {
         properties: {
           eventType: {
             type: "string",
-            description: "Event type to subscribe to"
+            description: "Event type to subscribe to",
           },
           url: {
             type: "string",
-            description: "Webhook URL"
+            description: "Webhook URL",
           },
           instance: {
             type: "string",
-            description: "Productboard instance name (optional)"
+            description: "Productboard instance name (optional)",
           },
           workspaceId: {
             type: "string",
-            description: "Workspace ID (optional)"
+            description: "Workspace ID (optional)",
           },
           includeRaw: {
             type: "boolean",
-            description: "Include raw API response"
-          }
+            description: "Include raw API response",
+          },
         },
-        required: ["eventType", "url"]
-      }
+        required: ["eventType", "url"],
+      },
     },
     {
       name: "productboard_webhooks_delete",
@@ -64,20 +64,20 @@ export function setupWebhooksTools() {
         properties: {
           webhookId: {
             type: "string",
-            description: "Webhook ID"
+            description: "Webhook ID",
           },
           instance: {
             type: "string",
-            description: "Productboard instance name (optional)"
+            description: "Productboard instance name (optional)",
           },
           workspaceId: {
             type: "string",
-            description: "Workspace ID (optional)"
-          }
+            description: "Workspace ID (optional)",
+          },
         },
-        required: ["webhookId"]
-      }
-    }
+        required: ["webhookId"],
+      },
+    },
   ];
 }
 
@@ -95,45 +95,63 @@ export async function handleWebhooksTool(name: string, args: any) {
 }
 
 async function listWebhooks(args: any) {
-  return await withContext(async (context) => {
-    const response = await context.axios.get("/webhooks");
-    
-    return {
-      content: [{
-        type: "text",
-        text: formatResponse(response.data, args.includeRaw)
-      }]
-    };
-  }, args.instance, args.workspaceId);
+  return await withContext(
+    async (context) => {
+      const response = await context.axios.get("/webhooks");
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: formatResponse(response.data, args.includeRaw),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId,
+  );
 }
 
 async function createWebhook(args: any) {
-  return await withContext(async (context) => {
-    const webhookData = {
-      eventType: args.eventType,
-      url: args.url
-    };
+  return await withContext(
+    async (context) => {
+      const webhookData = {
+        eventType: args.eventType,
+        url: args.url,
+      };
 
-    const response = await context.axios.post("/webhooks", webhookData);
-    
-    return {
-      content: [{
-        type: "text",
-        text: formatResponse(response.data, args.includeRaw)
-      }]
-    };
-  }, args.instance, args.workspaceId);
+      const response = await context.axios.post("/webhooks", webhookData);
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: formatResponse(response.data, args.includeRaw),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId,
+  );
 }
 
 async function deleteWebhook(args: any) {
-  return await withContext(async (context) => {
-    await context.axios.delete(`/webhooks/${args.webhookId}`);
-    
-    return {
-      content: [{
-        type: "text",
-        text: `Webhook ${args.webhookId} deleted successfully`
-      }]
-    };
-  }, args.instance, args.workspaceId);
+  return await withContext(
+    async (context) => {
+      await context.axios.delete(`/webhooks/${args.webhookId}`);
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Webhook ${args.webhookId} deleted successfully`,
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId,
+  );
 }

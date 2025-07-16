@@ -13,22 +13,22 @@ export function setupReleasesTools() {
         properties: {
           limit: {
             type: "number",
-            description: "Maximum number of releases to return"
+            description: "Maximum number of releases to return",
           },
           instance: {
             type: "string",
-            description: "Productboard instance name (optional)"
+            description: "Productboard instance name (optional)",
           },
           workspaceId: {
             type: "string",
-            description: "Workspace ID (optional)"
+            description: "Workspace ID (optional)",
           },
           includeRaw: {
             type: "boolean",
-            description: "Include raw API response"
-          }
-        }
-      }
+            description: "Include raw API response",
+          },
+        },
+      },
     },
     {
       name: "productboard_releases_get",
@@ -38,24 +38,24 @@ export function setupReleasesTools() {
         properties: {
           releaseId: {
             type: "string",
-            description: "Release ID"
+            description: "Release ID",
           },
           instance: {
             type: "string",
-            description: "Productboard instance name (optional)"
+            description: "Productboard instance name (optional)",
           },
           workspaceId: {
             type: "string",
-            description: "Workspace ID (optional)"
+            description: "Workspace ID (optional)",
           },
           includeRaw: {
             type: "boolean",
-            description: "Include raw API response"
-          }
+            description: "Include raw API response",
+          },
         },
-        required: ["releaseId"]
-      }
-    }
+        required: ["releaseId"],
+      },
+    },
   ];
 }
 
@@ -71,30 +71,42 @@ export async function handleReleasesTool(name: string, args: any) {
 }
 
 async function listReleases(args: any) {
-  return await withContext(async (context) => {
-    const params: any = {};
-    if (args.limit) params.pageLimit = Math.min(args.limit, 1000);
+  return await withContext(
+    async (context) => {
+      const params: any = {};
+      if (args.limit) params.pageLimit = Math.min(args.limit, 1000);
 
-    const response = await context.axios.get("/releases", { params });
-    
-    return {
-      content: [{
-        type: "text",
-        text: formatResponse(response.data, args.includeRaw)
-      }]
-    };
-  }, args.instance, args.workspaceId);
+      const response = await context.axios.get("/releases", { params });
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: formatResponse(response.data, args.includeRaw),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId,
+  );
 }
 
 async function getRelease(args: any) {
-  return await withContext(async (context) => {
-    const response = await context.axios.get(`/releases/${args.releaseId}`);
-    
-    return {
-      content: [{
-        type: "text",
-        text: formatResponse(response.data, args.includeRaw)
-      }]
-    };
-  }, args.instance, args.workspaceId);
+  return await withContext(
+    async (context) => {
+      const response = await context.axios.get(`/releases/${args.releaseId}`);
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: formatResponse(response.data, args.includeRaw),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId,
+  );
 }

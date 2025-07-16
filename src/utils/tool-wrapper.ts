@@ -4,7 +4,10 @@
  */
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
 import { loadConfig, getInstance, getWorkspace } from "../config.js";
-import { MultiInstanceProductboardConfig, ProductboardInstanceConfig } from "../types.js";
+import {
+  MultiInstanceProductboardConfig,
+  ProductboardInstanceConfig,
+} from "../types.js";
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 
 export interface ToolContext {
@@ -19,12 +22,12 @@ export interface ToolContext {
  */
 export function createToolContext(
   instanceName?: string,
-  workspaceId?: string
+  workspaceId?: string,
 ): ToolContext {
   try {
     const config = loadConfig();
     const instance = getInstance(config, instanceName);
-    
+
     // If workspace is provided, validate it exists
     if (workspaceId) {
       getWorkspace(config, workspaceId);
@@ -34,7 +37,7 @@ export function createToolContext(
     const axiosInstance = axios.create({
       baseURL: instance.baseUrl,
       headers: {
-        "Authorization": `Bearer ${instance.apiToken}`,
+        Authorization: `Bearer ${instance.apiToken}`,
         "Content-Type": "application/json",
         "X-Version": "1",
       },
@@ -58,24 +61,42 @@ export function createToolContext(
         if (error.response) {
           const status = error.response.status;
           const message = error.response.data?.message || error.message;
-          
+
           if (status === 401) {
-            throw new McpError(ErrorCode.InvalidRequest, "Authentication failed. Check API token.");
+            throw new McpError(
+              ErrorCode.InvalidRequest,
+              "Authentication failed. Check API token.",
+            );
           } else if (status === 403) {
-            throw new McpError(ErrorCode.InvalidRequest, "Access denied. Check permissions.");
+            throw new McpError(
+              ErrorCode.InvalidRequest,
+              "Access denied. Check permissions.",
+            );
           } else if (status === 404) {
             throw new McpError(ErrorCode.InvalidRequest, "Resource not found.");
           } else if (status === 429) {
-            throw new McpError(ErrorCode.InvalidRequest, "Rate limit exceeded. Please try again later.");
+            throw new McpError(
+              ErrorCode.InvalidRequest,
+              "Rate limit exceeded. Please try again later.",
+            );
           } else if (status >= 500) {
-            throw new McpError(ErrorCode.InternalError, `Productboard API error: ${message}`);
+            throw new McpError(
+              ErrorCode.InternalError,
+              `Productboard API error: ${message}`,
+            );
           }
-          
-          throw new McpError(ErrorCode.InvalidRequest, `API error (${status}): ${message}`);
+
+          throw new McpError(
+            ErrorCode.InvalidRequest,
+            `API error (${status}): ${message}`,
+          );
         }
-        
-        throw new McpError(ErrorCode.InternalError, `Network error: ${error.message}`);
-      }
+
+        throw new McpError(
+          ErrorCode.InternalError,
+          `Network error: ${error.message}`,
+        );
+      },
     );
 
     return {
@@ -88,7 +109,10 @@ export function createToolContext(
     if (error instanceof McpError) {
       throw error;
     }
-    throw new McpError(ErrorCode.InternalError, `Configuration error: ${error instanceof Error ? error.message : String(error)}`);
+    throw new McpError(
+      ErrorCode.InternalError,
+      `Configuration error: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 }
 
@@ -98,7 +122,7 @@ export function createToolContext(
 export async function withContext<T>(
   handler: (context: ToolContext) => Promise<T>,
   instanceName?: string,
-  workspaceId?: string
+  workspaceId?: string,
 ): Promise<T> {
   const context = createToolContext(instanceName, workspaceId);
   return await handler(context);
@@ -124,7 +148,7 @@ export async function handlePagination<T>(
   context: ToolContext,
   endpoint: string,
   params: Record<string, any> = {},
-  maxPages: number = 10
+  maxPages: number = 10,
 ): Promise<T[]> {
   const results: T[] = [];
   let page = 1;

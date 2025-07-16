@@ -69,11 +69,11 @@ export function setupToolHandlers(server: Server) {
       if (error instanceof McpError) {
         throw error;
       }
-      
+
       console.error(`Error in tool ${name}:`, error);
       throw new McpError(
         ErrorCode.InternalError,
-        `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`
+        `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   });

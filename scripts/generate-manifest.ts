@@ -59,32 +59,39 @@ function parseOpenAPI(): any {
 }
 
 // Convert OpenAPI path to tool name
-function generateToolName(method: string, path: string, operationId?: string): string {
+function generateToolName(
+  method: string,
+  path: string,
+  operationId?: string,
+): string {
   // Use operationId if available
   if (operationId) {
-    return `productboard_${operationId.replace(/([A-Z])/g, "_$1").toLowerCase().replace(/^_/, "")}`;
+    return `productboard_${operationId
+      .replace(/([A-Z])/g, "_$1")
+      .toLowerCase()
+      .replace(/^_/, "")}`;
   }
-  
+
   // Otherwise generate from path
-  const parts = path.split("/").filter(p => p && !p.startsWith("{"));
+  const parts = path.split("/").filter((p) => p && !p.startsWith("{"));
   const resource = parts[0] || "unknown";
-  
+
   const actionMap: Record<string, string> = {
     get: path.includes("{") ? "get" : "list",
     post: "create",
     put: "update",
     patch: "update",
-    delete: "delete"
+    delete: "delete",
   };
-  
+
   const action = actionMap[method.toLowerCase()] || method.toLowerCase();
-  
+
   // Handle nested resources
   if (parts.length > 2) {
     const subResource = parts[parts.length - 1];
     return `productboard_${resource}_${action}_${subResource}`;
   }
-  
+
   return `productboard_${resource}_${action}`;
 }
 
@@ -93,32 +100,35 @@ function extractCategory(tags: string[] = [], path: string): string {
   if (tags.length > 0) {
     return tags[0].toLowerCase();
   }
-  
-  const parts = path.split("/").filter(p => p && !p.startsWith("{"));
+
+  const parts = path.split("/").filter((p) => p && !p.startsWith("{"));
   return parts[0] || "unknown";
 }
 
 // Extract parameters from operation
-function extractParameters(operation: OpenAPIOperation, pathParams: string[] = []): {
+function extractParameters(
+  operation: OpenAPIOperation,
+  pathParams: string[] = [],
+): {
   required: string[];
   optional: string[];
 } {
   const required: string[] = [];
   const optional: string[] = [];
-  
+
   // Path parameters are always required
-  pathParams.forEach(param => {
+  pathParams.forEach((param) => {
     const paramName = param.replace(/[{}]/g, "");
     if (!required.includes(paramName)) {
       required.push(paramName);
     }
   });
-  
+
   // Query and header parameters
   if (operation.parameters) {
-    operation.parameters.forEach(param => {
+    operation.parameters.forEach((param) => {
       if (param.in === "path") return; // Already handled
-      
+
       if (param.required) {
         required.push(param.name);
       } else {
@@ -126,19 +136,19 @@ function extractParameters(operation: OpenAPIOperation, pathParams: string[] = [
       }
     });
   }
-  
+
   // Request body
   if (operation.requestBody?.required) {
     required.push("body");
   } else if (operation.requestBody) {
     optional.push("body");
   }
-  
+
   // Always include these optional params for consistency
   if (!optional.includes("instance")) optional.push("instance");
   if (!optional.includes("workspaceId")) optional.push("workspaceId");
   if (!optional.includes("includeRaw")) optional.push("includeRaw");
-  
+
   return { required, optional };
 }
 
@@ -146,14 +156,14 @@ function extractParameters(operation: OpenAPIOperation, pathParams: string[] = [
 function generateManifest() {
   console.log("📖 Parsing OpenAPI specification...");
   const openapi = parseOpenAPI();
-  
+
   const manifest: ToolManifest = {
     version: "1.0.0",
     generated: new Date().toISOString(),
     categories: {},
-    tools: {}
+    tools: {},
   };
-  
+
   // Build category info from tags
   if (openapi.tags) {
     openapi.tags.forEach((tag: any) => {
@@ -161,16 +171,16 @@ function generateManifest() {
       manifest.categories[categoryId] = {
         displayName: tag["x-displayName"] || tag.name,
         description: tag.description || `${tag.name} management`,
-        tools: []
+        tools: [],
       };
     });
   }
-  
+
   // Process all paths
   Object.entries(openapi.paths).forEach(([path, pathItem]: [string, any]) => {
     // Extract path parameters
     const pathParams = path.match(/{[^}]+}/g) || [];
-    
+
     // Process each method
     Object.entries(pathItem).forEach(([method, operation]: [string, any]) => {
       if (["get", "post", "put", "patch", "delete"].includes(method)) {
@@ -178,7 +188,7 @@ function generateManifest() {
         const toolName = generateToolName(method, path, op.operationId);
         const category = extractCategory(op.tags, path);
         const { required, optional } = extractParameters(op, pathParams);
-        
+
         // Add tool to manifest
         manifest.tools[toolName] = {
           category,
@@ -186,9 +196,9 @@ function generateManifest() {
           description: op.summary || op.description || `${method} ${path}`,
           requiredParams: required,
           optionalParams: optional,
-          implementation: `tools/${category}.js#${op.operationId || "handle"}`
+          implementation: `tools/${category}.js#${op.operationId || "handle"}`,
         };
-        
+
         // Add to category
         if (manifest.categories[category]) {
           manifest.categories[category].tools.push(toolName);
@@ -196,13 +206,13 @@ function generateManifest() {
           manifest.categories[category] = {
             displayName: category.charAt(0).toUpperCase() + category.slice(1),
             description: `${category} operations`,
-            tools: [toolName]
+            tools: [toolName],
           };
         }
       }
     });
   });
-  
+
   return manifest;
 }
 
@@ -210,29 +220,30 @@ function generateManifest() {
 function main() {
   try {
     console.log("🚀 Starting tool manifest generation...");
-    
+
     // Ensure output directory exists
     mkdirSync(OUTPUT_DIR, { recursive: true });
-    
+
     // Generate manifest
     const manifest = generateManifest();
-    
+
     // Write manifest
     writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2));
-    
+
     // Print statistics
     const toolCount = Object.keys(manifest.tools).length;
     const categoryCount = Object.keys(manifest.categories).length;
-    
-    console.log(`✅ Generated manifest with ${toolCount} tools across ${categoryCount} categories`);
+
+    console.log(
+      `✅ Generated manifest with ${toolCount} tools across ${categoryCount} categories`,
+    );
     console.log(`📁 Output: ${MANIFEST_PATH}`);
-    
+
     // Print category summary
     console.log("\n📊 Category Summary:");
     Object.entries(manifest.categories).forEach(([id, cat]) => {
       console.log(`  - ${cat.displayName}: ${cat.tools.length} tools`);
     });
-    
   } catch (error) {
     console.error("❌ Error generating manifest:", error);
     process.exit(1);
