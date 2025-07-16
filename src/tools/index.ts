@@ -17,11 +17,7 @@ import { setupCompaniesTools } from "./companies.js";
 import { setupUsersTools } from "./users.js";
 import { setupReleasesTools } from "./releases.js";
 import { setupWebhooksTools } from "./webhooks.js";
-import {
-  ToolDefinition,
-  ToolArguments,
-  ToolResponse,
-} from "../types/tool-types.js";
+import { ToolDefinition } from "../types/tool-types.js";
 
 /**
  * Setup all tool handlers for the server

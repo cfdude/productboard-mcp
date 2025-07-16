@@ -13,11 +13,8 @@ import {
   AuthenticationError,
   NetworkError,
   RateLimitError,
-  ConfigurationError,
   sanitizeErrorMessage,
 } from "../errors/index.js";
-import { withRetry, CircuitBreaker } from "./retry.js";
-import { validateRequestSize } from "./validation.js";
 
 export interface ToolContext {
   config: MultiInstanceProductboardConfig;

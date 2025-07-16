@@ -4,10 +4,7 @@
 import { ValidationError } from "../errors/index.js";
 
 // Maximum allowed string lengths
-const MAX_TITLE_LENGTH = 255;
 const MAX_DESCRIPTION_LENGTH = 5000;
-const MAX_CONTENT_LENGTH = 50000;
-const MAX_TAG_LENGTH = 50;
 const MAX_ARRAY_LENGTH = 100;
 const MAX_URL_LENGTH = 2048;
 const MAX_EMAIL_LENGTH = 254;
@@ -15,7 +12,6 @@ const MAX_EMAIL_LENGTH = 254;
 // Regex patterns
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const URL_REGEX = /^https?:\/\/.+/;
-const SAFE_STRING_REGEX = /^[\w\s\-.,!?@#$%^&*()+=\[\]{};:'"<>\/\\|`~]+$/;
 
 /**
  * Sanitize a string input

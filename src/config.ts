@@ -7,7 +7,6 @@ import { join } from "path";
 import {
   MultiInstanceProductboardConfig,
   ProductboardInstanceConfig,
-  ProductboardWorkspaceConfig,
 } from "./types.js";
 
 const CONFIG_FILE = ".productboard-config.json";
