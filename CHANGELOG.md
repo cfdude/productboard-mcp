@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2025-07-16
+
+### Fixed
+
+- **ESM Module Import Issues**
+  - Fixed `ERR_MODULE_NOT_FOUND` error by adding `.js` extensions to imports from `@modelcontextprotocol/sdk/types`
+  - Updated `src/errors/index.ts` and `src/__tests__/errors.test.ts` to use proper ESM syntax
+  - Server now launches successfully with Claude Code without module resolution errors
+
+- **Dynamic Tool Loading**
+  - Temporarily disabled dynamic tool loading to avoid syntax errors in generated files
+  - Server falls back to static tool loading when manifest contains invalid syntax
+  - Preserved 20 core tools including full CRUD operations (create, read, update, delete)
+
+### Technical Details
+
+- Modified TypeScript imports to comply with ESM module resolution
+- Generated files moved to backup due to invalid JavaScript identifiers (spaces in names)
+- Static tool loading ensures reliable server operation
+
 ## [1.1.0] - 2025-01-16
 
 ### 🔒 Security & Reliability Release

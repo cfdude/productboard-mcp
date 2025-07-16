@@ -2,7 +2,7 @@
  * Unit tests for error handling
  */
 import { describe, it, expect } from "@jest/globals";
-import { ErrorCode } from "@modelcontextprotocol/sdk/types";
+import { ErrorCode } from "@modelcontextprotocol/sdk/types.js";
 import {
   ProductboardError,
   ValidationError,

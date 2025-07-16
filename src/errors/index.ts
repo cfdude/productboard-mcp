@@ -1,7 +1,7 @@
 /**
  * Custom error types for Productboard MCP server
  */
-import { ErrorCode } from "@modelcontextprotocol/sdk/types";
+import { ErrorCode } from "@modelcontextprotocol/sdk/types.js";
 
 export class ProductboardError extends Error {
   constructor(
