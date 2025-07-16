@@ -24,7 +24,7 @@ describe("Validation Utilities", () => {
 
     it("should remove dangerous characters", () => {
       expect(sanitizeString("Hello<script>alert('xss')</script>", "test")).toBe(
-        "Helloscriptalert('xss')/script"
+        "Helloscriptalert('xss')/script",
       );
     });
 
@@ -36,7 +36,7 @@ describe("Validation Utilities", () => {
     it("should enforce max length", () => {
       const longString = "a".repeat(300);
       expect(() => sanitizeString(longString, "test", 255)).toThrow(
-        ValidationError
+        ValidationError,
       );
     });
   });
@@ -58,7 +58,7 @@ describe("Validation Utilities", () => {
     it("should validate correct URLs", () => {
       expect(validateUrl("https://example.com")).toBe("https://example.com");
       expect(validateUrl("http://localhost:3000/path")).toBe(
-        "http://localhost:3000/path"
+        "http://localhost:3000/path",
       );
     });
 
@@ -94,16 +94,16 @@ describe("Validation Utilities", () => {
   describe("validateRequired", () => {
     it("should pass when all required fields present", () => {
       expect(() =>
-        validateRequired({ a: 1, b: 2, c: 3 }, ["a", "b"])
+        validateRequired({ a: 1, b: 2, c: 3 }, ["a", "b"]),
       ).not.toThrow();
     });
 
     it("should throw when required fields missing", () => {
-      expect(() => validateRequired({ a: 1, b: undefined }, ["a", "b"])).toThrow(
-        ValidationError
-      );
+      expect(() =>
+        validateRequired({ a: 1, b: undefined }, ["a", "b"]),
+      ).toThrow(ValidationError);
       expect(() => validateRequired({ a: null }, ["a"])).toThrow(
-        ValidationError
+        ValidationError,
       );
     });
   });
@@ -146,7 +146,7 @@ describe("Validation Utilities", () => {
 
     it("should reject invalid enum values", () => {
       expect(() => validateEnum("yellow", validValues, "color")).toThrow(
-        ValidationError
+        ValidationError,
       );
     });
   });

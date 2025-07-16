@@ -18,7 +18,7 @@ describe("Error Types", () => {
     it("should create error with code and message", () => {
       const error = new ProductboardError(
         ErrorCode.InvalidRequest,
-        "Test error"
+        "Test error",
       );
       expect(error.code).toBe(ErrorCode.InvalidRequest);
       expect(error.message).toBe("Test error");
@@ -30,7 +30,7 @@ describe("Error Types", () => {
       const error = new ProductboardError(
         ErrorCode.InternalError,
         "Wrapped error",
-        originalError
+        originalError,
       );
       expect(error.originalError).toBe(originalError);
     });
@@ -117,7 +117,7 @@ describe("sanitizeErrorMessage", () => {
   it("should preserve rate limit messages", () => {
     const error = new RateLimitError(60);
     expect(sanitizeErrorMessage(error)).toBe(
-      "Rate limit exceeded. Retry after 60s"
+      "Rate limit exceeded. Retry after 60s",
     );
   });
 
@@ -133,13 +133,13 @@ describe("sanitizeErrorMessage", () => {
 
   it("should sanitize unknown errors", () => {
     expect(sanitizeErrorMessage(new Error("Sensitive data"))).toBe(
-      "An error occurred processing your request"
+      "An error occurred processing your request",
     );
     expect(sanitizeErrorMessage("String error")).toBe(
-      "An error occurred processing your request"
+      "An error occurred processing your request",
     );
     expect(sanitizeErrorMessage(null)).toBe(
-      "An error occurred processing your request"
+      "An error occurred processing your request",
     );
   });
 });

@@ -7,7 +7,7 @@ export class ProductboardError extends Error {
   constructor(
     public code: ErrorCode,
     message: string,
-    public originalError?: unknown
+    public originalError?: unknown,
   ) {
     super(message);
     this.name = "ProductboardError";
@@ -15,7 +15,10 @@ export class ProductboardError extends Error {
 }
 
 export class ValidationError extends ProductboardError {
-  constructor(message: string, public field?: string) {
+  constructor(
+    message: string,
+    public field?: string,
+  ) {
     super(ErrorCode.InvalidRequest, message);
     this.name = "ValidationError";
   }
@@ -32,7 +35,7 @@ export class RateLimitError extends ProductboardError {
   constructor(public retryAfter?: number) {
     super(
       ErrorCode.InvalidRequest,
-      `Rate limit exceeded${retryAfter ? `. Retry after ${retryAfter}s` : ""}`
+      `Rate limit exceeded${retryAfter ? `. Retry after ${retryAfter}s` : ""}`,
     );
     this.name = "RateLimitError";
   }
@@ -59,23 +62,23 @@ export function sanitizeErrorMessage(error: unknown): string {
   if (error instanceof ValidationError) {
     return error.field ? `Invalid ${error.field}` : "Invalid input";
   }
-  
+
   if (error instanceof AuthenticationError) {
     return "Authentication failed";
   }
-  
+
   if (error instanceof RateLimitError) {
     return error.message;
   }
-  
+
   if (error instanceof NetworkError) {
     return "Network error occurred";
   }
-  
+
   if (error instanceof ConfigurationError) {
     return "Configuration error";
   }
-  
+
   // Generic error - don't expose details
   return "An error occurred processing your request";
 }

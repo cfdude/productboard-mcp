@@ -31,13 +31,13 @@ function sleep(ms: number): Promise<void> {
  */
 function calculateDelay(
   attempt: number,
-  options: Required<RetryOptions>
+  options: Required<RetryOptions>,
 ): number {
   const delay = Math.min(
     options.initialDelay * Math.pow(options.backoffFactor, attempt - 1),
-    options.maxDelay
+    options.maxDelay,
   );
-  
+
   // Add jitter to prevent thundering herd
   const jitter = Math.random() * 0.3 * delay;
   return Math.floor(delay + jitter);
@@ -46,15 +46,18 @@ function calculateDelay(
 /**
  * Determine if error is retryable
  */
-function isRetryableError(error: unknown, options: Required<RetryOptions>): boolean {
+function isRetryableError(
+  error: unknown,
+  options: Required<RetryOptions>,
+): boolean {
   if (error instanceof RateLimitError) {
     return true;
   }
-  
+
   if (error instanceof NetworkError) {
     return true;
   }
-  
+
   // Check axios error response
   if (
     typeof error === "object" &&
@@ -64,7 +67,7 @@ function isRetryableError(error: unknown, options: Required<RetryOptions>): bool
   ) {
     return options.retryableStatuses.includes((error as any).response.status);
   }
-  
+
   return false;
 }
 
@@ -73,25 +76,25 @@ function isRetryableError(error: unknown, options: Required<RetryOptions>): bool
  */
 export async function withRetry<T>(
   fn: () => Promise<T>,
-  options?: RetryOptions
+  options?: RetryOptions,
 ): Promise<T> {
   const opts = { ...DEFAULT_OPTIONS, ...options };
   let lastError: unknown;
-  
+
   for (let attempt = 1; attempt <= opts.maxRetries; attempt++) {
     try {
       return await fn();
     } catch (error) {
       lastError = error;
-      
+
       // Check if we should retry
       if (attempt === opts.maxRetries || !isRetryableError(error, opts)) {
         throw error;
       }
-      
+
       // Calculate delay
       let delay = calculateDelay(attempt, opts);
-      
+
       // Use retry-after header if available
       if (error instanceof RateLimitError && error.retryAfter) {
         delay = error.retryAfter * 1000;
@@ -102,18 +105,18 @@ export async function withRetry<T>(
         (error as any).response?.headers?.["retry-after"]
       ) {
         const retryAfter = parseInt(
-          (error as any).response.headers["retry-after"]
+          (error as any).response.headers["retry-after"],
         );
         if (!isNaN(retryAfter)) {
           delay = retryAfter * 1000;
         }
       }
-      
+
       // Wait before retrying
       await sleep(delay);
     }
   }
-  
+
   throw lastError;
 }
 
@@ -124,12 +127,12 @@ export class CircuitBreaker {
   private failures = 0;
   private lastFailureTime = 0;
   private state: "closed" | "open" | "half-open" = "closed";
-  
+
   constructor(
     private readonly threshold: number = 5,
-    private readonly timeout: number = 60000 // 1 minute
+    private readonly timeout: number = 60000, // 1 minute
   ) {}
-  
+
   async execute<T>(fn: () => Promise<T>): Promise<T> {
     if (this.state === "open") {
       if (Date.now() - this.lastFailureTime > this.timeout) {
@@ -138,7 +141,7 @@ export class CircuitBreaker {
         throw new NetworkError("Circuit breaker is open");
       }
     }
-    
+
     try {
       const result = await fn();
       if (this.state === "half-open") {
@@ -150,16 +153,16 @@ export class CircuitBreaker {
       throw error;
     }
   }
-  
+
   private recordFailure(): void {
     this.failures++;
     this.lastFailureTime = Date.now();
-    
+
     if (this.failures >= this.threshold) {
       this.state = "open";
     }
   }
-  
+
   private reset(): void {
     this.failures = 0;
     this.lastFailureTime = 0;

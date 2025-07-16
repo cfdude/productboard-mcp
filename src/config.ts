@@ -4,10 +4,10 @@
  */
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
-import { 
+import {
   MultiInstanceProductboardConfig,
   ProductboardInstanceConfig,
-  ProductboardWorkspaceConfig 
+  ProductboardWorkspaceConfig,
 } from "./types.js";
 
 const CONFIG_FILE = ".productboard-config.json";

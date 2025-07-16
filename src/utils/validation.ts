@@ -23,30 +23,30 @@ const SAFE_STRING_REGEX = /^[\w\s\-.,!?@#$%^&*()+=\[\]{};:'"<>\/\\|`~]+$/;
 export function sanitizeString(
   value: unknown,
   field: string,
-  maxLength: number = MAX_DESCRIPTION_LENGTH
+  maxLength: number = MAX_DESCRIPTION_LENGTH,
 ): string {
   if (typeof value !== "string") {
     throw new ValidationError(`${field} must be a string`, field);
   }
-  
+
   const trimmed = value.trim();
-  
+
   if (trimmed.length === 0) {
     throw new ValidationError(`${field} cannot be empty`, field);
   }
-  
+
   if (trimmed.length > maxLength) {
     throw new ValidationError(
       `${field} exceeds maximum length of ${maxLength}`,
-      field
+      field,
     );
   }
-  
+
   // Remove potential SQL injection characters
   const sanitized = trimmed
     .replace(/[<>]/g, "") // Remove HTML tags
     .replace(/\0/g, ""); // Remove null bytes
-  
+
   return sanitized;
 }
 
@@ -55,11 +55,11 @@ export function sanitizeString(
  */
 export function validateEmail(value: unknown, field: string = "email"): string {
   const email = sanitizeString(value, field, MAX_EMAIL_LENGTH);
-  
+
   if (!EMAIL_REGEX.test(email)) {
     throw new ValidationError(`Invalid email format`, field);
   }
-  
+
   return email.toLowerCase();
 }
 
@@ -68,11 +68,11 @@ export function validateEmail(value: unknown, field: string = "email"): string {
  */
 export function validateUrl(value: unknown, field: string = "url"): string {
   const url = sanitizeString(value, field, MAX_URL_LENGTH);
-  
+
   if (!URL_REGEX.test(url)) {
     throw new ValidationError(`Invalid URL format`, field);
   }
-  
+
   try {
     new URL(url); // Additional validation
     return url;
@@ -87,23 +87,23 @@ export function validateUrl(value: unknown, field: string = "url"): string {
 export function validateArray<T>(
   value: unknown,
   field: string,
-  validator?: (item: unknown, index: number) => T
+  validator?: (item: unknown, index: number) => T,
 ): T[] {
   if (!Array.isArray(value)) {
     throw new ValidationError(`${field} must be an array`, field);
   }
-  
+
   if (value.length > MAX_ARRAY_LENGTH) {
     throw new ValidationError(
       `${field} exceeds maximum length of ${MAX_ARRAY_LENGTH}`,
-      field
+      field,
     );
   }
-  
+
   if (validator) {
     return value.map((item, index) => validator(item, index));
   }
-  
+
   return value as T[];
 }
 
@@ -112,7 +112,7 @@ export function validateArray<T>(
  */
 export function validateRequired<T extends Record<string, unknown>>(
   obj: T,
-  requiredFields: (keyof T)[]
+  requiredFields: (keyof T)[],
 ): void {
   for (const field of requiredFields) {
     if (obj[field] === undefined || obj[field] === null) {
@@ -132,15 +132,15 @@ export interface PaginationParams {
 export function validatePagination(params: any): PaginationParams {
   const limit = params.limit !== undefined ? Number(params.limit) : 50;
   const offset = params.offset !== undefined ? Number(params.offset) : 0;
-  
+
   if (isNaN(limit) || limit < 1 || limit > 100) {
     throw new ValidationError("Limit must be between 1 and 100", "limit");
   }
-  
+
   if (isNaN(offset) || offset < 0) {
     throw new ValidationError("Offset must be non-negative", "offset");
   }
-  
+
   return { limit, offset };
 }
 
@@ -149,12 +149,12 @@ export function validatePagination(params: any): PaginationParams {
  */
 export function validateDate(value: unknown, field: string): string {
   const dateStr = sanitizeString(value, field, 30);
-  
+
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) {
     throw new ValidationError(`Invalid date format`, field);
   }
-  
+
   return date.toISOString();
 }
 
@@ -164,15 +164,15 @@ export function validateDate(value: unknown, field: string): string {
 export function validateEnum<T extends string>(
   value: unknown,
   validValues: readonly T[],
-  field: string
+  field: string,
 ): T {
   if (!validValues.includes(value as T)) {
     throw new ValidationError(
       `Invalid ${field}. Must be one of: ${validValues.join(", ")}`,
-      field
+      field,
     );
   }
-  
+
   return value as T;
 }
 
@@ -180,16 +180,16 @@ export function validateEnum<T extends string>(
  * Sanitize object by removing undefined/null values
  */
 export function sanitizeObject<T extends Record<string, unknown>>(
-  obj: T
+  obj: T,
 ): Partial<T> {
   const cleaned: Partial<T> = {};
-  
+
   for (const [key, value] of Object.entries(obj)) {
     if (value !== undefined && value !== null) {
       cleaned[key as keyof T] = value as T[keyof T];
     }
   }
-  
+
   return cleaned;
 }
 
@@ -199,7 +199,7 @@ export function sanitizeObject<T extends Record<string, unknown>>(
 export function validateRequestSize(data: unknown): void {
   const size = JSON.stringify(data).length;
   const maxSize = 1024 * 1024; // 1MB
-  
+
   if (size > maxSize) {
     throw new ValidationError("Request payload too large");
   }

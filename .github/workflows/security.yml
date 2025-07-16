@@ -29,8 +29,8 @@ jobs:
     
     - name: Check for secrets in code
       run: |
-        # Check for potential secrets (excluding common false positives)
-        if grep -r -i "password\|secret\|token" src/ --include="*.ts" --exclude-dir=node_modules | \
+        # Check for potential secrets (excluding common false positives and test files)
+        if grep -r -i "password\|secret\|token" src/ --include="*.ts" --exclude-dir=node_modules --exclude-dir=__tests__ | \
            grep -v "API_TOKEN" | \
            grep -v "apiToken" | \
            grep -v "description" | \
@@ -38,13 +38,14 @@ jobs:
            grep -v "type" | \
            grep -v "throw new" | \
            grep -v "Check API token" | \
-           grep -v "Object.keys"; then
+           grep -v "Object.keys" | \
+           grep -v "test\.ts"; then
           echo "Potential secrets found in code. Please review."
           exit 1
         fi
         
         # Check for hardcoded URLs that might contain secrets
-        if grep -r "https://.*@" src/ --include="*.ts" --exclude-dir=node_modules; then
+        if grep -r "https://.*@" src/ --include="*.ts" --exclude-dir=node_modules --exclude-dir=__tests__; then
           echo "URLs with credentials found. Please use environment variables."
           exit 1
         fi

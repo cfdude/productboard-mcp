@@ -74,15 +74,12 @@ export function createToolContext(
           if (status === 401) {
             throw new AuthenticationError();
           } else if (status === 403) {
-            throw new McpError(
-              ErrorCode.InvalidRequest,
-              "Access denied"
-            );
+            throw new McpError(ErrorCode.InvalidRequest, "Access denied");
           } else if (status === 404) {
             throw new McpError(ErrorCode.InvalidRequest, "Resource not found");
           } else if (status === 429) {
             throw new RateLimitError(
-              retryAfter ? parseInt(retryAfter) : undefined
+              retryAfter ? parseInt(retryAfter) : undefined,
             );
           } else if (status >= 500) {
             throw new NetworkError("Server error", error);
@@ -90,7 +87,7 @@ export function createToolContext(
 
           throw new McpError(
             ErrorCode.InvalidRequest,
-            sanitizeErrorMessage(error)
+            sanitizeErrorMessage(error),
           );
         }
 

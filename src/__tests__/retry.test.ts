@@ -13,7 +13,7 @@ describe("Retry Logic", () => {
         attempts++;
         return "success";
       };
-      
+
       const result = await withRetry(fn);
       expect(result).toBe("success");
       expect(attempts).toBe(1);
@@ -70,7 +70,7 @@ describe("Retry Logic", () => {
       };
 
       await expect(
-        withRetry(fn, { maxRetries: 2, initialDelay: 10 })
+        withRetry(fn, { maxRetries: 2, initialDelay: 10 }),
       ).rejects.toThrow(error);
 
       expect(attempts).toBe(2);
@@ -138,7 +138,7 @@ describe("Retry Logic", () => {
 
       // Circuit should be open now
       await expect(breaker.execute(fn)).rejects.toThrow(
-        "Circuit breaker is open"
+        "Circuit breaker is open",
       );
       expect(calls).toBe(3); // Not called on 4th attempt
     });
@@ -147,7 +147,7 @@ describe("Retry Logic", () => {
       const breaker = new CircuitBreaker(2, 50); // 50ms timeout
       let calls = 0;
       let shouldFail = true;
-      
+
       const fn = async () => {
         calls++;
         if (shouldFail) {
@@ -163,12 +163,12 @@ describe("Retry Logic", () => {
 
       // Should be open
       await expect(breaker.execute(fn)).rejects.toThrow(
-        "Circuit breaker is open"
+        "Circuit breaker is open",
       );
       expect(calls).toBe(2);
 
       // Wait for timeout
-      await new Promise(resolve => setTimeout(resolve, 60));
+      await new Promise((resolve) => setTimeout(resolve, 60));
 
       // Should allow one attempt (half-open)
       shouldFail = false;
@@ -181,7 +181,7 @@ describe("Retry Logic", () => {
       const breaker = new CircuitBreaker(2, 50);
       let calls = 0;
       let failCount = 0;
-      
+
       const fn = async () => {
         calls++;
         if (failCount > 0) {
@@ -197,7 +197,7 @@ describe("Retry Logic", () => {
       await expect(breaker.execute(fn)).rejects.toThrow();
 
       // Wait and succeed in half-open
-      await new Promise(resolve => setTimeout(resolve, 60));
+      await new Promise((resolve) => setTimeout(resolve, 60));
       await breaker.execute(fn);
 
       // Should be fully closed now - reset call count
