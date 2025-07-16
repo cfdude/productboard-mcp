@@ -9,6 +9,15 @@ import {
   ProductboardInstanceConfig,
 } from "../types.js";
 import axios, { AxiosInstance } from "axios";
+import {
+  AuthenticationError,
+  NetworkError,
+  RateLimitError,
+  ConfigurationError,
+  sanitizeErrorMessage,
+} from "../errors/index.js";
+import { withRetry, CircuitBreaker } from "./retry.js";
+import { validateRequestSize } from "./validation.js";
 
 export interface ToolContext {
   config: MultiInstanceProductboardConfig;
@@ -60,42 +69,32 @@ export function createToolContext(
       (error) => {
         if (error.response) {
           const status = error.response.status;
-          const message = error.response.data?.message || error.message;
+          const retryAfter = error.response.headers?.["retry-after"];
 
           if (status === 401) {
-            throw new McpError(
-              ErrorCode.InvalidRequest,
-              "Authentication failed. Check API token.",
-            );
+            throw new AuthenticationError();
           } else if (status === 403) {
             throw new McpError(
               ErrorCode.InvalidRequest,
-              "Access denied. Check permissions.",
+              "Access denied"
             );
           } else if (status === 404) {
-            throw new McpError(ErrorCode.InvalidRequest, "Resource not found.");
+            throw new McpError(ErrorCode.InvalidRequest, "Resource not found");
           } else if (status === 429) {
-            throw new McpError(
-              ErrorCode.InvalidRequest,
-              "Rate limit exceeded. Please try again later.",
+            throw new RateLimitError(
+              retryAfter ? parseInt(retryAfter) : undefined
             );
           } else if (status >= 500) {
-            throw new McpError(
-              ErrorCode.InternalError,
-              `Productboard API error: ${message}`,
-            );
+            throw new NetworkError("Server error", error);
           }
 
           throw new McpError(
             ErrorCode.InvalidRequest,
-            `API error (${status}): ${message}`,
+            sanitizeErrorMessage(error)
           );
         }
 
-        throw new McpError(
-          ErrorCode.InternalError,
-          `Network error: ${error.message}`,
-        );
+        throw new NetworkError("Network error", error);
       },
     );
 

@@ -51,6 +51,9 @@ export class ToolRegistry {
   private toolLoaders = new Map<string, ToolLoader>();
   private loadedHandlers = new Map<string, ToolHandler>();
   private enabledCategories: Set<string>;
+  private maxLoadedHandlers = 100; // Maximum number of handlers to keep in memory
+  private handlerAccessCount = new Map<string, number>();
+  private lastAccessTime = new Map<string, number>();
 
   constructor(enabledCategories: string[] = []) {
     this.enabledCategories = new Set(enabledCategories);
@@ -238,6 +241,11 @@ export class ToolRegistry {
       try {
         handler = await loader();
         this.loadedHandlers.set(toolName, handler);
+        
+        // Check memory usage and cleanup if needed
+        if (this.loadedHandlers.size > this.maxLoadedHandlers) {
+          this.cleanupLeastUsedHandlers();
+        }
       } catch (error) {
         console.error(`Failed to load tool ${toolName}:`, error);
         throw new McpError(
@@ -246,6 +254,13 @@ export class ToolRegistry {
         );
       }
     }
+
+    // Track access for memory management
+    this.handlerAccessCount.set(
+      toolName,
+      (this.handlerAccessCount.get(toolName) || 0) + 1
+    );
+    this.lastAccessTime.set(toolName, Date.now());
 
     // Execute handler
     return await handler(args);
@@ -282,5 +297,40 @@ export class ToolRegistry {
   getToolsForCategory(category: string): string[] {
     if (!this.manifest) return [];
     return this.manifest.categories[category]?.tools || [];
+  }
+  
+  /**
+   * Cleanup least used handlers to prevent memory leaks
+   */
+  private cleanupLeastUsedHandlers(): void {
+    const handlersToRemove = Math.floor(this.maxLoadedHandlers * 0.2); // Remove 20% of handlers
+    
+    // Sort handlers by last access time and access count
+    const handlerStats = Array.from(this.loadedHandlers.keys()).map(name => ({
+      name,
+      accessCount: this.handlerAccessCount.get(name) || 0,
+      lastAccess: this.lastAccessTime.get(name) || 0,
+      score: (this.handlerAccessCount.get(name) || 0) * 1000 + 
+             (this.lastAccessTime.get(name) || 0) / 1000000
+    }));
+    
+    handlerStats.sort((a, b) => a.score - b.score);
+    
+    // Remove least used handlers
+    for (let i = 0; i < handlersToRemove && i < handlerStats.length; i++) {
+      const { name } = handlerStats[i];
+      this.loadedHandlers.delete(name);
+      this.handlerAccessCount.delete(name);
+      this.lastAccessTime.delete(name);
+    }
+  }
+  
+  /**
+   * Clear all loaded handlers (for testing or manual cleanup)
+   */
+  clearLoadedHandlers(): void {
+    this.loadedHandlers.clear();
+    this.handlerAccessCount.clear();
+    this.lastAccessTime.clear();
   }
 }

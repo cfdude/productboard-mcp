@@ -116,7 +116,7 @@ function validateConfig(
 export function getInstance(
   config: MultiInstanceProductboardConfig,
   instanceName?: string,
-) {
+): ProductboardInstanceConfig {
   const name = instanceName || config.defaultInstance;
   if (!name || !config.instances[name]) {
     throw new Error(`Instance '${name}' not found in configuration`);
@@ -130,7 +130,7 @@ export function getInstance(
 export function getWorkspace(
   config: MultiInstanceProductboardConfig,
   workspaceId: string,
-) {
+): { instance: string; workspaceId: string } {
   const workspace = config.workspaces[workspaceId];
   if (!workspace) {
     // Return default workspace config
