@@ -62,7 +62,8 @@ jobs:
     - name: Check manifest is up to date
       run: |
         npm run generate-manifest
-        if [ -n "$(git status --porcelain generated/manifest.json)" ]; then
+        # Check if there are changes other than the generated timestamp
+        if git diff generated/manifest.json | grep -v '"generated"' | grep -E '^[+-]' | grep -v '^[+-]---' | grep -v '^[+-]+++' > /dev/null; then
           echo "Manifest is out of date. Run 'npm run generate-manifest' and commit the changes."
           git diff generated/manifest.json
           exit 1
