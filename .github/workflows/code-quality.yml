@@ -63,9 +63,21 @@ jobs:
       run: |
         npm run generate-manifest
         # Check if there are changes other than the generated timestamp
-        if git diff generated/manifest.json | grep -v '"generated"' | grep -E '^[+-]' | grep -v '^[+-]---' | grep -v '^[+-]+++' > /dev/null; then
+        # Remove the timestamp line and check if files are identical
+        cp generated/manifest.json /tmp/manifest-new.json
+        git checkout generated/manifest.json
+        cp generated/manifest.json /tmp/manifest-old.json
+        
+        # Remove timestamp lines and compare
+        grep -v '"generated"' /tmp/manifest-old.json > /tmp/manifest-old-clean.json
+        grep -v '"generated"' /tmp/manifest-new.json > /tmp/manifest-new-clean.json
+        
+        if ! diff -q /tmp/manifest-old-clean.json /tmp/manifest-new-clean.json > /dev/null; then
           echo "Manifest is out of date. Run 'npm run generate-manifest' and commit the changes."
-          git diff generated/manifest.json
+          diff /tmp/manifest-old-clean.json /tmp/manifest-new-clean.json || true
           exit 1
         fi
+        
+        # Restore the newly generated file so git doesn't think it's modified
+        cp /tmp/manifest-new.json generated/manifest.json
         echo "Manifest is up to date!"
