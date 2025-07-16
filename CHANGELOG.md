@@ -5,6 +5,90 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-01-16
+
+### 🔒 Security & Reliability Release
+
+This release addresses all security concerns and recommendations from Claude's comprehensive code review, making the Productboard MCP Server production-ready with enterprise-grade security and reliability features.
+
+### Added
+
+- **Comprehensive Error Handling System**
+  - Custom error type hierarchy (`ProductboardError`, `ValidationError`, `AuthenticationError`, `RateLimitError`, `NetworkError`, `ConfigurationError`)
+  - Error message sanitization to prevent information leakage
+  - Proper error code mapping to MCP error codes
+- **Input Validation & Sanitization**
+  - String sanitization with XSS protection
+  - Email and URL format validation
+  - Array and object validation utilities
+  - Request size limits (1MB maximum payload)
+  - Comprehensive input validation for all API calls
+
+- **Retry Logic & Circuit Breaker**
+  - Exponential backoff with jitter for transient failures
+  - Circuit breaker pattern to prevent cascading failures
+  - Intelligent retry-after header handling
+  - Configurable retry options per operation
+
+- **Memory Management**
+  - LRU-style eviction for dynamic tool handlers
+  - Maximum handler limit (100) to prevent memory leaks
+  - Access tracking for efficient memory usage
+  - Automatic cleanup of least-used handlers
+
+- **Test Suite**
+  - Comprehensive unit tests for validation utilities
+  - Error handling and sanitization tests
+  - Retry logic and circuit breaker tests
+  - Jest configuration with ESM support
+  - 70% coverage thresholds enforced
+
+- **Type Safety Improvements**
+  - Dedicated tool type definitions (`ToolDefinition`, `ToolArguments`, `ToolResponse`)
+  - Proper interfaces replacing `any` types
+  - Return type annotations for all functions
+  - Stricter TypeScript configuration
+
+- **CI/CD Pipeline**
+  - GitHub Actions workflows for continuous integration
+  - Automated security scanning and secret detection
+  - Code quality checks (TypeScript, Prettier, custom linting)
+  - Claude Code Review integration for automated PR reviews
+  - Multi-version Node.js testing (18.x, 20.x)
+
+### Changed
+
+- **Enhanced Error Responses**
+  - All errors now use custom error types with proper sanitization
+  - Consistent error format across all API operations
+  - Better error context without exposing sensitive information
+
+- **Improved HTTP Client Configuration**
+  - Response interceptors for consistent error handling
+  - Proper timeout configuration (30 seconds)
+  - Rate limit handling with retry-after support
+
+### Fixed
+
+- **Security Vulnerabilities**
+  - Input validation prevents injection attacks
+  - Error message sanitization prevents information leakage
+  - Request size limits prevent DoS attacks
+  - Proper error handling prevents system information exposure
+
+- **Memory Leaks**
+  - Dynamic tool loading now includes proper cleanup
+  - Handler cache prevents unbounded memory growth
+  - Efficient memory management for long-running servers
+
+### Developer Experience
+
+- **Better Documentation**
+  - Comprehensive test examples
+  - Error handling guidelines
+  - Security best practices
+  - CI/CD setup instructions
+
 ## [1.0.0] - 2025-01-15
 
 ### 🎉 Initial Release
