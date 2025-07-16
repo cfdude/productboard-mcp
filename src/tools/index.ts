@@ -17,13 +17,14 @@ import { setupCompaniesTools } from "./companies.js";
 import { setupUsersTools } from "./users.js";
 import { setupReleasesTools } from "./releases.js";
 import { setupWebhooksTools } from "./webhooks.js";
+import { ToolDefinition } from "../types/tool-types.js";
 
 /**
  * Setup all tool handlers for the server
  */
-export function setupToolHandlers(server: Server) {
+export function setupToolHandlers(server: Server): void {
   // Tool definitions registry
-  const tools: any[] = [];
+  const tools: ToolDefinition[] = [];
 
   // Register tool categories
   tools.push(...setupNotesTools());
@@ -69,11 +70,11 @@ export function setupToolHandlers(server: Server) {
       if (error instanceof McpError) {
         throw error;
       }
-      
+
       console.error(`Error in tool ${name}:`, error);
       throw new McpError(
         ErrorCode.InternalError,
-        `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`
+        `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   });

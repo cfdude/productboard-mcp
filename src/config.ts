@@ -4,7 +4,10 @@
  */
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
-import { MultiInstanceProductboardConfig, ProductboardConfig } from "./types.js";
+import {
+  MultiInstanceProductboardConfig,
+  ProductboardInstanceConfig,
+} from "./types.js";
 
 const CONFIG_FILE = ".productboard-config.json";
 
@@ -17,7 +20,9 @@ export function loadConfig(): MultiInstanceProductboardConfig {
   if (configPath && existsSync(configPath)) {
     try {
       const configContent = readFileSync(configPath, "utf-8");
-      const config = JSON.parse(configContent) as MultiInstanceProductboardConfig;
+      const config = JSON.parse(
+        configContent,
+      ) as MultiInstanceProductboardConfig;
       return validateConfig(config);
     } catch (error) {
       console.error(`Failed to load config from ${configPath}:`, error);
@@ -33,7 +38,7 @@ export function loadConfig(): MultiInstanceProductboardConfig {
  */
 function findConfigFile(): string | null {
   let currentDir = process.cwd();
-  
+
   while (currentDir !== "/") {
     const configPath = join(currentDir, CONFIG_FILE);
     if (existsSync(configPath)) {
@@ -41,7 +46,7 @@ function findConfigFile(): string | null {
     }
     currentDir = join(currentDir, "..");
   }
-  
+
   return null;
 }
 
@@ -50,7 +55,8 @@ function findConfigFile(): string | null {
  */
 function createConfigFromEnvironment(): MultiInstanceProductboardConfig {
   const apiToken = process.env.PRODUCTBOARD_API_TOKEN;
-  const baseUrl = process.env.PRODUCTBOARD_BASE_URL || "https://api.productboard.com";
+  const baseUrl =
+    process.env.PRODUCTBOARD_BASE_URL || "https://api.productboard.com";
   const workspaceId = process.env.PRODUCTBOARD_WORKSPACE_ID;
 
   if (!apiToken) {
@@ -66,12 +72,14 @@ function createConfigFromEnvironment(): MultiInstanceProductboardConfig {
         workspaces: workspaceId ? [workspaceId] : [],
       },
     },
-    workspaces: workspaceId ? {
-      [workspaceId]: {
-        instance: "default",
-        workspaceId,
-      },
-    } : {},
+    workspaces: workspaceId
+      ? {
+          [workspaceId]: {
+            instance: "default",
+            workspaceId,
+          },
+        }
+      : {},
     defaultInstance: "default",
   };
 }
@@ -79,7 +87,9 @@ function createConfigFromEnvironment(): MultiInstanceProductboardConfig {
 /**
  * Validate configuration structure
  */
-function validateConfig(config: MultiInstanceProductboardConfig): MultiInstanceProductboardConfig {
+function validateConfig(
+  config: MultiInstanceProductboardConfig,
+): MultiInstanceProductboardConfig {
   if (!config.instances || Object.keys(config.instances).length === 0) {
     throw new Error("Configuration must have at least one instance");
   }
@@ -106,7 +116,10 @@ function validateConfig(config: MultiInstanceProductboardConfig): MultiInstanceP
 /**
  * Get instance configuration by name
  */
-export function getInstance(config: MultiInstanceProductboardConfig, instanceName?: string) {
+export function getInstance(
+  config: MultiInstanceProductboardConfig,
+  instanceName?: string,
+): ProductboardInstanceConfig {
   const name = instanceName || config.defaultInstance;
   if (!name || !config.instances[name]) {
     throw new Error(`Instance '${name}' not found in configuration`);
@@ -117,8 +130,11 @@ export function getInstance(config: MultiInstanceProductboardConfig, instanceNam
 /**
  * Get workspace configuration
  */
-export function getWorkspace(config: MultiInstanceProductboardConfig, workspaceId: string) {
-  const workspace = config.workspaces[workspaceId];
+export function getWorkspace(
+  config: MultiInstanceProductboardConfig,
+  workspaceId: string,
+): { instance: string; workspaceId: string } {
+  const workspace = config.workspaces?.[workspaceId];
   if (!workspace) {
     // Return default workspace config
     return {
@@ -126,5 +142,9 @@ export function getWorkspace(config: MultiInstanceProductboardConfig, workspaceI
       workspaceId,
     };
   }
-  return workspace;
+  // Ensure workspaceId is always set
+  return {
+    ...workspace,
+    workspaceId: workspace.workspaceId || workspaceId,
+  };
 }

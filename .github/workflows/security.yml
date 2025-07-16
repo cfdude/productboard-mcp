@@ -1,0 +1,83 @@
+name: Security
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+  schedule:
+    - cron: '0 2 * * 1'  # Run weekly on Mondays at 2 AM
+
+jobs:
+  security-audit:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run security audit
+      run: npm audit --audit-level=moderate
+    
+    - name: Check for secrets in code
+      run: |
+        # Check for potential secrets (excluding common false positives and test files)
+        if grep -r -i "password\|secret\|token" src/ --include="*.ts" --exclude-dir=node_modules --exclude-dir=__tests__ | \
+           grep -v "API_TOKEN" | \
+           grep -v "apiToken" | \
+           grep -v "description" | \
+           grep -v "interface" | \
+           grep -v "type" | \
+           grep -v "throw new" | \
+           grep -v "Check API token" | \
+           grep -v "Object.keys" | \
+           grep -v "test\.ts"; then
+          echo "Potential secrets found in code. Please review."
+          exit 1
+        fi
+        
+        # Check for hardcoded URLs that might contain secrets
+        if grep -r "https://.*@" src/ --include="*.ts" --exclude-dir=node_modules --exclude-dir=__tests__; then
+          echo "URLs with credentials found. Please use environment variables."
+          exit 1
+        fi
+        
+        echo "No obvious secrets found in code."
+    
+    - name: Check dependencies for known vulnerabilities
+      run: |
+        # Check for high/critical vulnerabilities
+        if npm audit --audit-level=high --dry-run | grep -E "(high|critical)"; then
+          echo "High or critical vulnerabilities found. Please update dependencies."
+          npm audit --audit-level=high
+          exit 1
+        fi
+        echo "No high/critical vulnerabilities found."
+    
+    - name: Validate configuration files
+      run: |
+        # Check that example config doesn't contain real tokens
+        if [ -f ".productboard-config.json" ]; then
+          if grep -q "pb_" .productboard-config.json; then
+            echo "Real API token found in config file. This should be an example only."
+            exit 1
+          fi
+        fi
+        
+        # Check Docker files for security best practices
+        if [ -f "Dockerfile" ]; then
+          if grep -q "USER root" Dockerfile; then
+            echo "Running as root in Docker is not recommended."
+            exit 1
+          fi
+        fi
+        
+        echo "Configuration validation passed!"

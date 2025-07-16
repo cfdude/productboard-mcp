@@ -4,8 +4,17 @@
  */
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
 import { loadConfig, getInstance, getWorkspace } from "../config.js";
-import { MultiInstanceProductboardConfig, ProductboardInstanceConfig } from "../types.js";
-import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
+import {
+  MultiInstanceProductboardConfig,
+  ProductboardInstanceConfig,
+} from "../types.js";
+import axios, { AxiosInstance } from "axios";
+import {
+  AuthenticationError,
+  NetworkError,
+  RateLimitError,
+  sanitizeErrorMessage,
+} from "../errors/index.js";
 
 export interface ToolContext {
   config: MultiInstanceProductboardConfig;
@@ -19,12 +28,12 @@ export interface ToolContext {
  */
 export function createToolContext(
   instanceName?: string,
-  workspaceId?: string
+  workspaceId?: string,
 ): ToolContext {
   try {
     const config = loadConfig();
     const instance = getInstance(config, instanceName);
-    
+
     // If workspace is provided, validate it exists
     if (workspaceId) {
       getWorkspace(config, workspaceId);
@@ -32,9 +41,9 @@ export function createToolContext(
 
     // Create configured axios instance
     const axiosInstance = axios.create({
-      baseURL: instance.baseUrl,
+      baseURL: instance.baseUrl || "https://api.productboard.com",
       headers: {
-        "Authorization": `Bearer ${instance.apiToken}`,
+        Authorization: `Bearer ${instance.apiToken}`,
         "Content-Type": "application/json",
         "X-Version": "1",
       },
@@ -57,38 +66,51 @@ export function createToolContext(
       (error) => {
         if (error.response) {
           const status = error.response.status;
-          const message = error.response.data?.message || error.message;
-          
+          const retryAfter = error.response.headers?.["retry-after"];
+
           if (status === 401) {
-            throw new McpError(ErrorCode.InvalidRequest, "Authentication failed. Check API token.");
+            throw new AuthenticationError();
           } else if (status === 403) {
-            throw new McpError(ErrorCode.InvalidRequest, "Access denied. Check permissions.");
+            throw new McpError(ErrorCode.InvalidRequest, "Access denied");
           } else if (status === 404) {
-            throw new McpError(ErrorCode.InvalidRequest, "Resource not found.");
+            throw new McpError(ErrorCode.InvalidRequest, "Resource not found");
           } else if (status === 429) {
-            throw new McpError(ErrorCode.InvalidRequest, "Rate limit exceeded. Please try again later.");
+            throw new RateLimitError(
+              retryAfter ? parseInt(retryAfter) : undefined,
+            );
           } else if (status >= 500) {
-            throw new McpError(ErrorCode.InternalError, `Productboard API error: ${message}`);
+            throw new NetworkError("Server error", error);
           }
-          
-          throw new McpError(ErrorCode.InvalidRequest, `API error (${status}): ${message}`);
+
+          throw new McpError(
+            ErrorCode.InvalidRequest,
+            sanitizeErrorMessage(error),
+          );
         }
-        
-        throw new McpError(ErrorCode.InternalError, `Network error: ${error.message}`);
-      }
+
+        throw new NetworkError("Network error", error);
+      },
     );
 
-    return {
+    const context: ToolContext = {
       config,
       instance,
-      workspaceId,
       axios: axiosInstance,
     };
+
+    if (workspaceId) {
+      context.workspaceId = workspaceId;
+    }
+
+    return context;
   } catch (error) {
     if (error instanceof McpError) {
       throw error;
     }
-    throw new McpError(ErrorCode.InternalError, `Configuration error: ${error instanceof Error ? error.message : String(error)}`);
+    throw new McpError(
+      ErrorCode.InternalError,
+      `Configuration error: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 }
 
@@ -98,7 +120,7 @@ export function createToolContext(
 export async function withContext<T>(
   handler: (context: ToolContext) => Promise<T>,
   instanceName?: string,
-  workspaceId?: string
+  workspaceId?: string,
 ): Promise<T> {
   const context = createToolContext(instanceName, workspaceId);
   return await handler(context);
@@ -124,7 +146,7 @@ export async function handlePagination<T>(
   context: ToolContext,
   endpoint: string,
   params: Record<string, any> = {},
-  maxPages: number = 10
+  maxPages: number = 10,
 ): Promise<T[]> {
   const results: T[] = [];
   let page = 1;

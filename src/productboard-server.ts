@@ -3,7 +3,10 @@
  */
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { ListResourcesRequestSchema, ListPromptsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import {
+  ListResourcesRequestSchema,
+  ListPromptsRequestSchema,
+} from "@modelcontextprotocol/sdk/types.js";
 import { setupToolHandlers } from "./tools/index.js";
 import { setupDynamicToolHandlers } from "./tools/index-dynamic.js";
 import { existsSync } from "fs";
@@ -24,7 +27,7 @@ export class ProductboardServer {
           resources: {},
           prompts: {},
         },
-      }
+      },
     );
 
     // Setup tool handlers - use dynamic loading if manifest exists

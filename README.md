@@ -94,7 +94,7 @@ Create a `.productboard-config.json` file in your project root:
   },
   "defaultInstance": "default",
   "toolCategories": {
-    "enabled": ["*"]  // Enable all tools
+    "enabled": ["*"] // Enable all tools
   }
 }
 ```
@@ -106,7 +106,7 @@ Create a `.productboard-config.json` file in your project root:
 ```json
 {
   "toolCategories": {
-    "activeProfile": "product-manager"  // or "customer-success", "developer"
+    "activeProfile": "product-manager" // or "customer-success", "developer"
   }
 }
 ```
@@ -152,6 +152,7 @@ Create a `.productboard-config.json` file in your project root:
 ## 📚 Tool Categories
 
 ### Core Product Management
+
 - **features** (22 tools): Feature management, roadmapping, and prioritization
 - **components** (3 tools): Component hierarchy and organization
 - **products** (3 tools): Product line management
@@ -159,22 +160,26 @@ Create a `.productboard-config.json` file in your project root:
 - **releaseGroups** (4 tools): Multi-team release coordination
 
 ### Customer Insights
+
 - **notes** (15 tools): Customer feedback, insights, and research
 - **companies** (5 tools): Company/account management
 - **users** (2 tools): User profile and segmentation
 - **companies & users** (18 tools): Combined customer data operations
 
 ### Planning & Strategy
+
 - **objectives** (11 tools): Strategic objectives and OKRs
 - **keyResults** (5 tools): Measurable outcomes and KPIs
 - **initiatives** (11 tools): High-level strategic initiatives
 - **statuses** (1 tool): Feature status workflows
 
 ### Customization
+
 - **custom fields** (6 tools): Custom field definitions and values
 - **hierarchyEntitiesCustomFields** (3 tools): Entity-specific custom fields
 
 ### Integrations
+
 - **webhooks** (4 tools): Event notifications and subscriptions
 - **pluginIntegrations** (10 tools): Third-party integration management
 - **jiraIntegrations** (4 tools): Jira-specific integrations
@@ -218,23 +223,23 @@ productboard_notes_create({
   title: "Feature request: Dark mode",
   content: "Customer wants dark mode support",
   tags: ["ui", "enhancement"],
-  user: { email: "customer@example.com" }
-})
+  user: { email: "customer@example.com" },
+});
 
 // List features with filtering
 productboard_features_list({
   limit: 50,
   status: "in-progress",
-  includeRaw: false
-})
+  includeRaw: false,
+});
 
 // Create a release
 productboard_releases_create({
   name: "Q1 2025 Release",
   description: "Major feature updates",
   startDate: "2025-01-01",
-  endDate: "2025-03-31"
-})
+  endDate: "2025-03-31",
+});
 ```
 
 ## 🛠️ Development
@@ -292,6 +297,7 @@ The server uses a three-tier approach:
 3. **Execution**: Implementation loaded only when tool is called
 
 This enables:
+
 - Fast startup times
 - Minimal memory usage
 - Dynamic tool filtering

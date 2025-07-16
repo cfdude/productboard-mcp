@@ -13,22 +13,22 @@ export function setupUsersTools() {
         properties: {
           limit: {
             type: "number",
-            description: "Maximum number of users to return"
+            description: "Maximum number of users to return",
           },
           instance: {
             type: "string",
-            description: "Productboard instance name (optional)"
+            description: "Productboard instance name (optional)",
           },
           workspaceId: {
             type: "string",
-            description: "Workspace ID (optional)"
+            description: "Workspace ID (optional)",
           },
           includeRaw: {
             type: "boolean",
-            description: "Include raw API response"
-          }
-        }
-      }
+            description: "Include raw API response",
+          },
+        },
+      },
     },
     {
       name: "productboard_users_update",
@@ -38,36 +38,36 @@ export function setupUsersTools() {
         properties: {
           userEmail: {
             type: "string",
-            description: "User email address"
+            description: "User email address",
           },
           name: {
             type: "string",
-            description: "Updated user name"
+            description: "Updated user name",
           },
           companyName: {
             type: "string",
-            description: "Updated company name"
+            description: "Updated company name",
           },
           externalId: {
             type: "string",
-            description: "External ID for the user"
+            description: "External ID for the user",
           },
           instance: {
             type: "string",
-            description: "Productboard instance name (optional)"
+            description: "Productboard instance name (optional)",
           },
           workspaceId: {
             type: "string",
-            description: "Workspace ID (optional)"
+            description: "Workspace ID (optional)",
           },
           includeRaw: {
             type: "boolean",
-            description: "Include raw API response"
-          }
+            description: "Include raw API response",
+          },
         },
-        required: ["userEmail"]
-      }
-    }
+        required: ["userEmail"],
+      },
+    },
   ];
 }
 
@@ -83,35 +83,50 @@ export async function handleUsersTool(name: string, args: any) {
 }
 
 async function listUsers(args: any) {
-  return await withContext(async (context) => {
-    const params: any = {};
-    if (args.limit) params.pageLimit = Math.min(args.limit, 1000);
+  return await withContext(
+    async (context) => {
+      const params: any = {};
+      if (args.limit) params.pageLimit = Math.min(args.limit, 1000);
 
-    const response = await context.axios.get("/users", { params });
-    
-    return {
-      content: [{
-        type: "text",
-        text: formatResponse(response.data, args.includeRaw)
-      }]
-    };
-  }, args.instance, args.workspaceId);
+      const response = await context.axios.get("/users", { params });
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: formatResponse(response.data, args.includeRaw),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId,
+  );
 }
 
 async function updateUser(args: any) {
-  return await withContext(async (context) => {
-    const updateData: any = {};
-    if (args.name) updateData.name = args.name;
-    if (args.companyName) updateData.company = { name: args.companyName };
-    if (args.externalId) updateData.externalId = args.externalId;
+  return await withContext(
+    async (context) => {
+      const updateData: any = {};
+      if (args.name) updateData.name = args.name;
+      if (args.companyName) updateData.company = { name: args.companyName };
+      if (args.externalId) updateData.externalId = args.externalId;
 
-    const response = await context.axios.patch(`/users/${args.userEmail}`, updateData);
-    
-    return {
-      content: [{
-        type: "text",
-        text: formatResponse(response.data, args.includeRaw)
-      }]
-    };
-  }, args.instance, args.workspaceId);
+      const response = await context.axios.patch(
+        `/users/${args.userEmail}`,
+        updateData,
+      );
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: formatResponse(response.data, args.includeRaw),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId,
+  );
 }

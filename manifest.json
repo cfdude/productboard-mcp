@@ -67,12 +67,7 @@
             "type": "string",
             "description": "Pre-configured role profile",
             "required": false,
-            "enum": [
-              "product-manager",
-              "customer-success",
-              "developer",
-              "full"
-            ]
+            "enum": ["product-manager", "customer-success", "developer", "full"]
           }
         }
       }

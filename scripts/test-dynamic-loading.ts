@@ -12,7 +12,9 @@ async function testDynamicLoading() {
   // Check manifest exists
   const manifestPath = join(process.cwd(), "generated", "manifest.json");
   if (!existsSync(manifestPath)) {
-    console.error("❌ Manifest not found. Run 'npm run generate-manifest' first.");
+    console.error(
+      "❌ Manifest not found. Run 'npm run generate-manifest' first.",
+    );
     process.exit(1);
   }
 
@@ -20,20 +22,33 @@ async function testDynamicLoading() {
   const testConfigs = [
     {
       name: "Default categories",
-      categories: ["notes", "features", "companies", "users", "releases", "webhooks"]
+      categories: [
+        "notes",
+        "features",
+        "companies",
+        "users",
+        "releases",
+        "webhooks",
+      ],
     },
     {
       name: "Product manager profile",
-      categories: ["features", "releases", "objectives", "keyresults", "initiatives"]
+      categories: [
+        "features",
+        "releases",
+        "objectives",
+        "keyresults",
+        "initiatives",
+      ],
     },
     {
       name: "Customer success profile",
-      categories: ["notes", "companies", "users", "companies & users"]
+      categories: ["notes", "companies", "users", "companies & users"],
     },
     {
       name: "Developer profile",
-      categories: ["webhooks", "plugin integrations", "jira integrations"]
-    }
+      categories: ["webhooks", "plugin integrations", "jira integrations"],
+    },
   ];
 
   for (const config of testConfigs) {
@@ -58,7 +73,7 @@ async function testDynamicLoading() {
           categoryCount[category] = categoryTools.length;
         }
       }
-      
+
       Object.entries(categoryCount).forEach(([cat, count]) => {
         console.log(`      - ${cat}: ${count} tools`);
       });
@@ -67,14 +82,19 @@ async function testDynamicLoading() {
       if (tools.length > 0) {
         const testTool = tools[0];
         console.log(`   🔧 Testing tool execution: ${testTool.name}`);
-        
+
         try {
           // This will trigger lazy loading
           const mockArgs = { instance: "test", workspaceId: "test" };
           // Note: This will fail without proper context, but we're testing the loading mechanism
-          await registry.executeTool(testTool.name, mockArgs).catch(err => {
-            if (err.message.includes("context") || err.message.includes("config")) {
-              console.log(`   ✅ Tool loaded successfully (execution failed due to missing context - expected)`);
+          await registry.executeTool(testTool.name, mockArgs).catch((err) => {
+            if (
+              err.message.includes("context") ||
+              err.message.includes("config")
+            ) {
+              console.log(
+                `   ✅ Tool loaded successfully (execution failed due to missing context - expected)`,
+              );
             } else {
               throw err;
             }

@@ -13,22 +13,22 @@ export function setupCompaniesTools() {
         properties: {
           limit: {
             type: "number",
-            description: "Maximum number of companies to return"
+            description: "Maximum number of companies to return",
           },
           instance: {
             type: "string",
-            description: "Productboard instance name (optional)"
+            description: "Productboard instance name (optional)",
           },
           workspaceId: {
             type: "string",
-            description: "Workspace ID (optional)"
+            description: "Workspace ID (optional)",
           },
           includeRaw: {
             type: "boolean",
-            description: "Include raw API response"
-          }
-        }
-      }
+            description: "Include raw API response",
+          },
+        },
+      },
     },
     {
       name: "productboard_companies_get",
@@ -38,24 +38,24 @@ export function setupCompaniesTools() {
         properties: {
           companyId: {
             type: "string",
-            description: "Company ID"
+            description: "Company ID",
           },
           instance: {
             type: "string",
-            description: "Productboard instance name (optional)"
+            description: "Productboard instance name (optional)",
           },
           workspaceId: {
             type: "string",
-            description: "Workspace ID (optional)"
+            description: "Workspace ID (optional)",
           },
           includeRaw: {
             type: "boolean",
-            description: "Include raw API response"
-          }
+            description: "Include raw API response",
+          },
         },
-        required: ["companyId"]
-      }
-    }
+        required: ["companyId"],
+      },
+    },
   ];
 }
 
@@ -71,30 +71,42 @@ export async function handleCompaniesTool(name: string, args: any) {
 }
 
 async function listCompanies(args: any) {
-  return await withContext(async (context) => {
-    const params: any = {};
-    if (args.limit) params.pageLimit = Math.min(args.limit, 1000);
+  return await withContext(
+    async (context) => {
+      const params: any = {};
+      if (args.limit) params.pageLimit = Math.min(args.limit, 1000);
 
-    const response = await context.axios.get("/companies", { params });
-    
-    return {
-      content: [{
-        type: "text",
-        text: formatResponse(response.data, args.includeRaw)
-      }]
-    };
-  }, args.instance, args.workspaceId);
+      const response = await context.axios.get("/companies", { params });
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: formatResponse(response.data, args.includeRaw),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId,
+  );
 }
 
 async function getCompany(args: any) {
-  return await withContext(async (context) => {
-    const response = await context.axios.get(`/companies/${args.companyId}`);
-    
-    return {
-      content: [{
-        type: "text",
-        text: formatResponse(response.data, args.includeRaw)
-      }]
-    };
-  }, args.instance, args.workspaceId);
+  return await withContext(
+    async (context) => {
+      const response = await context.axios.get(`/companies/${args.companyId}`);
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: formatResponse(response.data, args.includeRaw),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId,
+  );
 }

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This is the first official release of the Productboard MCP Server, providing comprehensive access to Productboard's REST API through the Model Context Protocol.
 
 ### Added
+
 - **Dynamic Tool Loading System**
   - 119+ API operations loaded on-demand
   - Lazy loading to minimize memory usage
@@ -40,6 +41,7 @@ This is the first official release of the Productboard MCP Server, providing com
   - Profile-based tool selection
 
 ### Tool Categories
+
 - Core Product Management: features, components, products, releases
 - Customer Insights: notes, companies, users
 - Planning & Strategy: objectives, key results, initiatives
@@ -47,6 +49,7 @@ This is the first official release of the Productboard MCP Server, providing com
 - Integrations: webhooks, plugin integrations, Jira integrations
 
 ### Technical Features
+
 - Full TypeScript support
 - Comprehensive error handling
 - Rate limiting support
@@ -54,6 +57,7 @@ This is the first official release of the Productboard MCP Server, providing com
 - MCP v1.0.0 compatibility
 
 ### Documentation
+
 - Comprehensive README with examples
 - Developer experience template (.dxt)
 - Installation guides for all methods

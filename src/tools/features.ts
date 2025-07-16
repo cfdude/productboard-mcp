@@ -13,22 +13,22 @@ export function setupFeaturesTools() {
         properties: {
           limit: {
             type: "number",
-            description: "Maximum number of features to return"
+            description: "Maximum number of features to return",
           },
           instance: {
             type: "string",
-            description: "Productboard instance name (optional)"
+            description: "Productboard instance name (optional)",
           },
           workspaceId: {
-            type: "string", 
-            description: "Workspace ID (optional)"
+            type: "string",
+            description: "Workspace ID (optional)",
           },
           includeRaw: {
             type: "boolean",
-            description: "Include raw API response"
-          }
-        }
-      }
+            description: "Include raw API response",
+          },
+        },
+      },
     },
     {
       name: "productboard_features_get",
@@ -38,24 +38,24 @@ export function setupFeaturesTools() {
         properties: {
           featureId: {
             type: "string",
-            description: "Feature ID"
+            description: "Feature ID",
           },
           instance: {
             type: "string",
-            description: "Productboard instance name (optional)"
+            description: "Productboard instance name (optional)",
           },
           workspaceId: {
             type: "string",
-            description: "Workspace ID (optional)"
+            description: "Workspace ID (optional)",
           },
           includeRaw: {
             type: "boolean",
-            description: "Include raw API response"
-          }
+            description: "Include raw API response",
+          },
         },
-        required: ["featureId"]
-      }
-    }
+        required: ["featureId"],
+      },
+    },
   ];
 }
 
@@ -71,30 +71,42 @@ export async function handleFeaturesTool(name: string, args: any) {
 }
 
 async function listFeatures(args: any) {
-  return await withContext(async (context) => {
-    const params: any = {};
-    if (args.limit) params.pageLimit = Math.min(args.limit, 1000);
+  return await withContext(
+    async (context) => {
+      const params: any = {};
+      if (args.limit) params.pageLimit = Math.min(args.limit, 1000);
 
-    const response = await context.axios.get("/features", { params });
-    
-    return {
-      content: [{
-        type: "text",
-        text: formatResponse(response.data, args.includeRaw)
-      }]
-    };
-  }, args.instance, args.workspaceId);
+      const response = await context.axios.get("/features", { params });
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: formatResponse(response.data, args.includeRaw),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId,
+  );
 }
 
 async function getFeature(args: any) {
-  return await withContext(async (context) => {
-    const response = await context.axios.get(`/features/${args.featureId}`);
-    
-    return {
-      content: [{
-        type: "text",
-        text: formatResponse(response.data, args.includeRaw)
-      }]
-    };
-  }, args.instance, args.workspaceId);
+  return await withContext(
+    async (context) => {
+      const response = await context.axios.get(`/features/${args.featureId}`);
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: formatResponse(response.data, args.includeRaw),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId,
+  );
 }
