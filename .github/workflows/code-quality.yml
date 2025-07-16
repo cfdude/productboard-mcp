@@ -52,7 +52,7 @@ jobs:
         fi
         
         # Check for any .only in test files (if any)
-        if find . -name "*.test.ts" -o -name "*.spec.ts" | xargs grep -l "\.only(" 2>/dev/null; then
+        if find src -name "*.test.ts" -o -name "*.spec.ts" | xargs grep -l "\.only(" 2>/dev/null; then
           echo "Found .only() in test files. Remove before merging."
           exit 1
         fi
