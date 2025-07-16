@@ -17,7 +17,6 @@ This release addresses all security concerns and recommendations from Claude's c
   - Custom error type hierarchy (`ProductboardError`, `ValidationError`, `AuthenticationError`, `RateLimitError`, `NetworkError`, `ConfigurationError`)
   - Error message sanitization to prevent information leakage
   - Proper error code mapping to MCP error codes
-  
 - **Input Validation & Sanitization**
   - String sanitization with XSS protection
   - Email and URL format validation
