@@ -85,9 +85,7 @@ export function setupDynamicToolHandlers(server: Server) {
     registry
       .registerFromManifest()
       .then(() => {
-        console.log(
-          `Loaded ${registry.getToolDefinitions().length} tools from manifest`,
-        );
+        // Tools loaded successfully from manifest
       })
       .catch((error) => {
         console.error("Failed to register tools from manifest:", error);
@@ -133,7 +131,7 @@ export function setupDynamicToolHandlers(server: Server) {
     if (error.message?.includes("configuration")) {
       const newCategories = getEnabledCategories();
       registry.updateEnabledCategories(newCategories);
-      console.log("Updated enabled categories:", newCategories);
+      // Categories updated successfully
     }
   };
 }
