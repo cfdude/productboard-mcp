@@ -8,7 +8,7 @@ import {
   MultiInstanceProductboardConfig,
   ProductboardInstanceConfig,
 } from "../types.js";
-import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
+import axios, { AxiosInstance } from "axios";
 
 export interface ToolContext {
   config: MultiInstanceProductboardConfig;
@@ -35,7 +35,7 @@ export function createToolContext(
 
     // Create configured axios instance
     const axiosInstance = axios.create({
-      baseURL: instance.baseUrl,
+      baseURL: instance.baseUrl || "https://api.productboard.com",
       headers: {
         Authorization: `Bearer ${instance.apiToken}`,
         "Content-Type": "application/json",
@@ -99,12 +99,17 @@ export function createToolContext(
       },
     );
 
-    return {
+    const context: ToolContext = {
       config,
       instance,
-      workspaceId,
       axios: axiosInstance,
     };
+    
+    if (workspaceId) {
+      context.workspaceId = workspaceId;
+    }
+    
+    return context;
   } catch (error) {
     if (error instanceof McpError) {
       throw error;

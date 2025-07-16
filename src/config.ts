@@ -4,10 +4,7 @@
  */
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
-import {
-  MultiInstanceProductboardConfig,
-  ProductboardConfig,
-} from "./types.js";
+import { MultiInstanceProductboardConfig } from "./types.js";
 
 const CONFIG_FILE = ".productboard-config.json";
 

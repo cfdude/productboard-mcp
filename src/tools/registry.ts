@@ -2,7 +2,6 @@
  * Dynamic tool registry with lazy loading support
  */
 import { readFileSync } from "fs";
-import { join } from "path";
 import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
 
 // Tool handler type
@@ -96,9 +95,6 @@ export class ToolRegistry {
       ) {
         continue;
       }
-
-      // Parse implementation path
-      const [modulePath, exportName] = toolInfo.implementation.split("#");
 
       // Register lazy loader
       this.registerLoader(toolName, async () => {
@@ -202,18 +198,20 @@ export class ToolRegistry {
         };
       });
 
-      definitions.push({
+      const toolDef: any = {
         name: toolName,
         description: toolInfo.description,
         inputSchema: {
           type: "object",
           properties,
-          required:
-            toolInfo.requiredParams.length > 0
-              ? toolInfo.requiredParams
-              : undefined,
         },
-      });
+      };
+      
+      if (toolInfo.requiredParams.length > 0) {
+        toolDef.inputSchema.required = toolInfo.requiredParams;
+      }
+      
+      definitions.push(toolDef);
     }
 
     return definitions;
@@ -261,7 +259,7 @@ export class ToolRegistry {
 
     // Clear loaded handlers for disabled categories
     if (this.manifest) {
-      for (const [toolName, handler] of this.loadedHandlers.entries()) {
+      for (const [toolName] of this.loadedHandlers.entries()) {
         const toolInfo = this.manifest.tools[toolName];
         if (toolInfo && !this.enabledCategories.has(toolInfo.category)) {
           this.loadedHandlers.delete(toolName);

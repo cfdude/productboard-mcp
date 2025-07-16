@@ -2,11 +2,7 @@
  * Notes management tools
  * Tier 1: Workflows, Tier 2: Resource Operations, Tier 3: Power User Tools
  */
-import {
-  withContext,
-  formatResponse,
-  handlePagination,
-} from "../utils/tool-wrapper.js";
+import { withContext, formatResponse } from "../utils/tool-wrapper.js";
 
 /**
  * Setup notes tool definitions
@@ -362,7 +358,6 @@ async function processFeedbackWorkflow(args: any) {
   return await withContext(
     async (context) => {
       // Step 1: Create or find company
-      let companyId = null;
       if (args.companyName) {
         // Implementation would search for existing company or create new one
         // For now, we'll include it in the note data
@@ -577,7 +572,7 @@ async function bulkTagManagement(args: any) {
 
 async function generateAnalyticsInsights(args: any) {
   return await withContext(
-    async (context) => {
+    async () => {
       // This would implement analytics logic
       // For now, return placeholder
       return {
