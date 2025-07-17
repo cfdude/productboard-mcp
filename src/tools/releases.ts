@@ -8,7 +8,8 @@ export function setupReleasesTools() {
     {
       name: "releases_list",
       title: "List Releases",
-      description: "Retrieve a list of releases from Productboard. Returns condensed view by default for better performance - use condensed=false for full details",
+      description:
+        "Retrieve a list of releases from Productboard. Returns condensed view by default for better performance - use condensed=false for full details",
       inputSchema: {
         type: "object",
         properties: {
@@ -18,7 +19,8 @@ export function setupReleasesTools() {
           },
           condensed: {
             type: "boolean",
-            description: "Return condensed view with only essential fields (default: true)",
+            description:
+              "Return condensed view with only essential fields (default: true)",
           },
           instance: {
             type: "string",
@@ -38,7 +40,8 @@ export function setupReleasesTools() {
     {
       name: "releases_get",
       title: "Get Release Details",
-      description: "Retrieve detailed information about a specific release with configurable detail levels. Use 'basic' for quick overview, 'standard' for most use cases, 'full' for comprehensive data",
+      description:
+        "Retrieve detailed information about a specific release with configurable detail levels. Use 'basic' for quick overview, 'standard' for most use cases, 'full' for comprehensive data",
       inputSchema: {
         type: "object",
         properties: {
@@ -49,7 +52,8 @@ export function setupReleasesTools() {
           detail: {
             type: "string",
             enum: ["basic", "standard", "full"],
-            description: "Level of detail to return (basic: id/name/dates, standard: +features count/status, full: all data)",
+            description:
+              "Level of detail to return (basic: id/name/dates, standard: +features count/status, full: all data)",
           },
           instance: {
             type: "string",
@@ -91,8 +95,12 @@ async function listReleases(args: any) {
 
       // Apply condensed view by default
       const condensed = args.condensed !== false;
-      
-      if (condensed && response.data?.data && Array.isArray(response.data.data)) {
+
+      if (
+        condensed &&
+        response.data?.data &&
+        Array.isArray(response.data.data)
+      ) {
         const condensedData = {
           ...response.data,
           data: response.data.data.map((release: any) => ({
@@ -101,10 +109,12 @@ async function listReleases(args: any) {
             state: release.state,
             release_date: release.release_date,
             created_at: release.created_at,
-            ...(release.features_count !== undefined && { features_count: release.features_count }),
+            ...(release.features_count !== undefined && {
+              features_count: release.features_count,
+            }),
           })),
         };
-        
+
         return {
           content: [
             {
@@ -133,13 +143,13 @@ async function getRelease(args: any) {
   return await withContext(
     async (context) => {
       const response = await context.axios.get(`/releases/${args.releaseId}`);
-      
+
       const detail = args.detail || "standard";
-      
+
       if (detail !== "full" && response.data?.data) {
         const release = response.data.data;
         let filteredRelease: any;
-        
+
         if (detail === "basic") {
           filteredRelease = {
             id: release.id,
@@ -156,17 +166,22 @@ async function getRelease(args: any) {
             release_date: release.release_date,
             created_at: release.created_at,
             updated_at: release.updated_at,
-            description: release.description ? release.description.substring(0, 200) + (release.description.length > 200 ? "..." : "") : null,
-            ...(release.features_count !== undefined && { features_count: release.features_count }),
+            description: release.description
+              ? release.description.substring(0, 200) +
+                (release.description.length > 200 ? "..." : "")
+              : null,
+            ...(release.features_count !== undefined && {
+              features_count: release.features_count,
+            }),
             ...(release.owner && { owner: release.owner }),
           };
         }
-        
+
         const filteredResponse = {
           ...response.data,
           data: filteredRelease,
         };
-        
+
         return {
           content: [
             {

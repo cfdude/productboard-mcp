@@ -8,7 +8,8 @@ export function setupCompaniesTools() {
     {
       name: "companies_list",
       title: "List Companies",
-      description: "Retrieve a list of companies from Productboard. Returns condensed view by default for better performance - use condensed=false for full details",
+      description:
+        "Retrieve a list of companies from Productboard. Returns condensed view by default for better performance - use condensed=false for full details",
       inputSchema: {
         type: "object",
         properties: {
@@ -18,7 +19,8 @@ export function setupCompaniesTools() {
           },
           condensed: {
             type: "boolean",
-            description: "Return condensed view with only essential fields (default: true)",
+            description:
+              "Return condensed view with only essential fields (default: true)",
           },
           instance: {
             type: "string",
@@ -38,7 +40,8 @@ export function setupCompaniesTools() {
     {
       name: "companies_get",
       title: "Get Company Details",
-      description: "Retrieve detailed information about a specific company with configurable detail levels. Use 'basic' for quick overview, 'standard' for most use cases, 'full' for comprehensive data",
+      description:
+        "Retrieve detailed information about a specific company with configurable detail levels. Use 'basic' for quick overview, 'standard' for most use cases, 'full' for comprehensive data",
       inputSchema: {
         type: "object",
         properties: {
@@ -49,7 +52,8 @@ export function setupCompaniesTools() {
           detail: {
             type: "string",
             enum: ["basic", "standard", "full"],
-            description: "Level of detail to return (basic: id/name/domain, standard: +users count/subscription, full: all data)",
+            description:
+              "Level of detail to return (basic: id/name/domain, standard: +users count/subscription, full: all data)",
           },
           instance: {
             type: "string",
@@ -91,8 +95,12 @@ async function listCompanies(args: any) {
 
       // Apply condensed view by default
       const condensed = args.condensed !== false;
-      
-      if (condensed && response.data?.data && Array.isArray(response.data.data)) {
+
+      if (
+        condensed &&
+        response.data?.data &&
+        Array.isArray(response.data.data)
+      ) {
         const condensedData = {
           ...response.data,
           data: response.data.data.map((company: any) => ({
@@ -100,10 +108,12 @@ async function listCompanies(args: any) {
             name: company.name,
             domain: company.domain,
             created_at: company.created_at,
-            ...(company.subscription && { subscription_tier: company.subscription.tier }),
+            ...(company.subscription && {
+              subscription_tier: company.subscription.tier,
+            }),
           })),
         };
-        
+
         return {
           content: [
             {
@@ -132,13 +142,13 @@ async function getCompany(args: any) {
   return await withContext(
     async (context) => {
       const response = await context.axios.get(`/companies/${args.companyId}`);
-      
+
       const detail = args.detail || "standard";
-      
+
       if (detail !== "full" && response.data?.data) {
         const company = response.data.data;
         let filteredCompany: any;
-        
+
         if (detail === "basic") {
           filteredCompany = {
             id: company.id,
@@ -154,16 +164,20 @@ async function getCompany(args: any) {
             created_at: company.created_at,
             updated_at: company.updated_at,
             ...(company.subscription && { subscription: company.subscription }),
-            ...(company.users_count !== undefined && { users_count: company.users_count }),
-            ...(company.notes_count !== undefined && { notes_count: company.notes_count }),
+            ...(company.users_count !== undefined && {
+              users_count: company.users_count,
+            }),
+            ...(company.notes_count !== undefined && {
+              notes_count: company.notes_count,
+            }),
           };
         }
-        
+
         const filteredResponse = {
           ...response.data,
           data: filteredCompany,
         };
-        
+
         return {
           content: [
             {

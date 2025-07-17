@@ -8,7 +8,8 @@ export function setupUsersTools() {
     {
       name: "users_list",
       title: "List Users",
-      description: "Retrieve a list of users from Productboard. Returns condensed view by default for better performance - use condensed=false for full details",
+      description:
+        "Retrieve a list of users from Productboard. Returns condensed view by default for better performance - use condensed=false for full details",
       inputSchema: {
         type: "object",
         properties: {
@@ -18,7 +19,8 @@ export function setupUsersTools() {
           },
           condensed: {
             type: "boolean",
-            description: "Return condensed view with only essential fields (default: true)",
+            description:
+              "Return condensed view with only essential fields (default: true)",
           },
           instance: {
             type: "string",
@@ -38,7 +40,8 @@ export function setupUsersTools() {
     {
       name: "users_get",
       title: "Get User Details",
-      description: "Retrieve detailed information about a specific user with configurable detail levels. Use 'basic' for quick overview, 'standard' for most use cases, 'full' for comprehensive data",
+      description:
+        "Retrieve detailed information about a specific user with configurable detail levels. Use 'basic' for quick overview, 'standard' for most use cases, 'full' for comprehensive data",
       inputSchema: {
         type: "object",
         properties: {
@@ -49,7 +52,8 @@ export function setupUsersTools() {
           detail: {
             type: "string",
             enum: ["basic", "standard", "full"],
-            description: "Level of detail to return (basic: id/name/email, standard: +company/role, full: all data)",
+            description:
+              "Level of detail to return (basic: id/name/email, standard: +company/role, full: all data)",
           },
           instance: {
             type: "string",
@@ -132,8 +136,12 @@ async function listUsers(args: any) {
 
       // Apply condensed view by default
       const condensed = args.condensed !== false;
-      
-      if (condensed && response.data?.data && Array.isArray(response.data.data)) {
+
+      if (
+        condensed &&
+        response.data?.data &&
+        Array.isArray(response.data.data)
+      ) {
         const condensedData = {
           ...response.data,
           data: response.data.data.map((user: any) => ({
@@ -145,7 +153,7 @@ async function listUsers(args: any) {
             ...(user.role && { role: user.role }),
           })),
         };
-        
+
         return {
           content: [
             {
@@ -174,13 +182,13 @@ async function getUser(args: any) {
   return await withContext(
     async (context) => {
       const response = await context.axios.get(`/users/${args.userId}`);
-      
+
       const detail = args.detail || "standard";
-      
+
       if (detail !== "full" && response.data?.data) {
         const user = response.data.data;
         let filteredUser: any;
-        
+
         if (detail === "basic") {
           filteredUser = {
             id: user.id,
@@ -200,12 +208,12 @@ async function getUser(args: any) {
             ...(user.external_id && { external_id: user.external_id }),
           };
         }
-        
+
         const filteredResponse = {
           ...response.data,
           data: filteredUser,
         };
-        
+
         return {
           content: [
             {

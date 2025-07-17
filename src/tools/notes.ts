@@ -13,7 +13,8 @@ export function setupNotesTools() {
     {
       name: "notes_workflow_feedback_processing",
       title: "Process Customer Feedback",
-      description: "Complete workflow to process customer feedback into notes with company linking",
+      description:
+        "Complete workflow to process customer feedback into notes with company linking",
       inputSchema: {
         type: "object",
         properties: {
@@ -103,7 +104,8 @@ export function setupNotesTools() {
     {
       name: "notes_list",
       title: "List Notes",
-      description: "Retrieve notes with filtering options. Returns condensed view by default for better performance - use condensed=false for full details",
+      description:
+        "Retrieve notes with filtering options. Returns condensed view by default for better performance - use condensed=false for full details",
       inputSchema: {
         type: "object",
         properties: {
@@ -113,7 +115,8 @@ export function setupNotesTools() {
           },
           condensed: {
             type: "boolean",
-            description: "Return condensed view with only essential fields (default: true)",
+            description:
+              "Return condensed view with only essential fields (default: true)",
           },
           createdFrom: {
             type: "string",
@@ -171,7 +174,8 @@ export function setupNotesTools() {
     {
       name: "notes_get",
       title: "Get Note Details",
-      description: "Retrieve a specific note by ID with configurable detail levels. Use 'basic' for quick overview, 'standard' for most use cases, 'full' for comprehensive data",
+      description:
+        "Retrieve a specific note by ID with configurable detail levels. Use 'basic' for quick overview, 'standard' for most use cases, 'full' for comprehensive data",
       inputSchema: {
         type: "object",
         properties: {
@@ -182,7 +186,8 @@ export function setupNotesTools() {
           detail: {
             type: "string",
             enum: ["basic", "standard", "full"],
-            description: "Level of detail to return (basic: id/title/created, standard: +content preview/tags, full: all data)",
+            description:
+              "Level of detail to return (basic: id/title/created, standard: +content preview/tags, full: all data)",
           },
           instance: {
             type: "string",
@@ -465,8 +470,12 @@ async function listNotes(args: any) {
 
       // Apply condensed view by default
       const condensed = args.condensed !== false;
-      
-      if (condensed && response.data?.data && Array.isArray(response.data.data)) {
+
+      if (
+        condensed &&
+        response.data?.data &&
+        Array.isArray(response.data.data)
+      ) {
         const condensedData = {
           ...response.data,
           data: response.data.data.map((note: any) => ({
@@ -479,7 +488,7 @@ async function listNotes(args: any) {
             ...(note.company?.name && { company_name: note.company.name }),
           })),
         };
-        
+
         return {
           content: [
             {
@@ -508,13 +517,13 @@ async function getNote(args: any) {
   return await withContext(
     async (context) => {
       const response = await context.axios.get(`/notes/${args.noteId}`);
-      
+
       const detail = args.detail || "standard";
-      
+
       if (detail !== "full" && response.data?.data) {
         const note = response.data.data;
         let filteredNote: any;
-        
+
         if (detail === "basic") {
           filteredNote = {
             id: note.id,
@@ -529,18 +538,21 @@ async function getNote(args: any) {
             state: note.state,
             created_at: note.created_at,
             updated_at: note.updated_at,
-            content: note.content ? note.content.substring(0, 200) + (note.content.length > 200 ? "..." : "") : null,
+            content: note.content
+              ? note.content.substring(0, 200) +
+                (note.content.length > 200 ? "..." : "")
+              : null,
             ...(note.tags && { tags: note.tags }),
             ...(note.owner && { owner: note.owner }),
             ...(note.company && { company: note.company }),
           };
         }
-        
+
         const filteredResponse = {
           ...response.data,
           data: filteredNote,
         };
-        
+
         return {
           content: [
             {

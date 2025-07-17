@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Improved
 
 - **User Experience**
-  - Removed "productboard_" prefix from tool names for cleaner display in Claude Desktop
+  - Removed "productboard\_" prefix from tool names for cleaner display in Claude Desktop
   - Added `title` parameter to all tool definitions for user-friendly display names
   - Backward compatibility maintained for existing tool name patterns
 

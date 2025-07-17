@@ -8,7 +8,8 @@ export function setupFeaturesTools() {
     {
       name: "features_list",
       title: "List Features",
-      description: "Retrieve a list of features with condensed information by default",
+      description:
+        "Retrieve a list of features with condensed information by default",
       inputSchema: {
         type: "object",
         properties: {
@@ -18,7 +19,8 @@ export function setupFeaturesTools() {
           },
           condensed: {
             type: "boolean",
-            description: "Return condensed view with only essential fields (default: true)",
+            description:
+              "Return condensed view with only essential fields (default: true)",
           },
           instance: {
             type: "string",
@@ -49,7 +51,8 @@ export function setupFeaturesTools() {
           detail: {
             type: "string",
             enum: ["basic", "standard", "full"],
-            description: "Level of detail to return (basic: id/name/status, standard: includes description/owner, full: all data)",
+            description:
+              "Level of detail to return (basic: id/name/status, standard: includes description/owner, full: all data)",
           },
           instance: {
             type: "string",
@@ -89,13 +92,17 @@ async function listFeatures(args: any) {
       params.pageLimit = Math.min(limit, 1000);
 
       const response = await context.axios.get("/features", { params });
-      
+
       // Default to condensed view unless explicitly disabled
       const condensed = args.condensed !== false;
-      
+
       let processedData = response.data;
-      
-      if (condensed && response.data.data && Array.isArray(response.data.data)) {
+
+      if (
+        condensed &&
+        response.data.data &&
+        Array.isArray(response.data.data)
+      ) {
         // Return condensed view with only essential fields
         processedData = {
           ...response.data,
@@ -107,8 +114,8 @@ async function listFeatures(args: any) {
             archived: feature.archived,
             timeframe: feature.timeframe,
             owner: feature.owner,
-            links: feature.links
-          }))
+            links: feature.links,
+          })),
         };
       }
 
@@ -130,13 +137,13 @@ async function getFeature(args: any) {
   return await withContext(
     async (context) => {
       const response = await context.axios.get(`/features/${args.featureId}`);
-      
+
       const detail = args.detail || "standard";
       let processedData = response.data;
-      
+
       if (detail !== "full" && response.data.data) {
         const feature = response.data.data;
-        
+
         if (detail === "basic") {
           // Basic: only id, name, status, type
           processedData = {
@@ -147,8 +154,8 @@ async function getFeature(args: any) {
               type: feature.type,
               status: feature.status,
               archived: feature.archived,
-              links: feature.links
-            }
+              links: feature.links,
+            },
           };
         } else if (detail === "standard") {
           // Standard: includes description, owner, timeframe, but excludes verbose fields
@@ -166,8 +173,8 @@ async function getFeature(args: any) {
               parent: feature.parent,
               createdAt: feature.createdAt,
               updatedAt: feature.updatedAt,
-              links: feature.links
-            }
+              links: feature.links,
+            },
           };
         }
         // "full" returns complete response.data without modification
