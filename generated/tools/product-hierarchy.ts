@@ -3,7 +3,7 @@
  */
 import { withContext, formatResponse } from "../../utils/tool-wrapper.js";
 
-export function setupProduct hierarchyTools() {
+export function setupProductHierarchyTools() {
   return [
     {
       name: "productboard_create_feature",
@@ -11,9 +11,9 @@ export function setupProduct hierarchyTools() {
       inputSchema: {
         type: "object",
         properties: {
-          body: {
+          "args.args.body": {
             type: "string",
-            description: "body parameter"
+            description: "args.args.body parameter"
           },
           null: {
             type: "string",
@@ -32,7 +32,7 @@ export function setupProduct hierarchyTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["body"]
+        required: ["args.args.body"]
       }
     },
     {
@@ -45,15 +45,15 @@ export function setupProduct hierarchyTools() {
             type: "string",
             description: "null parameter (optional)"
           },
-          status.id: {
+          "status.id": {
             type: "string",
             description: "status.id parameter (optional)"
           },
-          status.name: {
+          "status.name": {
             type: "string",
             description: "status.name parameter (optional)"
           },
-          parent.id: {
+          "parent.id": {
             type: "string",
             description: "parent.id parameter (optional)"
           },
@@ -61,11 +61,11 @@ export function setupProduct hierarchyTools() {
             type: "string",
             description: "archived parameter (optional)"
           },
-          owner.email: {
+          "owner.email": {
             type: "string",
             description: "owner.email parameter (optional)"
           },
-          note.id: {
+          "note.id": {
             type: "string",
             description: "note.id parameter (optional)"
           },
@@ -128,9 +128,9 @@ export function setupProduct hierarchyTools() {
             type: "string",
             description: "id parameter"
           },
-          body: {
+          "args.args.body": {
             type: "string",
-            description: "body parameter"
+            description: "args.args.body parameter"
           },
           null: {
             type: "string",
@@ -153,7 +153,7 @@ export function setupProduct hierarchyTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["id","body"]
+        required: ["id","args.args.body"]
       }
     },
     {
@@ -166,9 +166,9 @@ export function setupProduct hierarchyTools() {
             type: "string",
             description: "id parameter"
           },
-          body: {
+          "args.args.body": {
             type: "string",
-            description: "body parameter"
+            description: "args.args.body parameter"
           },
           null: {
             type: "string",
@@ -191,7 +191,7 @@ export function setupProduct hierarchyTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["id","body"]
+        required: ["id","args.args.body"]
       }
     },
     {
@@ -454,9 +454,9 @@ export function setupProduct hierarchyTools() {
       inputSchema: {
         type: "object",
         properties: {
-          body: {
+          "args.args.body": {
             type: "string",
-            description: "body parameter"
+            description: "args.args.body parameter"
           },
           null: {
             type: "string",
@@ -475,7 +475,7 @@ export function setupProduct hierarchyTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["body"]
+        required: ["args.args.body"]
       }
     },
     {
@@ -547,9 +547,9 @@ export function setupProduct hierarchyTools() {
             type: "string",
             description: "id parameter"
           },
-          body: {
+          "args.args.body": {
             type: "string",
-            description: "body parameter"
+            description: "args.args.body parameter"
           },
           null: {
             type: "string",
@@ -572,7 +572,7 @@ export function setupProduct hierarchyTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["id","body"]
+        required: ["id","args.args.body"]
       }
     },
     {
@@ -585,9 +585,9 @@ export function setupProduct hierarchyTools() {
             type: "string",
             description: "id parameter"
           },
-          body: {
+          "args.args.body": {
             type: "string",
-            description: "body parameter"
+            description: "args.args.body parameter"
           },
           null: {
             type: "string",
@@ -610,7 +610,7 @@ export function setupProduct hierarchyTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["id","body"]
+        required: ["id","args.args.body"]
       }
     },
     {
@@ -682,9 +682,9 @@ export function setupProduct hierarchyTools() {
             type: "string",
             description: "id parameter"
           },
-          body: {
+          "args.args.body": {
             type: "string",
-            description: "body parameter"
+            description: "args.args.body parameter"
           },
           null: {
             type: "string",
@@ -707,7 +707,7 @@ export function setupProduct hierarchyTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["id","body"]
+        required: ["id","args.args.body"]
       }
     },
     {
@@ -720,9 +720,9 @@ export function setupProduct hierarchyTools() {
             type: "string",
             description: "id parameter"
           },
-          body: {
+          "args.args.body": {
             type: "string",
-            description: "body parameter"
+            description: "args.args.body parameter"
           },
           null: {
             type: "string",
@@ -745,7 +745,7 @@ export function setupProduct hierarchyTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["id","body"]
+        required: ["id","args.args.body"]
       }
     },
     {
@@ -776,7 +776,7 @@ export function setupProduct hierarchyTools() {
   ];
 }
 
-export async function handleProduct hierarchyTool(name: string, args: any) {
+export async function handleProductHierarchyTool(name: string, args: any) {
   switch (name) {
     case "productboard_create_feature":
       return await featureCreate(args);
@@ -830,7 +830,7 @@ export async function handleProduct hierarchyTool(name: string, args: any) {
 export async function featureCreate(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.post(`/features`, body);
+    const response = await context.axios.post(`/features`, args.body);
     
     return {
       content: [{
@@ -872,7 +872,7 @@ export async function featureGet(args: any) {
 export async function featureUpdate(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.patch(`/features/${args.id}`, body);
+    const response = await context.axios.patch(`/features/${args.id}`, args.body);
     
     return {
       content: [{
@@ -886,7 +886,7 @@ export async function featureUpdate(args: any) {
 export async function featureUpdateDeprecated(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.put(`/features/${args.id}`, body);
+    const response = await context.axios.put(`/features/${args.id}`, args.body);
     
     return {
       content: [{
@@ -998,7 +998,7 @@ export async function objectiveDeleteLink(args: any) {
 export async function componentCreate(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.post(`/components`, body);
+    const response = await context.axios.post(`/components`, args.body);
     
     return {
       content: [{
@@ -1040,7 +1040,7 @@ export async function componentGet(args: any) {
 export async function componentUpdate(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.patch(`/components/${args.id}`, body);
+    const response = await context.axios.patch(`/components/${args.id}`, args.body);
     
     return {
       content: [{
@@ -1054,7 +1054,7 @@ export async function componentUpdate(args: any) {
 export async function componentUpdateDeprecated(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.put(`/components/${args.id}`, body);
+    const response = await context.axios.put(`/components/${args.id}`, args.body);
     
     return {
       content: [{
@@ -1096,7 +1096,7 @@ export async function productGet(args: any) {
 export async function productUpdate(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.patch(`/products/${args.id}`, body);
+    const response = await context.axios.patch(`/products/${args.id}`, args.body);
     
     return {
       content: [{
@@ -1110,7 +1110,7 @@ export async function productUpdate(args: any) {
 export async function productUpdateDeprecated(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.put(`/products/${args.id}`, body);
+    const response = await context.axios.put(`/products/${args.id}`, args.body);
     
     return {
       content: [{

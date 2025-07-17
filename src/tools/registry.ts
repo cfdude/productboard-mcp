@@ -130,15 +130,22 @@ export class ToolRegistry {
           } else {
             // Import from generated tools
             const categoryFile = toolInfo.category
-              .replace(/\s/g, "")
-              .toLowerCase();
+              .toLowerCase()
+              .replace(/&/g, 'and')
+              .replace(/\s+/g, '-')
+              .replace(/[^a-z0-9-]/g, '')
+              .replace(/-+/g, '-')
+              .replace(/^-|-$/g, '');
+            // Use process.cwd() to get the project root
+            const projectRoot = process.cwd();
             const module = await import(
-              `../../generated/tools/${categoryFile}.js`
+              `${projectRoot}/generated/tools/${categoryFile}.js`
             );
 
             // Get the handler function name
             const handlerName = `handle${toolInfo.category
-              .split(" ")
+              .split(/[\s&]+/)
+              .filter(w => w.length > 0)
               .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
               .join("")}Tool`;
             const handler = module[handlerName];

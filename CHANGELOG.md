@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2025-01-17
+
+### 🔧 Bug Fixes & Improvements
+
+This release restores the condensed data functionality and improves the tool naming convention for better developer experience.
+
+### Fixed
+
+- **Restored Condensed Data Functionality**
+  - Re-implemented data filtering logic in `get_features` and `get_companies` tools
+  - Added `condensed` parameter that defaults to `true` for minimal data output
+  - Fixed formatResponse helper to properly handle condensed views
+  - Restored detail levels from previous implementation (commit 8939a92)
+
+- **Tool Naming Convention**
+  - Removed `productboard_` prefix from all tool names for cleaner API
+  - Updated manifest.json and all generated JavaScript files
+  - Created migration script (`scripts/remove-productboard-prefix.js`)
+  - Tools now use simpler names like `get_features` instead of `productboard_get_features`
+
+- **Handler Function Naming Issues**
+  - Fixed handler function name mismatches in registry
+  - Corrected `handleCompaniesAndUsersTools` to `handleCompaniesUsersTool`
+  - Resolved "Handler not found" errors for dynamically loaded tools
+
+- **JavaScript Syntax Errors**
+  - Fixed files with spaces in names causing syntax errors
+  - Corrected malformed property syntax in generated files
+  - Removed TypeScript syntax from JavaScript files
+  - Fixed import path issues
+
+### Changed
+
+- **Tool Parameter Documentation**
+  - Updated tool descriptions to clarify `condensed` vs `pageLimit` parameters
+  - Added proper documentation for detail level options
+  - Improved parameter descriptions in manifest
+
 ## [1.1.0] - 2025-01-16
 
 ### 🔒 Security & Reliability Release

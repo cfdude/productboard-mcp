@@ -1,0 +1,12 @@
+export declare function setupPluginIntegrationsTools(): any[];
+export declare function handlePluginIntegrationsTool(name: string, args: any): Promise<any>;
+export declare function pluginPostIntegration(args: any): Promise<any>;
+export declare function pluginGetIntegrations(args: any): Promise<any>;
+export declare function pluginGetIntegration(args: any): Promise<any>;
+export declare function pluginPatchIntegration(args: any): Promise<any>;
+export declare function pluginPutIntegration(args: any): Promise<any>;
+export declare function pluginDeleteIntegration(args: any): Promise<any>;
+export declare function pluginGetIntegrationconnections(args: any): Promise<any>;
+export declare function pluginGetIntegrationconnection(args: any): Promise<any>;
+export declare function pluginPutIntegrationconnection(args: any): Promise<any>;
+export declare function pluginDeleteIntegrationconnection(args: any): Promise<any>;

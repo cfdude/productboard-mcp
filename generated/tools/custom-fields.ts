@@ -3,7 +3,7 @@
  */
 import { withContext, formatResponse } from "../../utils/tool-wrapper.js";
 
-export function setupCustom fieldsTools() {
+export function setupCustomFieldsTools() {
   return [
     {
       name: "productboard_get_custom_fields",
@@ -45,11 +45,11 @@ export function setupCustom fieldsTools() {
             type: "string",
             description: "type parameter (optional)"
           },
-          customField.id: {
+          "customField.id": {
             type: "string",
             description: "customField.id parameter (optional)"
           },
-          hierarchyEntity.id: {
+          "hierarchyEntity.id": {
             type: "string",
             description: "hierarchyEntity.id parameter (optional)"
           },
@@ -112,11 +112,11 @@ export function setupCustom fieldsTools() {
       inputSchema: {
         type: "object",
         properties: {
-          customField.id: {
+          "customField.id": {
             type: "string",
             description: "customField.id parameter"
           },
-          hierarchyEntity.id: {
+          "hierarchyEntity.id": {
             type: "string",
             description: "hierarchyEntity.id parameter"
           },
@@ -146,17 +146,17 @@ export function setupCustom fieldsTools() {
       inputSchema: {
         type: "object",
         properties: {
-          customField.id: {
+          "customField.id": {
             type: "string",
             description: "customField.id parameter"
           },
-          hierarchyEntity.id: {
+          "hierarchyEntity.id": {
             type: "string",
             description: "hierarchyEntity.id parameter"
           },
-          body: {
+          args.body: {
             type: "string",
-            description: "body parameter"
+            description: "args.body parameter"
           },
           null: {
             type: "string",
@@ -175,7 +175,7 @@ export function setupCustom fieldsTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["customField.id","hierarchyEntity.id","body"]
+        required: ["customField.id","hierarchyEntity.id","args.body"]
       }
     },
     {
@@ -184,11 +184,11 @@ export function setupCustom fieldsTools() {
       inputSchema: {
         type: "object",
         properties: {
-          customField.id: {
+          "customField.id": {
             type: "string",
             description: "customField.id parameter"
           },
-          hierarchyEntity.id: {
+          "hierarchyEntity.id": {
             type: "string",
             description: "hierarchyEntity.id parameter"
           },
@@ -215,7 +215,7 @@ export function setupCustom fieldsTools() {
   ];
 }
 
-export async function handleCustom fieldsTool(name: string, args: any) {
+export async function handleCustomFieldsTool(name: string, args: any) {
   switch (name) {
     case "productboard_get_custom_fields":
       return await customGetFields(args);
@@ -304,7 +304,7 @@ export async function customSetFieldvalue(args: any) {
     if (args.customField.id) params.customField.id = args.customField.id;
     if (args.hierarchyEntity.id) params.hierarchyEntity.id = args.hierarchyEntity.id;
 
-    const response = await context.axios.put(`/hierarchy-entities/custom-fields-values/value`, body, { params });
+    const response = await context.axios.put(`/hierarchy-entities/custom-fields-values/value`, args.body, { params });
     
     return {
       content: [{

@@ -6,21 +6,21 @@
       "displayName": "Notes",
       "description": "notes management",
       "tools": [
-        "create_note",
-        "get_notes",
-        "get_note",
-        "update_note",
-        "delete_note",
-        "bulk_add_note_followers",
-        "remove_note_follower",
-        "list_tags",
-        "create_note_tag",
-        "delete_note_tag",
-        "list_links",
-        "create_link",
-        "list_feedback_form_configurations",
-        "get_feedback_form_configuration",
-        "submit_feedback_form"
+        "productboard_create_note",
+        "productboard_get_notes",
+        "productboard_get_note",
+        "productboard_update_note",
+        "productboard_delete_note",
+        "productboard_bulk_add_note_followers",
+        "productboard_remove_note_follower",
+        "productboard_list_tags",
+        "productboard_create_note_tag",
+        "productboard_delete_note_tag",
+        "productboard_list_links",
+        "productboard_create_link",
+        "productboard_list_feedback_form_configurations",
+        "productboard_get_feedback_form_configuration",
+        "productboard_submit_feedback_form"
       ]
     },
     "followers": {
@@ -44,32 +44,9 @@
       "tools": []
     },
     "products": {
-      "displayName": "Products & Components",
-      "description": "Manage products, components, and features in Productboard",
-      "tools": [
-        "create_feature",
-        "get_features",
-        "get_feature",
-        "update_feature",
-        "update_feature_deprecated",
-        "delete_feature",
-        "list_links_to_initiatives",
-        "create_initiative_link",
-        "delete_initiative_link",
-        "list_links_to_objectives",
-        "create_objective_link",
-        "delete_objective_link",
-        "create_component",
-        "get_components",
-        "get_component",
-        "update_component",
-        "update_component_deprecated",
-        "get_products",
-        "get_product",
-        "update_product",
-        "update_product_deprecated",
-        "get_feature_statuses"
-      ]
+      "displayName": "Products",
+      "description": "products management",
+      "tools": []
     },
     "statuses": {
       "displayName": "Feature statuses",
@@ -90,10 +67,10 @@
       "displayName": "Webhooks",
       "description": "## Getting started\n\nThe following steps are necessary to be able to successfully receive the webhook notifications.\n\n- Subscribe to an event type you are interested in and define URL where your system will be listening for the notifications.\n  - Part of the subscription process is an active probe for basic verification of the destination URL.\n- Handle and confirm incoming webhook notifications.\n  - Use entity ID or URL that are present in the notification to query the latest state of that entity from Productboard.\n  - Full authentication is required to get the sensitive customer data the same as during any other API request.\n- (Optional) Delete the subscription if you are no longer interested in these notifications.\n\n\n## Tips & tricks\n\nThe first steps with webhooks may be quite tricky due to the requirement of a public IP address, valid HTTPS certificate and validating the subscription probe. You can use a free service like https://webhook.site/ for testing the incoming requests. This service also allows you to define a default response for all incoming requests which is handy to successfully pass the subscription probe. Just click the `Edit` button at the top right of the screen and enter `$request.query.validationtoken$` as the response body (lower case `t` in `validationtoken` is correct).\n\nAn alternative may be https://ngrok.com/ which offers a public URL/IP with a valid HTTPS certificate. It is able to route all incoming requests to your machine in a private network which is really handy during development.\n\n**In any case, be very careful about data security when using such publicly accessible services. Always send there only artificial data for development and testing - you never know, who will be able to access them.**\n\n\n## Firewall\n\nPlease whitelist the following static IP addresses with port 443 on your firewall to be able to receive webhook notifications from the Productboard infrastructure.\n\n- 100.25.97.81\n- 35.174.223.66\n- 52.6.23.216\n\n## Notification delivery\n\nOnce a webhook-triggering event occurs, a task is scheduled for immediate execution to deliver the corresponding notification. Once picked by the notification delivery system, the task is executed, sending a HTTP request to the target URL.\n\n### Error handling\n\nThere are things that can go wrong even before a request reaches its destination (e.g. DNS resolution error, sudden network failure, etc.) and even if it does, the target system may not always be able to correctly process the request. This is why the notification delivery system is built to handle these failures.\n\nOur implementation of the webhook notification sender follows the best practices defined by [RestHooks](https://resthooks.org/docs/retries/) and uses response status as the primary metric for determining whether a request has been successful or not.\n- `200`, `201`, `204` and other `2XX` codes: The request is considered successful and the notification is considered as delivered, no retry is needed.\n- Any other response status or error (such as connection error, timeout, etc.) is handled as an unsuccessful delivery attempt and the task is rescheduled for later.\n\nPlease note that we __do not__ follow redirects and as such any response status in the `3XX` range is understood as a failure. To avoid any potential issues, make sure to use the actual URL of your endpoint when subscribing for webhook notifications.\n\n### Retries\n\nIf a notification delivery task fails, it gets rescheduled for later. We use an exponential backoff strategy to determine how long to wait before attempting the delivery again. The table below shows the wait interval for each failed delivery attempt:\n\n| No. of failed attempts | Next wait time |\n|------------------------|----------------|\n| 1                      | 1 m            |\n| 2                      | 3 m            |\n| 3                      | 9 m            |\n| 4                      | 27 m           |\n| 5                      | 1.35 h         |\n| 6                      | 4.05 h         |\n| 7                      | 12.15 h        |\n| 8                      | 36.45 h        |\n\nIf the delivery fails more than eight times in a row, the task will be removed and the notification will be lost.\n\n## Response Structure\n\nThe response structure for webhooks follows a standard format, but for specific events, additional custom fields are included. Here, we outline the general structure and highlight examples of customized response structures for specific events.\n\n### Standard Response Structure\n\nThe standard webhook response structure includes the following fields:\n  \n  | Field      | Type   |  Description                                           | Always Included |\n  |------------|--------|--------------------------------------------------------|-----------------|\n  | id         | uuid   | The id of the resource that triggered the webhook.     | No              | \n  | eventType  | enum   | The type of event that triggered the webhook.          | Yes             |\n  | link       | object | A JSON object including a link to the relevant target. | Yes             |\n\nExample:\n```\n{\n  \"id\": \"00000000-0000-0000-0000-000000000000\",\n  \"eventType\": \"feature.created\",\n  \"link\": {\n    \"target\": \"https://api.productboard.com/features/00000000-0000-0000-0000-000000000000\",\n  }\n}\n```\n\n### Customized Response Structure\n\nFor specific events, we include additional fields in the webhook response to provide more context and relevant data. Each event with a customized response is listed below with the additional custom fields that are included in its response.\n\n#### `feature.updated` Additional Fields\n\n  | Field              | Type             | Description                                           | Always Included |\n  |--------------------|------------------|-------------------------------------------------------|-----------------|\n  | updatedAttributes  | array of strings | The field names on the resource that were updated.    | Yes             |\n\nExample:\n```\n{\n  \"id\": \"00000000-0000-0000-0000-000000000000\",\n  \"eventType\": \"feature.updated\",\n  \"link\": {\n    \"target\": \"https://api.productboard.com/features/00000000-0000-0000-0000-000000000000\",\n  },\n  \"updatedAttributes\": [\n    \"status\"\n  ]\n}\n```\n",
       "tools": [
-        "post_webhook",
-        "get_webhooks",
-        "get_webhook",
-        "delete_webhook"
+        "productboard_post_webhook",
+        "productboard_get_webhooks",
+        "productboard_get_webhook",
+        "productboard_delete_webhook"
       ]
     },
     "pluginintegrations": {
@@ -140,17 +117,17 @@
       "displayName": "Objectives",
       "description": "This API allows manipulation of *objectives*.\n",
       "tools": [
-        "get_objectives",
-        "create_objective",
-        "get_objective",
-        "update_objective",
-        "delete_objective",
-        "list_links_objective_to_features",
-        "list_links_objective_to_initiatives",
-        "create_objective_to_initiative_link",
-        "delete_objective_to_initiative_link",
-        "create_objective_to_feature_link",
-        "delete_objective_to_feature_link"
+        "productboard_get_objectives",
+        "productboard_create_objective",
+        "productboard_get_objective",
+        "productboard_update_objective",
+        "productboard_delete_objective",
+        "productboard_list_links_objective_to_features",
+        "productboard_list_links_objective_to_initiatives",
+        "productboard_create_objective_to_initiative_link",
+        "productboard_delete_objective_to_initiative_link",
+        "productboard_create_objective_to_feature_link",
+        "productboard_delete_objective_to_feature_link"
       ]
     },
     "keyresults": {
@@ -162,119 +139,142 @@
       "displayName": "Initiatives",
       "description": "This API allows manipulation of *initiatives*.\n",
       "tools": [
-        "get_initiatives",
-        "create_initiative",
-        "get_initiative",
-        "update_initiative",
-        "delete_initiative",
-        "list_links_initiative_to_objectives",
-        "list_links_initiative_to_features",
-        "create_initiative_to_objective_link",
-        "delete_initiative_to_objective_link",
-        "create_initiative_to_feature_link",
-        "delete_initiative_to_feature_link"
+        "productboard_get_initiatives",
+        "productboard_create_initiative",
+        "productboard_get_initiative",
+        "productboard_update_initiative",
+        "productboard_delete_initiative",
+        "productboard_list_links_initiative_to_objectives",
+        "productboard_list_links_initiative_to_features",
+        "productboard_create_initiative_to_objective_link",
+        "productboard_delete_initiative_to_objective_link",
+        "productboard_create_initiative_to_feature_link",
+        "productboard_delete_initiative_to_feature_link"
       ]
     },
     "companies & users": {
       "displayName": "Companies & users",
       "description": "companies & users operations",
       "tools": [
-        "create_company",
-        "get_companies",
-        "get_company",
-        "update_company",
-        "delete_company",
-        "create_company_field",
-        "list_company_fields",
-        "get_company_field",
-        "update_company_field",
-        "delete_company_field",
-        "get_company_field_value",
-        "set_company_field_value",
-        "delete_company_field_value",
-        "get_users",
-        "create_user",
-        "get_user",
-        "update_user",
-        "delete_user"
+        "productboard_create_company",
+        "productboard_get_companies",
+        "productboard_get_company",
+        "productboard_update_company",
+        "productboard_delete_company",
+        "productboard_create_company_field",
+        "productboard_list_company_fields",
+        "productboard_get_company_field",
+        "productboard_update_company_field",
+        "productboard_delete_company_field",
+        "productboard_get_company_field_value",
+        "productboard_set_company_field_value",
+        "productboard_delete_company_field_value",
+        "productboard_get_users",
+        "productboard_create_user",
+        "productboard_get_user",
+        "productboard_update_user",
+        "productboard_delete_user"
       ]
     },
     "product hierarchy": {
       "displayName": "Product hierarchy",
       "description": "product hierarchy operations",
-      "tools": []
+      "tools": [
+        "productboard_create_feature",
+        "productboard_get_features",
+        "productboard_get_feature",
+        "productboard_update_feature",
+        "productboard_update_feature_deprecated",
+        "productboard_delete_feature",
+        "productboard_list_links_to_initiatives",
+        "productboard_create_initiative_link",
+        "productboard_delete_initiative_link",
+        "productboard_list_links_to_objectives",
+        "productboard_create_objective_link",
+        "productboard_delete_objective_link",
+        "productboard_create_component",
+        "productboard_get_components",
+        "productboard_get_component",
+        "productboard_update_component",
+        "productboard_update_component_deprecated",
+        "productboard_get_products",
+        "productboard_get_product",
+        "productboard_update_product",
+        "productboard_update_product_deprecated",
+        "productboard_get_feature_statuses"
+      ]
     },
     "custom fields": {
       "displayName": "Custom fields",
       "description": "custom fields operations",
       "tools": [
-        "get_custom_fields",
-        "get_custom_fields_values",
-        "get_custom_field",
-        "get_custom_field_value",
-        "set_custom_field_value",
-        "delete_custom_field_value"
+        "productboard_get_custom_fields",
+        "productboard_get_custom_fields_values",
+        "productboard_get_custom_field",
+        "productboard_get_custom_field_value",
+        "productboard_set_custom_field_value",
+        "productboard_delete_custom_field_value"
       ]
     },
     "releases & release groups": {
       "displayName": "Releases & release groups",
       "description": "releases & release groups operations",
       "tools": [
-        "create_release_group",
-        "list_release_groups",
-        "get_release_group",
-        "update_release_group",
-        "delete_release_group",
-        "create_release",
-        "list_releases",
-        "get_release",
-        "update_release",
-        "delete_release",
-        "list_feature_release_assignments",
-        "get_feature_release_assignment",
-        "update_feature_release_assignment"
+        "productboard_create_release_group",
+        "productboard_list_release_groups",
+        "productboard_get_release_group",
+        "productboard_update_release_group",
+        "productboard_delete_release_group",
+        "productboard_create_release",
+        "productboard_list_releases",
+        "productboard_get_release",
+        "productboard_update_release",
+        "productboard_delete_release",
+        "productboard_list_feature_release_assignments",
+        "productboard_get_feature_release_assignment",
+        "productboard_update_feature_release_assignment"
       ]
     },
     "key results": {
       "displayName": "Key results",
       "description": "key results operations",
       "tools": [
-        "get_key_results",
-        "create_key_result",
-        "get_key_result",
-        "update_key_result",
-        "delete_key_result"
+        "productboard_get_key_results",
+        "productboard_create_key_result",
+        "productboard_get_key_result",
+        "productboard_update_key_result",
+        "productboard_delete_key_result"
       ]
     },
     "plugin integrations": {
       "displayName": "Plugin integrations",
       "description": "plugin integrations operations",
       "tools": [
-        "post_plugin_integration",
-        "get_plugin_integrations",
-        "get_plugin_integration",
-        "patch_plugin_integration",
-        "put_plugin_integration",
-        "delete_plugin_integration",
-        "get_plugin_integration_connections",
-        "get_plugin_integration_connection",
-        "put_plugin_integration_connection",
-        "delete_plugin_integration_connection"
+        "productboard_post_plugin_integration",
+        "productboard_get_plugin_integrations",
+        "productboard_get_plugin_integration",
+        "productboard_patch_plugin_integration",
+        "productboard_put_plugin_integration",
+        "productboard_delete_plugin_integration",
+        "productboard_get_plugin_integration_connections",
+        "productboard_get_plugin_integration_connection",
+        "productboard_put_plugin_integration_connection",
+        "productboard_delete_plugin_integration_connection"
       ]
     },
     "jira integrations": {
       "displayName": "Jira integrations",
       "description": "jira integrations operations",
       "tools": [
-        "get_jira_integration",
-        "get_jira_integrations",
-        "get_jira_integration_connection",
-        "get_jira_integration_connections"
+        "productboard_get_jira_integration",
+        "productboard_get_jira_integrations",
+        "productboard_get_jira_integration_connection",
+        "productboard_get_jira_integration_connections"
       ]
     }
   },
   "tools": {
-    "create_note": {
+    "productboard_create_note": {
       "category": "notes",
       "operation": "POST /notes",
       "description": "Create a note",
@@ -289,7 +289,7 @@
       ],
       "implementation": "tools/notes.js#create_note"
     },
-    "get_notes": {
+    "productboard_get_notes": {
       "category": "notes",
       "operation": "GET /notes",
       "description": "List all notes",
@@ -318,7 +318,7 @@
       ],
       "implementation": "tools/notes.js#getNotes"
     },
-    "get_note": {
+    "productboard_get_note": {
       "category": "notes",
       "operation": "GET /notes/{id}",
       "description": "Retrieve a note",
@@ -334,7 +334,7 @@
       ],
       "implementation": "tools/notes.js#getNote"
     },
-    "update_note": {
+    "productboard_update_note": {
       "category": "notes",
       "operation": "PATCH /notes/{id}",
       "description": "Update a note",
@@ -351,7 +351,7 @@
       ],
       "implementation": "tools/notes.js#updateNote"
     },
-    "delete_note": {
+    "productboard_delete_note": {
       "category": "notes",
       "operation": "DELETE /notes/{id}",
       "description": "Delete a note",
@@ -367,7 +367,7 @@
       ],
       "implementation": "tools/notes.js#deleteNote"
     },
-    "bulk_add_note_followers": {
+    "productboard_bulk_add_note_followers": {
       "category": "notes",
       "operation": "POST /notes/{noteId}/user-followers",
       "description": "Add followers to a note",
@@ -382,7 +382,7 @@
       ],
       "implementation": "tools/notes.js#bulkAddNoteFollowers"
     },
-    "remove_note_follower": {
+    "productboard_remove_note_follower": {
       "category": "notes",
       "operation": "DELETE /notes/{noteId}/user-followers/{email}",
       "description": "Remove a follower from a note",
@@ -397,7 +397,7 @@
       ],
       "implementation": "tools/notes.js#removeNoteFollower"
     },
-    "list_tags": {
+    "productboard_list_tags": {
       "category": "notes",
       "operation": "GET /notes/{noteId}/tags",
       "description": "List tags",
@@ -411,7 +411,7 @@
       ],
       "implementation": "tools/notes.js#listTags"
     },
-    "create_note_tag": {
+    "productboard_create_note_tag": {
       "category": "notes",
       "operation": "POST /notes/{noteId}/tags/{tagName}",
       "description": "Create a tag",
@@ -426,7 +426,7 @@
       ],
       "implementation": "tools/notes.js#createNoteTag"
     },
-    "delete_note_tag": {
+    "productboard_delete_note_tag": {
       "category": "notes",
       "operation": "DELETE /notes/{noteId}/tags/{tagName}",
       "description": "Remove a tag from a note",
@@ -441,7 +441,7 @@
       ],
       "implementation": "tools/notes.js#deleteNoteTag"
     },
-    "list_links": {
+    "productboard_list_links": {
       "category": "notes",
       "operation": "GET /notes/{noteId}/links",
       "description": "List links",
@@ -457,7 +457,7 @@
       ],
       "implementation": "tools/notes.js#listLinks"
     },
-    "create_link": {
+    "productboard_create_link": {
       "category": "notes",
       "operation": "POST /notes/{noteId}/links/{entityId}",
       "description": "Create a link",
@@ -474,7 +474,7 @@
       ],
       "implementation": "tools/notes.js#createLink"
     },
-    "list_feedback_form_configurations": {
+    "productboard_list_feedback_form_configurations": {
       "category": "notes",
       "operation": "GET /feedback-form-configurations",
       "description": "List all feedback form configurations",
@@ -487,7 +487,7 @@
       ],
       "implementation": "tools/notes.js#listFeedbackFormConfigurations"
     },
-    "get_feedback_form_configuration": {
+    "productboard_get_feedback_form_configuration": {
       "category": "notes",
       "operation": "GET /feedback-form-configurations/{id}",
       "description": "Retrieve a feedback form configuration",
@@ -503,7 +503,7 @@
       ],
       "implementation": "tools/notes.js#getFeedbackFormConfiguration"
     },
-    "submit_feedback_form": {
+    "productboard_submit_feedback_form": {
       "category": "notes",
       "operation": "POST /feedback-forms",
       "description": "Submit a feedback form",
@@ -517,7 +517,7 @@
       ],
       "implementation": "tools/notes.js#submitFeedbackForm"
     },
-    "create_company": {
+    "productboard_create_company": {
       "category": "companies & users",
       "operation": "POST /companies",
       "description": "Create a company",
@@ -530,9 +530,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/companies-and-users.js#createCompany"
+      "implementation": "tools/companies & users.js#createCompany"
     },
-    "get_companies": {
+    "productboard_get_companies": {
       "category": "companies & users",
       "operation": "GET /companies",
       "description": "List all companies",
@@ -548,9 +548,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/companies-and-users.js#getCompanies"
+      "implementation": "tools/companies & users.js#getCompanies"
     },
-    "get_company": {
+    "productboard_get_company": {
       "category": "companies & users",
       "operation": "GET /companies/{id}",
       "description": "Retrieve company",
@@ -564,9 +564,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/companies-and-users.js#getCompany"
+      "implementation": "tools/companies & users.js#getCompany"
     },
-    "update_company": {
+    "productboard_update_company": {
       "category": "companies & users",
       "operation": "PATCH /companies/{id}",
       "description": "Update a company",
@@ -581,9 +581,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/companies-and-users.js#updateCompany"
+      "implementation": "tools/companies & users.js#updateCompany"
     },
-    "delete_company": {
+    "productboard_delete_company": {
       "category": "companies & users",
       "operation": "DELETE /companies/{id}",
       "description": "Delete a company",
@@ -597,9 +597,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/companies-and-users.js#deleteCompany"
+      "implementation": "tools/companies & users.js#deleteCompany"
     },
-    "create_company_field": {
+    "productboard_create_company_field": {
       "category": "companies & users",
       "operation": "POST /companies/custom-fields",
       "description": "Create a company field",
@@ -612,9 +612,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/companies-and-users.js#createCompanyField"
+      "implementation": "tools/companies & users.js#createCompanyField"
     },
-    "list_company_fields": {
+    "productboard_list_company_fields": {
       "category": "companies & users",
       "operation": "GET /companies/custom-fields",
       "description": "Retrieve company fields",
@@ -625,9 +625,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/companies-and-users.js#listCompanyFields"
+      "implementation": "tools/companies & users.js#listCompanyFields"
     },
-    "get_company_field": {
+    "productboard_get_company_field": {
       "category": "companies & users",
       "operation": "GET /companies/custom-fields/{id}",
       "description": "Retrieve a company field",
@@ -641,9 +641,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/companies-and-users.js#getCompanyField"
+      "implementation": "tools/companies & users.js#getCompanyField"
     },
-    "update_company_field": {
+    "productboard_update_company_field": {
       "category": "companies & users",
       "operation": "PATCH /companies/custom-fields/{id}",
       "description": "Update a company field",
@@ -658,9 +658,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/companies-and-users.js#updateCompanyField"
+      "implementation": "tools/companies & users.js#updateCompanyField"
     },
-    "delete_company_field": {
+    "productboard_delete_company_field": {
       "category": "companies & users",
       "operation": "DELETE /companies/custom-fields/{id}",
       "description": "Delete a company field",
@@ -674,9 +674,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/companies-and-users.js#deleteCompanyField"
+      "implementation": "tools/companies & users.js#deleteCompanyField"
     },
-    "get_company_field_value": {
+    "productboard_get_company_field_value": {
       "category": "companies & users",
       "operation": "GET /companies/{companyId}/custom-fields/{companyCustomFieldId}/value",
       "description": "Retrieve company field value",
@@ -692,9 +692,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/companies-and-users.js#getCompanyFieldValue"
+      "implementation": "tools/companies & users.js#getCompanyFieldValue"
     },
-    "set_company_field_value": {
+    "productboard_set_company_field_value": {
       "category": "companies & users",
       "operation": "PUT /companies/{companyId}/custom-fields/{companyCustomFieldId}/value",
       "description": "Sets company field value",
@@ -711,9 +711,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/companies-and-users.js#setCompanyFieldValue"
+      "implementation": "tools/companies & users.js#setCompanyFieldValue"
     },
-    "delete_company_field_value": {
+    "productboard_delete_company_field_value": {
       "category": "companies & users",
       "operation": "DELETE /companies/{companyId}/custom-fields/{companyCustomFieldId}/value",
       "description": "Delete company field value",
@@ -729,9 +729,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/companies-and-users.js#deleteCompanyFieldValue"
+      "implementation": "tools/companies & users.js#deleteCompanyFieldValue"
     },
-    "get_users": {
+    "productboard_get_users": {
       "category": "companies & users",
       "operation": "GET /users",
       "description": "List all users",
@@ -742,9 +742,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/companies-and-users.js#getUsers"
+      "implementation": "tools/companies & users.js#getUsers"
     },
-    "create_user": {
+    "productboard_create_user": {
       "category": "companies & users",
       "operation": "POST /users",
       "description": "Create a user",
@@ -757,9 +757,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/companies-and-users.js#createUser"
+      "implementation": "tools/companies & users.js#createUser"
     },
-    "get_user": {
+    "productboard_get_user": {
       "category": "companies & users",
       "operation": "GET /users/{id}",
       "description": "Retrieve a user",
@@ -773,9 +773,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/companies-and-users.js#getUser"
+      "implementation": "tools/companies & users.js#getUser"
     },
-    "update_user": {
+    "productboard_update_user": {
       "category": "companies & users",
       "operation": "PATCH /users/{id}",
       "description": "Update a user",
@@ -790,9 +790,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/companies-and-users.js#updateUser"
+      "implementation": "tools/companies & users.js#updateUser"
     },
-    "delete_user": {
+    "productboard_delete_user": {
       "category": "companies & users",
       "operation": "DELETE /users/{id}",
       "description": "Delete a user",
@@ -806,10 +806,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/companies-and-users.js#deleteUser"
+      "implementation": "tools/companies & users.js#deleteUser"
     },
-    "create_feature": {
-      "category": "products",
+    "productboard_create_feature": {
+      "category": "product hierarchy",
       "operation": "POST /features",
       "description": "Create a feature",
       "requiredParams": [
@@ -821,10 +821,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#createFeature"
+      "implementation": "tools/product hierarchy.js#createFeature"
     },
-    "get_features": {
-      "category": "products",
+    "productboard_get_features": {
+      "category": "product hierarchy",
       "operation": "GET /features",
       "description": "List all features",
       "requiredParams": [],
@@ -840,10 +840,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#getFeatures"
+      "implementation": "tools/product hierarchy.js#getFeatures"
     },
-    "get_feature": {
-      "category": "products",
+    "productboard_get_feature": {
+      "category": "product hierarchy",
       "operation": "GET /features/{id}",
       "description": "Retrieve a feature",
       "requiredParams": [
@@ -856,10 +856,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#getFeature"
+      "implementation": "tools/product hierarchy.js#getFeature"
     },
-    "update_feature": {
-      "category": "products",
+    "productboard_update_feature": {
+      "category": "product hierarchy",
       "operation": "PATCH /features/{id}",
       "description": "Update a feature",
       "requiredParams": [
@@ -873,10 +873,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#updateFeature"
+      "implementation": "tools/product hierarchy.js#updateFeature"
     },
-    "update_feature_deprecated": {
-      "category": "products",
+    "productboard_update_feature_deprecated": {
+      "category": "product hierarchy",
       "operation": "PUT /features/{id}",
       "description": "Update a feature",
       "requiredParams": [
@@ -890,10 +890,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#updateFeatureDeprecated"
+      "implementation": "tools/product hierarchy.js#updateFeatureDeprecated"
     },
-    "delete_feature": {
-      "category": "products",
+    "productboard_delete_feature": {
+      "category": "product hierarchy",
       "operation": "DELETE /features/{id}",
       "description": "Delete a feature",
       "requiredParams": [
@@ -906,10 +906,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#deleteFeature"
+      "implementation": "tools/product hierarchy.js#deleteFeature"
     },
-    "list_links_to_initiatives": {
-      "category": "products",
+    "productboard_list_links_to_initiatives": {
+      "category": "product hierarchy",
       "operation": "GET /features/{id}/links/initiatives",
       "description": "List initiatives linked to a specific feature",
       "requiredParams": [
@@ -922,10 +922,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#listLinksToInitiatives"
+      "implementation": "tools/product hierarchy.js#listLinksToInitiatives"
     },
-    "create_initiative_link": {
-      "category": "products",
+    "productboard_create_initiative_link": {
+      "category": "product hierarchy",
       "operation": "POST /features/{id}/links/initiatives/{initiativeId}",
       "description": "Create a new link between a feature and an initiative",
       "requiredParams": [
@@ -939,10 +939,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#createInitiativeLink"
+      "implementation": "tools/product hierarchy.js#createInitiativeLink"
     },
-    "delete_initiative_link": {
-      "category": "products",
+    "productboard_delete_initiative_link": {
+      "category": "product hierarchy",
       "operation": "DELETE /features/{id}/links/initiatives/{initiativeId}",
       "description": "Delete a link between a feature and an initiative",
       "requiredParams": [
@@ -956,10 +956,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#deleteInitiativeLink"
+      "implementation": "tools/product hierarchy.js#deleteInitiativeLink"
     },
-    "list_links_to_objectives": {
-      "category": "products",
+    "productboard_list_links_to_objectives": {
+      "category": "product hierarchy",
       "operation": "GET /features/{id}/links/objectives",
       "description": "List objectives linked to a specific feature",
       "requiredParams": [
@@ -972,10 +972,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#listLinksToObjectives"
+      "implementation": "tools/product hierarchy.js#listLinksToObjectives"
     },
-    "create_objective_link": {
-      "category": "products",
+    "productboard_create_objective_link": {
+      "category": "product hierarchy",
       "operation": "POST /features/{id}/links/objectives/{objectiveId}",
       "description": "Create a new link between a feature and an objective",
       "requiredParams": [
@@ -989,10 +989,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#createObjectiveLink"
+      "implementation": "tools/product hierarchy.js#createObjectiveLink"
     },
-    "delete_objective_link": {
-      "category": "products",
+    "productboard_delete_objective_link": {
+      "category": "product hierarchy",
       "operation": "DELETE /features/{id}/links/objectives/{objectiveId}",
       "description": "Delete a link between a feature and an objective",
       "requiredParams": [
@@ -1006,10 +1006,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#deleteObjectiveLink"
+      "implementation": "tools/product hierarchy.js#deleteObjectiveLink"
     },
-    "create_component": {
-      "category": "products",
+    "productboard_create_component": {
+      "category": "product hierarchy",
       "operation": "POST /components",
       "description": "Create a component",
       "requiredParams": [
@@ -1021,10 +1021,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#createComponent"
+      "implementation": "tools/product hierarchy.js#createComponent"
     },
-    "get_components": {
-      "category": "products",
+    "productboard_get_components": {
+      "category": "product hierarchy",
       "operation": "GET /components",
       "description": "List all components",
       "requiredParams": [],
@@ -1034,10 +1034,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#getComponents"
+      "implementation": "tools/product hierarchy.js#getComponents"
     },
-    "get_component": {
-      "category": "products",
+    "productboard_get_component": {
+      "category": "product hierarchy",
       "operation": "GET /components/{id}",
       "description": "Retrieve a component",
       "requiredParams": [
@@ -1050,10 +1050,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#getComponent"
+      "implementation": "tools/product hierarchy.js#getComponent"
     },
-    "update_component": {
-      "category": "products",
+    "productboard_update_component": {
+      "category": "product hierarchy",
       "operation": "PATCH /components/{id}",
       "description": "Update a component",
       "requiredParams": [
@@ -1067,10 +1067,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#updateComponent"
+      "implementation": "tools/product hierarchy.js#updateComponent"
     },
-    "update_component_deprecated": {
-      "category": "products",
+    "productboard_update_component_deprecated": {
+      "category": "product hierarchy",
       "operation": "PUT /components/{id}",
       "description": "Update a component",
       "requiredParams": [
@@ -1084,10 +1084,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#updateComponentDeprecated"
+      "implementation": "tools/product hierarchy.js#updateComponentDeprecated"
     },
-    "get_products": {
-      "category": "products",
+    "productboard_get_products": {
+      "category": "product hierarchy",
       "operation": "GET /products",
       "description": "List all products",
       "requiredParams": [],
@@ -1097,10 +1097,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#getProducts"
+      "implementation": "tools/product hierarchy.js#getProducts"
     },
-    "get_product": {
-      "category": "products",
+    "productboard_get_product": {
+      "category": "product hierarchy",
       "operation": "GET /products/{id}",
       "description": "Retrieve a product",
       "requiredParams": [
@@ -1113,10 +1113,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#getProduct"
+      "implementation": "tools/product hierarchy.js#getProduct"
     },
-    "update_product": {
-      "category": "products",
+    "productboard_update_product": {
+      "category": "product hierarchy",
       "operation": "PATCH /products/{id}",
       "description": "Update a product",
       "requiredParams": [
@@ -1130,10 +1130,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#updateProduct"
+      "implementation": "tools/product hierarchy.js#updateProduct"
     },
-    "update_product_deprecated": {
-      "category": "products",
+    "productboard_update_product_deprecated": {
+      "category": "product hierarchy",
       "operation": "PUT /products/{id}",
       "description": "Update a product",
       "requiredParams": [
@@ -1147,10 +1147,10 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#updateProductDeprecated"
+      "implementation": "tools/product hierarchy.js#updateProductDeprecated"
     },
-    "get_feature_statuses": {
-      "category": "products",
+    "productboard_get_feature_statuses": {
+      "category": "product hierarchy",
       "operation": "GET /feature-statuses",
       "description": "List all feature statuses",
       "requiredParams": [],
@@ -1160,9 +1160,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/product-hierarchy.js#getFeatureStatuses"
+      "implementation": "tools/product hierarchy.js#getFeatureStatuses"
     },
-    "get_custom_fields": {
+    "productboard_get_custom_fields": {
       "category": "custom fields",
       "operation": "GET /hierarchy-entities/custom-fields",
       "description": "List all custom fields",
@@ -1175,9 +1175,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/custom-fields.js#getCustomFields"
+      "implementation": "tools/custom fields.js#getCustomFields"
     },
-    "get_custom_fields_values": {
+    "productboard_get_custom_fields_values": {
       "category": "custom fields",
       "operation": "GET /hierarchy-entities/custom-fields-values",
       "description": "List all custom fields' values",
@@ -1191,9 +1191,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/custom-fields.js#getCustomFieldsValues"
+      "implementation": "tools/custom fields.js#getCustomFieldsValues"
     },
-    "get_custom_field": {
+    "productboard_get_custom_field": {
       "category": "custom fields",
       "operation": "GET /hierarchy-entities/custom-fields/{id}",
       "description": "Retrieve a custom field",
@@ -1207,9 +1207,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/custom-fields.js#getCustomField"
+      "implementation": "tools/custom fields.js#getCustomField"
     },
-    "get_custom_field_value": {
+    "productboard_get_custom_field_value": {
       "category": "custom fields",
       "operation": "GET /hierarchy-entities/custom-fields-values/value",
       "description": "Retrieve a custom field's value",
@@ -1223,9 +1223,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/custom-fields.js#getCustomFieldValue"
+      "implementation": "tools/custom fields.js#getCustomFieldValue"
     },
-    "set_custom_field_value": {
+    "productboard_set_custom_field_value": {
       "category": "custom fields",
       "operation": "PUT /hierarchy-entities/custom-fields-values/value",
       "description": "Set value of a custom field for a given hierarchy entity",
@@ -1240,9 +1240,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/custom-fields.js#setCustomFieldValue"
+      "implementation": "tools/custom fields.js#setCustomFieldValue"
     },
-    "delete_custom_field_value": {
+    "productboard_delete_custom_field_value": {
       "category": "custom fields",
       "operation": "DELETE /hierarchy-entities/custom-fields-values/value",
       "description": "Delete value of a custom field for a given hierarchy entity",
@@ -1256,9 +1256,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/custom-fields.js#deleteCustomFieldValue"
+      "implementation": "tools/custom fields.js#deleteCustomFieldValue"
     },
-    "create_release_group": {
+    "productboard_create_release_group": {
       "category": "releases & release groups",
       "operation": "POST /release-groups",
       "description": "Create a release group",
@@ -1271,9 +1271,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/releases-and-release-groups.js#createReleaseGroup"
+      "implementation": "tools/releases & release groups.js#createReleaseGroup"
     },
-    "list_release_groups": {
+    "productboard_list_release_groups": {
       "category": "releases & release groups",
       "operation": "GET /release-groups",
       "description": "List all release groups",
@@ -1284,9 +1284,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/releases-and-release-groups.js#listReleaseGroups"
+      "implementation": "tools/releases & release groups.js#listReleaseGroups"
     },
-    "get_release_group": {
+    "productboard_get_release_group": {
       "category": "releases & release groups",
       "operation": "GET /release-groups/{id}",
       "description": "Retrieve a release group",
@@ -1300,9 +1300,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/releases-and-release-groups.js#getReleaseGroup"
+      "implementation": "tools/releases & release groups.js#getReleaseGroup"
     },
-    "update_release_group": {
+    "productboard_update_release_group": {
       "category": "releases & release groups",
       "operation": "PATCH /release-groups/{id}",
       "description": "Update a release group",
@@ -1317,9 +1317,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/releases-and-release-groups.js#updateReleaseGroup"
+      "implementation": "tools/releases & release groups.js#updateReleaseGroup"
     },
-    "delete_release_group": {
+    "productboard_delete_release_group": {
       "category": "releases & release groups",
       "operation": "DELETE /release-groups/{id}",
       "description": "Delete a release group",
@@ -1333,9 +1333,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/releases-and-release-groups.js#deleteReleaseGroup"
+      "implementation": "tools/releases & release groups.js#deleteReleaseGroup"
     },
-    "create_release": {
+    "productboard_create_release": {
       "category": "releases & release groups",
       "operation": "POST /releases",
       "description": "Create a release",
@@ -1348,9 +1348,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/releases-and-release-groups.js#createRelease"
+      "implementation": "tools/releases & release groups.js#createRelease"
     },
-    "list_releases": {
+    "productboard_list_releases": {
       "category": "releases & release groups",
       "operation": "GET /releases",
       "description": "List all releases",
@@ -1362,9 +1362,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/releases-and-release-groups.js#listReleases"
+      "implementation": "tools/releases & release groups.js#listReleases"
     },
-    "get_release": {
+    "productboard_get_release": {
       "category": "releases & release groups",
       "operation": "GET /releases/{id}",
       "description": "Retrieve a release",
@@ -1378,9 +1378,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/releases-and-release-groups.js#getRelease"
+      "implementation": "tools/releases & release groups.js#getRelease"
     },
-    "update_release": {
+    "productboard_update_release": {
       "category": "releases & release groups",
       "operation": "PATCH /releases/{id}",
       "description": "Update a release",
@@ -1395,9 +1395,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/releases-and-release-groups.js#updateRelease"
+      "implementation": "tools/releases & release groups.js#updateRelease"
     },
-    "delete_release": {
+    "productboard_delete_release": {
       "category": "releases & release groups",
       "operation": "DELETE /releases/{id}",
       "description": "Delete a release",
@@ -1411,9 +1411,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/releases-and-release-groups.js#deleteRelease"
+      "implementation": "tools/releases & release groups.js#deleteRelease"
     },
-    "list_feature_release_assignments": {
+    "productboard_list_feature_release_assignments": {
       "category": "releases & release groups",
       "operation": "GET /feature-release-assignments",
       "description": "List all feature release assignments",
@@ -1429,9 +1429,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/releases-and-release-groups.js#listFeatureReleaseAssignments"
+      "implementation": "tools/releases & release groups.js#listFeatureReleaseAssignments"
     },
-    "get_feature_release_assignment": {
+    "productboard_get_feature_release_assignment": {
       "category": "releases & release groups",
       "operation": "GET /feature-release-assignments/assignment",
       "description": "Retrieve a feature release assignment",
@@ -1445,9 +1445,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/releases-and-release-groups.js#getFeatureReleaseAssignment"
+      "implementation": "tools/releases & release groups.js#getFeatureReleaseAssignment"
     },
-    "update_feature_release_assignment": {
+    "productboard_update_feature_release_assignment": {
       "category": "releases & release groups",
       "operation": "PUT /feature-release-assignments/assignment",
       "description": "Update a feature release assignment",
@@ -1462,9 +1462,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/releases-and-release-groups.js#updateFeatureReleaseAssignment"
+      "implementation": "tools/releases & release groups.js#updateFeatureReleaseAssignment"
     },
-    "get_objectives": {
+    "productboard_get_objectives": {
       "category": "objectives",
       "operation": "GET /objectives",
       "description": "List all objectives",
@@ -1482,7 +1482,7 @@
       ],
       "implementation": "tools/objectives.js#getObjectives"
     },
-    "create_objective": {
+    "productboard_create_objective": {
       "category": "objectives",
       "operation": "POST /objectives",
       "description": "Create a new objective",
@@ -1497,7 +1497,7 @@
       ],
       "implementation": "tools/objectives.js#createObjective"
     },
-    "get_objective": {
+    "productboard_get_objective": {
       "category": "objectives",
       "operation": "GET /objectives/{id}",
       "description": "Get a specific objective",
@@ -1513,7 +1513,7 @@
       ],
       "implementation": "tools/objectives.js#getObjective"
     },
-    "update_objective": {
+    "productboard_update_objective": {
       "category": "objectives",
       "operation": "PATCH /objectives/{id}",
       "description": "Update an existing objective",
@@ -1530,7 +1530,7 @@
       ],
       "implementation": "tools/objectives.js#updateObjective"
     },
-    "delete_objective": {
+    "productboard_delete_objective": {
       "category": "objectives",
       "operation": "DELETE /objectives/{id}",
       "description": "Delete an objective",
@@ -1546,7 +1546,7 @@
       ],
       "implementation": "tools/objectives.js#deleteObjective"
     },
-    "list_links_objective_to_features": {
+    "productboard_list_links_objective_to_features": {
       "category": "objectives",
       "operation": "GET /objectives/{id}/links/features",
       "description": "List features linked to a specific objective",
@@ -1562,7 +1562,7 @@
       ],
       "implementation": "tools/objectives.js#listLinksObjectiveToFeatures"
     },
-    "list_links_objective_to_initiatives": {
+    "productboard_list_links_objective_to_initiatives": {
       "category": "objectives",
       "operation": "GET /objectives/{id}/links/initiatives",
       "description": "List initiatives linked to a specific objective",
@@ -1578,7 +1578,7 @@
       ],
       "implementation": "tools/objectives.js#listLinksObjectiveToInitiatives"
     },
-    "create_objective_to_initiative_link": {
+    "productboard_create_objective_to_initiative_link": {
       "category": "objectives",
       "operation": "POST /objectives/{id}/links/initiatives/{initiativeId}",
       "description": "Create a new link between an objective and an initiative",
@@ -1595,7 +1595,7 @@
       ],
       "implementation": "tools/objectives.js#createObjectiveToInitiativeLink"
     },
-    "delete_objective_to_initiative_link": {
+    "productboard_delete_objective_to_initiative_link": {
       "category": "objectives",
       "operation": "DELETE /objectives/{id}/links/initiatives/{initiativeId}",
       "description": "Delete a link between an objective and an initiative",
@@ -1612,7 +1612,7 @@
       ],
       "implementation": "tools/objectives.js#deleteObjectiveToInitiativeLink"
     },
-    "create_objective_to_feature_link": {
+    "productboard_create_objective_to_feature_link": {
       "category": "objectives",
       "operation": "POST /objectives/{id}/links/features/{featureId}",
       "description": "Create a new link between an objective and a feature",
@@ -1629,7 +1629,7 @@
       ],
       "implementation": "tools/objectives.js#createObjectiveToFeatureLink"
     },
-    "delete_objective_to_feature_link": {
+    "productboard_delete_objective_to_feature_link": {
       "category": "objectives",
       "operation": "DELETE /objectives/{id}/links/features/{featureId}",
       "description": "Delete a link between an objective and a feature",
@@ -1646,7 +1646,7 @@
       ],
       "implementation": "tools/objectives.js#deleteObjectiveToFeatureLink"
     },
-    "get_key_results": {
+    "productboard_get_key_results": {
       "category": "key results",
       "operation": "GET /key-results",
       "description": "List all key results",
@@ -1662,9 +1662,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/key-results.js#getKeyResults"
+      "implementation": "tools/key results.js#getKeyResults"
     },
-    "create_key_result": {
+    "productboard_create_key_result": {
       "category": "key results",
       "operation": "POST /key-results",
       "description": "Create a key result",
@@ -1676,9 +1676,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/key-results.js#createKeyResult"
+      "implementation": "tools/key results.js#createKeyResult"
     },
-    "get_key_result": {
+    "productboard_get_key_result": {
       "category": "key results",
       "operation": "GET /key-results/{id}",
       "description": "Retrieve a key result",
@@ -1692,9 +1692,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/key-results.js#getKeyResult"
+      "implementation": "tools/key results.js#getKeyResult"
     },
-    "update_key_result": {
+    "productboard_update_key_result": {
       "category": "key results",
       "operation": "PATCH /key-results/{id}",
       "description": "Update a key result",
@@ -1709,9 +1709,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/key-results.js#updateKeyResult"
+      "implementation": "tools/key results.js#updateKeyResult"
     },
-    "delete_key_result": {
+    "productboard_delete_key_result": {
       "category": "key results",
       "operation": "DELETE /key-results/{id}",
       "description": "Delete a key result",
@@ -1725,9 +1725,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/key-results.js#deleteKeyResult"
+      "implementation": "tools/key results.js#deleteKeyResult"
     },
-    "get_initiatives": {
+    "productboard_get_initiatives": {
       "category": "initiatives",
       "operation": "GET /initiatives",
       "description": "List all initiatives",
@@ -1744,7 +1744,7 @@
       ],
       "implementation": "tools/initiatives.js#getInitiatives"
     },
-    "create_initiative": {
+    "productboard_create_initiative": {
       "category": "initiatives",
       "operation": "POST /initiatives",
       "description": "Create a new initiative",
@@ -1759,7 +1759,7 @@
       ],
       "implementation": "tools/initiatives.js#createInitiative"
     },
-    "get_initiative": {
+    "productboard_get_initiative": {
       "category": "initiatives",
       "operation": "GET /initiatives/{id}",
       "description": "Get a specific initiative",
@@ -1775,7 +1775,7 @@
       ],
       "implementation": "tools/initiatives.js#getInitiative"
     },
-    "update_initiative": {
+    "productboard_update_initiative": {
       "category": "initiatives",
       "operation": "PATCH /initiatives/{id}",
       "description": "Update an existing initiative",
@@ -1792,7 +1792,7 @@
       ],
       "implementation": "tools/initiatives.js#updateInitiative"
     },
-    "delete_initiative": {
+    "productboard_delete_initiative": {
       "category": "initiatives",
       "operation": "DELETE /initiatives/{id}",
       "description": "Delete an initiative",
@@ -1808,7 +1808,7 @@
       ],
       "implementation": "tools/initiatives.js#deleteInitiative"
     },
-    "list_links_initiative_to_objectives": {
+    "productboard_list_links_initiative_to_objectives": {
       "category": "initiatives",
       "operation": "GET /initiatives/{id}/links/objectives",
       "description": "List objectives linked to a specific initiative",
@@ -1824,7 +1824,7 @@
       ],
       "implementation": "tools/initiatives.js#listLinksInitiativeToObjectives"
     },
-    "list_links_initiative_to_features": {
+    "productboard_list_links_initiative_to_features": {
       "category": "initiatives",
       "operation": "GET /initiatives/{id}/links/features",
       "description": "List features linked to a specific initiative",
@@ -1840,7 +1840,7 @@
       ],
       "implementation": "tools/initiatives.js#listLinksInitiativeToFeatures"
     },
-    "create_initiative_to_objective_link": {
+    "productboard_create_initiative_to_objective_link": {
       "category": "initiatives",
       "operation": "POST /initiatives/{id}/links/objectives/{objectiveId}",
       "description": "Create a new link between an initiative and an objective",
@@ -1857,7 +1857,7 @@
       ],
       "implementation": "tools/initiatives.js#createInitiativeToObjectiveLink"
     },
-    "delete_initiative_to_objective_link": {
+    "productboard_delete_initiative_to_objective_link": {
       "category": "initiatives",
       "operation": "DELETE /initiatives/{id}/links/objectives/{objectiveId}",
       "description": "Delete a link between an initiative and an objective",
@@ -1874,7 +1874,7 @@
       ],
       "implementation": "tools/initiatives.js#deleteInitiativeToObjectiveLink"
     },
-    "create_initiative_to_feature_link": {
+    "productboard_create_initiative_to_feature_link": {
       "category": "initiatives",
       "operation": "POST /initiatives/{id}/links/features/{featureId}",
       "description": "Create a new link between an initiative and a feature",
@@ -1891,7 +1891,7 @@
       ],
       "implementation": "tools/initiatives.js#createInitiativeToFeatureLink"
     },
-    "delete_initiative_to_feature_link": {
+    "productboard_delete_initiative_to_feature_link": {
       "category": "initiatives",
       "operation": "DELETE /initiatives/{id}/links/features/{featureId}",
       "description": "Delete a link between an initiative and a feature",
@@ -1908,7 +1908,7 @@
       ],
       "implementation": "tools/initiatives.js#deleteInitiativeToFeatureLink"
     },
-    "post_plugin_integration": {
+    "productboard_post_plugin_integration": {
       "category": "plugin integrations",
       "operation": "POST /plugin-integrations",
       "description": "Create a plugin integration",
@@ -1921,9 +1921,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/plugin-integrations.js#postPluginIntegration"
+      "implementation": "tools/plugin integrations.js#postPluginIntegration"
     },
-    "get_plugin_integrations": {
+    "productboard_get_plugin_integrations": {
       "category": "plugin integrations",
       "operation": "GET /plugin-integrations",
       "description": "List all plugin integrations",
@@ -1934,9 +1934,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/plugin-integrations.js#getPluginIntegrations"
+      "implementation": "tools/plugin integrations.js#getPluginIntegrations"
     },
-    "get_plugin_integration": {
+    "productboard_get_plugin_integration": {
       "category": "plugin integrations",
       "operation": "GET /plugin-integrations/{id}",
       "description": "Retrieve a plugin integration",
@@ -1950,9 +1950,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/plugin-integrations.js#getPluginIntegration"
+      "implementation": "tools/plugin integrations.js#getPluginIntegration"
     },
-    "patch_plugin_integration": {
+    "productboard_patch_plugin_integration": {
       "category": "plugin integrations",
       "operation": "PATCH /plugin-integrations/{id}",
       "description": "Update a plugin integration",
@@ -1967,9 +1967,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/plugin-integrations.js#patchPluginIntegration"
+      "implementation": "tools/plugin integrations.js#patchPluginIntegration"
     },
-    "put_plugin_integration": {
+    "productboard_put_plugin_integration": {
       "category": "plugin integrations",
       "operation": "PUT /plugin-integrations/{id}",
       "description": "Update a plugin integration",
@@ -1984,9 +1984,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/plugin-integrations.js#putPluginIntegration"
+      "implementation": "tools/plugin integrations.js#putPluginIntegration"
     },
-    "delete_plugin_integration": {
+    "productboard_delete_plugin_integration": {
       "category": "plugin integrations",
       "operation": "DELETE /plugin-integrations/{id}",
       "description": "Delete a plugin integration",
@@ -2000,9 +2000,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/plugin-integrations.js#deletePluginIntegration"
+      "implementation": "tools/plugin integrations.js#deletePluginIntegration"
     },
-    "get_plugin_integration_connections": {
+    "productboard_get_plugin_integration_connections": {
       "category": "plugin integrations",
       "operation": "GET /plugin-integrations/{id}/connections",
       "description": "List all plugin integration connections",
@@ -2016,9 +2016,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/plugin-integrations.js#getPluginIntegrationConnections"
+      "implementation": "tools/plugin integrations.js#getPluginIntegrationConnections"
     },
-    "get_plugin_integration_connection": {
+    "productboard_get_plugin_integration_connection": {
       "category": "plugin integrations",
       "operation": "GET /plugin-integrations/{id}/connections/{featureId}",
       "description": "Retrieve a plugin integration connection",
@@ -2034,9 +2034,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/plugin-integrations.js#getPluginIntegrationConnection"
+      "implementation": "tools/plugin integrations.js#getPluginIntegrationConnection"
     },
-    "put_plugin_integration_connection": {
+    "productboard_put_plugin_integration_connection": {
       "category": "plugin integrations",
       "operation": "PUT /plugin-integrations/{id}/connections/{featureId}",
       "description": "Set a plugin integration connection",
@@ -2053,9 +2053,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/plugin-integrations.js#putPluginIntegrationConnection"
+      "implementation": "tools/plugin integrations.js#putPluginIntegrationConnection"
     },
-    "delete_plugin_integration_connection": {
+    "productboard_delete_plugin_integration_connection": {
       "category": "plugin integrations",
       "operation": "DELETE /plugin-integrations/{id}/connections/{featureId}",
       "description": "Delete a plugin integration connection",
@@ -2071,9 +2071,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/plugin-integrations.js#deletePluginIntegrationConnection"
+      "implementation": "tools/plugin integrations.js#deletePluginIntegrationConnection"
     },
-    "get_jira_integration": {
+    "productboard_get_jira_integration": {
       "category": "jira integrations",
       "operation": "GET /jira-integrations/{id}",
       "description": "Retrieve a Jira integration",
@@ -2087,9 +2087,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/jira-integrations.js#getJiraIntegration"
+      "implementation": "tools/jira integrations.js#getJiraIntegration"
     },
-    "get_jira_integrations": {
+    "productboard_get_jira_integrations": {
       "category": "jira integrations",
       "operation": "GET /jira-integrations",
       "description": "List all Jira integrations",
@@ -2100,9 +2100,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/jira-integrations.js#getJiraIntegrations"
+      "implementation": "tools/jira integrations.js#getJiraIntegrations"
     },
-    "get_jira_integration_connection": {
+    "productboard_get_jira_integration_connection": {
       "category": "jira integrations",
       "operation": "GET /jira-integrations/{id}/connections/{featureId}",
       "description": "Retrieve a Jira integration connection",
@@ -2118,9 +2118,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/jira-integrations.js#getJiraIntegrationConnection"
+      "implementation": "tools/jira integrations.js#getJiraIntegrationConnection"
     },
-    "get_jira_integration_connections": {
+    "productboard_get_jira_integration_connections": {
       "category": "jira integrations",
       "operation": "GET /jira-integrations/{id}/connections",
       "description": "List all Jira integration connections",
@@ -2136,9 +2136,9 @@
         "workspaceId",
         "includeRaw"
       ],
-      "implementation": "tools/jira-integrations.js#getJiraIntegrationConnections"
+      "implementation": "tools/jira integrations.js#getJiraIntegrationConnections"
     },
-    "post_webhook": {
+    "productboard_post_webhook": {
       "category": "webhooks",
       "operation": "POST /webhooks",
       "description": "Create a new subscription",
@@ -2153,7 +2153,7 @@
       ],
       "implementation": "tools/webhooks.js#postWebhook"
     },
-    "get_webhooks": {
+    "productboard_get_webhooks": {
       "category": "webhooks",
       "operation": "GET /webhooks",
       "description": "List all subscriptions",
@@ -2166,7 +2166,7 @@
       ],
       "implementation": "tools/webhooks.js#getWebhooks"
     },
-    "get_webhook": {
+    "productboard_get_webhook": {
       "category": "webhooks",
       "operation": "GET /webhooks/{id}",
       "description": "Retrieve a subscription",
@@ -2182,7 +2182,7 @@
       ],
       "implementation": "tools/webhooks.js#getWebhook"
     },
-    "delete_webhook": {
+    "productboard_delete_webhook": {
       "category": "webhooks",
       "operation": "DELETE /webhooks/{id}",
       "description": "Delete a subscription",

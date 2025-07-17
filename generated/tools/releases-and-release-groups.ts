@@ -3,7 +3,7 @@
  */
 import { withContext, formatResponse } from "../../utils/tool-wrapper.js";
 
-export function setupReleases & release groupsTools() {
+export function setupReleasesAndReleaseGroupsTools() {
   return [
     {
       name: "productboard_create_release_group",
@@ -11,9 +11,9 @@ export function setupReleases & release groupsTools() {
       inputSchema: {
         type: "object",
         properties: {
-          body: {
+          args.body: {
             type: "string",
-            description: "body parameter"
+            description: "args.body parameter"
           },
           null: {
             type: "string",
@@ -32,7 +32,7 @@ export function setupReleases & release groupsTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["body"]
+        required: ["args.body"]
       }
     },
     {
@@ -104,9 +104,9 @@ export function setupReleases & release groupsTools() {
             type: "string",
             description: "id parameter"
           },
-          body: {
+          args.body: {
             type: "string",
-            description: "body parameter"
+            description: "args.body parameter"
           },
           null: {
             type: "string",
@@ -129,7 +129,7 @@ export function setupReleases & release groupsTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["id","body"]
+        required: ["id","args.body"]
       }
     },
     {
@@ -172,9 +172,9 @@ export function setupReleases & release groupsTools() {
       inputSchema: {
         type: "object",
         properties: {
-          body: {
+          args.body: {
             type: "string",
-            description: "body parameter"
+            description: "args.body parameter"
           },
           null: {
             type: "string",
@@ -193,7 +193,7 @@ export function setupReleases & release groupsTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["body"]
+        required: ["args.body"]
       }
     },
     {
@@ -206,7 +206,7 @@ export function setupReleases & release groupsTools() {
             type: "string",
             description: "null parameter (optional)"
           },
-          releaseGroup.id: {
+          "releaseGroup.id": {
             type: "string",
             description: "releaseGroup.id parameter (optional)"
           },
@@ -269,9 +269,9 @@ export function setupReleases & release groupsTools() {
             type: "string",
             description: "id parameter"
           },
-          body: {
+          args.body: {
             type: "string",
-            description: "body parameter"
+            description: "args.body parameter"
           },
           null: {
             type: "string",
@@ -294,7 +294,7 @@ export function setupReleases & release groupsTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["id","body"]
+        required: ["id","args.body"]
       }
     },
     {
@@ -341,23 +341,23 @@ export function setupReleases & release groupsTools() {
             type: "string",
             description: "null parameter (optional)"
           },
-          feature.id: {
+          "feature.id": {
             type: "string",
             description: "feature.id parameter (optional)"
           },
-          release.id: {
+          "release.id": {
             type: "string",
             description: "release.id parameter (optional)"
           },
-          release.state: {
+          "release.state": {
             type: "string",
             description: "release.state parameter (optional)"
           },
-          release.timeframe.endDate.from: {
+          "release.timeframe.endDate.from": {
             type: "string",
             description: "release.timeframe.endDate.from parameter (optional)"
           },
-          release.timeframe.endDate.to: {
+          "release.timeframe.endDate.to": {
             type: "string",
             description: "release.timeframe.endDate.to parameter (optional)"
           },
@@ -382,11 +382,11 @@ export function setupReleases & release groupsTools() {
       inputSchema: {
         type: "object",
         properties: {
-          release.id: {
+          "release.id": {
             type: "string",
             description: "release.id parameter"
           },
-          feature.id: {
+          "feature.id": {
             type: "string",
             description: "feature.id parameter"
           },
@@ -416,17 +416,17 @@ export function setupReleases & release groupsTools() {
       inputSchema: {
         type: "object",
         properties: {
-          release.id: {
+          "release.id": {
             type: "string",
             description: "release.id parameter"
           },
-          feature.id: {
+          "feature.id": {
             type: "string",
             description: "feature.id parameter"
           },
-          body: {
+          args.body: {
             type: "string",
-            description: "body parameter"
+            description: "args.body parameter"
           },
           null: {
             type: "string",
@@ -445,13 +445,13 @@ export function setupReleases & release groupsTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["release.id","feature.id","body"]
+        required: ["release.id","feature.id","args.body"]
       }
     }
   ];
 }
 
-export async function handleReleases & release groupsTool(name: string, args: any) {
+export async function handleReleasesAndReleaseGroupsTool(name: string, args: any) {
   switch (name) {
     case "productboard_create_release_group":
       return await releaseCreateGroup(args);
@@ -487,7 +487,7 @@ export async function handleReleases & release groupsTool(name: string, args: an
 export async function releaseCreateGroup(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.post(`/release-groups`, body);
+    const response = await context.axios.post($2, args.args.body);
     
     return {
       content: [{
@@ -529,7 +529,7 @@ export async function releaseGetGroup(args: any) {
 export async function releaseUpdateGroup(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.patch(`/release-groups/${args.id}`, body);
+    const response = await context.axios.patch($2, args.args.body);
     
     return {
       content: [{
@@ -557,7 +557,7 @@ export async function releaseDeleteGroup(args: any) {
 export async function releaseCreate(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.post(`/releases`, body);
+    const response = await context.axios.post($2, args.args.body);
     
     return {
       content: [{
@@ -599,7 +599,7 @@ export async function releaseGet(args: any) {
 export async function releaseUpdate(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.patch(`/releases/${args.id}`, body);
+    const response = await context.axios.patch($2, args.args.body);
     
     return {
       content: [{
@@ -663,7 +663,7 @@ export async function featureUpdateReleaseassignment(args: any) {
     if (args.release.id) params.release.id = args.release.id;
     if (args.feature.id) params.feature.id = args.feature.id;
 
-    const response = await context.axios.put(`/feature-release-assignments/assignment`, body, { params });
+    const response = await context.axios.put(`/feature-release-assignments/assignment`, args.body, { params });
     
     return {
       content: [{

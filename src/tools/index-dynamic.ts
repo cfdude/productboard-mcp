@@ -35,6 +35,11 @@ function getEnabledCategories(): string[] {
 
   // Handle explicit enabled/disabled lists
   if (toolConfig.enabled) {
+    // Check if wildcard is used
+    if (toolConfig.enabled.includes("*")) {
+      // Return empty array to signal "all categories"
+      return [];
+    }
     return toolConfig.enabled;
   }
 

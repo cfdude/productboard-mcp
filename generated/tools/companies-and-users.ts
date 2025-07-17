@@ -3,7 +3,7 @@
  */
 import { withContext, formatResponse } from "../../utils/tool-wrapper.js";
 
-export function setupCompanies & usersTools() {
+export function setupCompaniesAndUsersTools() {
   return [
     {
       name: "productboard_create_company",
@@ -19,9 +19,9 @@ export function setupCompanies & usersTools() {
             type: "string",
             description: "Productboard-Partner-Id parameter (optional)"
           },
-          body: {
+          args.body: {
             type: "string",
-            description: "body parameter (optional)"
+            description: "args.body parameter (optional)"
           },
           instance: {
             type: "string",
@@ -127,9 +127,9 @@ export function setupCompanies & usersTools() {
             type: "string",
             description: "id parameter"
           },
-          body: {
+          args.body: {
             type: "string",
-            description: "body parameter"
+            description: "args.body parameter"
           },
           null: {
             type: "string",
@@ -152,7 +152,7 @@ export function setupCompanies & usersTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["id","body"]
+        required: ["id","args.body"]
       }
     },
     {
@@ -195,9 +195,9 @@ export function setupCompanies & usersTools() {
       inputSchema: {
         type: "object",
         properties: {
-          body: {
+          args.body: {
             type: "string",
-            description: "body parameter"
+            description: "args.body parameter"
           },
           null: {
             type: "string",
@@ -216,7 +216,7 @@ export function setupCompanies & usersTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["body"]
+        required: ["args.body"]
       }
     },
     {
@@ -288,9 +288,9 @@ export function setupCompanies & usersTools() {
             type: "string",
             description: "id parameter"
           },
-          body: {
+          args.body: {
             type: "string",
-            description: "body parameter"
+            description: "args.body parameter"
           },
           null: {
             type: "string",
@@ -313,7 +313,7 @@ export function setupCompanies & usersTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["id","body"]
+        required: ["id","args.body"]
       }
     },
     {
@@ -406,9 +406,9 @@ export function setupCompanies & usersTools() {
             type: "string",
             description: "companyCustomFieldId parameter"
           },
-          body: {
+          args.body: {
             type: "string",
-            description: "body parameter"
+            description: "args.body parameter"
           },
           null: {
             type: "string",
@@ -435,7 +435,7 @@ export function setupCompanies & usersTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["companyId","companyCustomFieldId","body"]
+        required: ["companyId","companyCustomFieldId","args.body"]
       }
     },
     {
@@ -511,9 +511,9 @@ export function setupCompanies & usersTools() {
       inputSchema: {
         type: "object",
         properties: {
-          body: {
+          args.body: {
             type: "string",
-            description: "body parameter"
+            description: "args.body parameter"
           },
           null: {
             type: "string",
@@ -532,7 +532,7 @@ export function setupCompanies & usersTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["body"]
+        required: ["args.body"]
       }
     },
     {
@@ -579,9 +579,9 @@ export function setupCompanies & usersTools() {
             type: "string",
             description: "id parameter"
           },
-          body: {
+          args.body: {
             type: "string",
-            description: "body parameter"
+            description: "args.body parameter"
           },
           null: {
             type: "string",
@@ -604,7 +604,7 @@ export function setupCompanies & usersTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["id","body"]
+        required: ["id","args.body"]
       }
     },
     {
@@ -644,7 +644,7 @@ export function setupCompanies & usersTools() {
   ];
 }
 
-export async function handleCompanies & usersTool(name: string, args: any) {
+export async function handleCompaniesAndUsersTool(name: string, args: any) {
   switch (name) {
     case "productboard_create_company":
       return await companyCreate(args);
@@ -732,7 +732,7 @@ export async function companyGet(args: any) {
 export async function companyUpdate(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.patch(`/companies/${args.id}`, body);
+    const response = await context.axios.patch($2, args.args.body);
     
     return {
       content: [{
@@ -760,7 +760,7 @@ export async function companyDelete(args: any) {
 export async function companyCreateField(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.post(`/companies/custom-fields`, body);
+    const response = await context.axios.post($2, args.args.body);
     
     return {
       content: [{
@@ -802,7 +802,7 @@ export async function companyGetField(args: any) {
 export async function companyUpdateField(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.patch(`/companies/custom-fields/${args.id}`, body);
+    const response = await context.axios.patch($2, args.args.body);
     
     return {
       content: [{
@@ -844,7 +844,7 @@ export async function companyGetFieldvalue(args: any) {
 export async function companySetFieldvalue(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.put(`/companies/${args.companyId}/custom-fields/${args.companyCustomFieldId}/value`, body);
+    const response = await context.axios.put($2, args.args.body);
     
     return {
       content: [{
@@ -886,7 +886,7 @@ export async function usersGet(args: any) {
 export async function userCreate(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.post(`/users`, body);
+    const response = await context.axios.post($2, args.args.body);
     
     return {
       content: [{
@@ -914,7 +914,7 @@ export async function userGet(args: any) {
 export async function userUpdate(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.patch(`/users/${args.id}`, body);
+    const response = await context.axios.patch($2, args.args.body);
     
     return {
       content: [{
