@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2025-07-17
+
+### Added
+
+- **Development Tooling**
+  - Added `format` script for automatic code formatting with Prettier
+  - Added `format:check` script for CI-compatible format checking
+  - Added `lint-and-format` script combining TypeScript linting and code formatting
+  - Added `pre-commit` script for comprehensive pre-commit validation (lint + format + test + generate manifest)
+
+### Improved
+
+- **Developer Experience**
+  - Streamlined code formatting workflow to prevent CI failures
+  - Automated linting and formatting in single commands
+  - Enhanced pre-commit validation process
+
 ## [1.2.0] - 2025-07-17
 
 ### Added

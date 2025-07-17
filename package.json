@@ -1,6 +1,6 @@
 {
   "name": "@the_cfdude/productboard-mcp",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Model Context Protocol server for Productboard REST API with dynamic tool loading",
   "type": "module",
   "bin": {
@@ -27,7 +27,11 @@
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "lint": "tsc --noEmit --strict"
+    "lint": "tsc --noEmit --strict",
+    "format": "prettier --write \"src/**/*.ts\" \"scripts/**/*.ts\" \"*.json\" \"*.md\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"scripts/**/*.ts\" \"*.json\" \"*.md\"",
+    "lint-and-format": "npm run lint && npm run format",
+    "pre-commit": "npm run lint-and-format && npm run test && npm run generate-manifest"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.6.0",
