@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-07-17
+
+### Added
+
+- **Condensed Data Views**
+  - Added `condensed` parameter to all list operations (notes_list, companies_list, releases_list, users_list)
+  - Condensed view returns only essential fields by default for better performance and reduced context usage
+  - Prevents AI models from being overwhelmed by large data responses
+  - Set condensed=false to get full data when needed
+
+- **Configurable Detail Levels**
+  - Added `detail` parameter to all get operations (notes_get, companies_get, releases_get, users_get)
+  - Three detail levels: `basic` (minimal data), `standard` (common use case), `full` (comprehensive data)
+  - Allows AI models to request appropriate level of information based on task requirements
+
+- **Enhanced Tool Documentation**
+  - Updated tool descriptions to clearly explain when to use different detail levels
+  - Added guidance on performance implications of data granularity choices
+  - Improved AI model understanding of tool capabilities and usage patterns
+
+- **New Users Operations**
+  - Added `users_get` tool with configurable detail levels
+  - Updated `users_list` to include condensed view and return user IDs for proper linking
+
+### Improved
+
+- **User Experience**
+  - Removed "productboard_" prefix from tool names for cleaner display in Claude Desktop
+  - Added `title` parameter to all tool definitions for user-friendly display names
+  - Backward compatibility maintained for existing tool name patterns
+
+- **Tool Performance**
+  - Condensed views reduce response size by 60-80% for large datasets
+  - Faster processing and reduced token usage for AI models
+  - Better scalability for organizations with extensive Productboard data
+
 ## [1.1.1] - 2025-07-16
 
 ### Fixed

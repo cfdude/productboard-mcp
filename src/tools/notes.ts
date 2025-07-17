@@ -11,9 +11,9 @@ export function setupNotesTools() {
   return [
     // Tier 1: Workflow Tools
     {
-      name: "productboard_notes_workflow_feedback_processing",
-      description:
-        "Complete workflow to process customer feedback into notes with company linking",
+      name: "notes_workflow_feedback_processing",
+      title: "Process Customer Feedback",
+      description: "Complete workflow to process customer feedback into notes with company linking",
       inputSchema: {
         type: "object",
         properties: {
@@ -53,7 +53,8 @@ export function setupNotesTools() {
 
     // Tier 2: Resource Operations
     {
-      name: "productboard_notes_create",
+      name: "notes_create",
+      title: "Create Note",
       description: "Create a new note in Productboard",
       inputSchema: {
         type: "object",
@@ -100,14 +101,19 @@ export function setupNotesTools() {
       },
     },
     {
-      name: "productboard_notes_list",
-      description: "List notes with filtering options",
+      name: "notes_list",
+      title: "List Notes",
+      description: "Retrieve notes with filtering options. Returns condensed view by default for better performance - use condensed=false for full details",
       inputSchema: {
         type: "object",
         properties: {
           limit: {
             type: "number",
             description: "Maximum number of notes to return (default: 100)",
+          },
+          condensed: {
+            type: "boolean",
+            description: "Return condensed view with only essential fields (default: true)",
           },
           createdFrom: {
             type: "string",
@@ -163,14 +169,20 @@ export function setupNotesTools() {
       },
     },
     {
-      name: "productboard_notes_get",
-      description: "Get a specific note by ID",
+      name: "notes_get",
+      title: "Get Note Details",
+      description: "Retrieve a specific note by ID with configurable detail levels. Use 'basic' for quick overview, 'standard' for most use cases, 'full' for comprehensive data",
       inputSchema: {
         type: "object",
         properties: {
           noteId: {
             type: "string",
             description: "Note ID",
+          },
+          detail: {
+            type: "string",
+            enum: ["basic", "standard", "full"],
+            description: "Level of detail to return (basic: id/title/created, standard: +content preview/tags, full: all data)",
           },
           instance: {
             type: "string",
@@ -189,7 +201,8 @@ export function setupNotesTools() {
       },
     },
     {
-      name: "productboard_notes_update",
+      name: "notes_update",
+      title: "Update Note",
       description: "Update an existing note",
       inputSchema: {
         type: "object",
@@ -228,8 +241,9 @@ export function setupNotesTools() {
       },
     },
     {
-      name: "productboard_notes_delete",
-      description: "Delete a note",
+      name: "notes_delete",
+      title: "Delete Note",
+      description: "Delete a note from Productboard",
       inputSchema: {
         type: "object",
         properties: {
@@ -252,8 +266,9 @@ export function setupNotesTools() {
 
     // Tier 3: Power User Tools
     {
-      name: "productboard_notes_bulk_tag_management",
-      description: "Bulk add or remove tags from multiple notes",
+      name: "notes_bulk_tag_management",
+      title: "Bulk Tag Management",
+      description: "Add or remove tags from multiple notes at once",
       inputSchema: {
         type: "object",
         properties: {
@@ -285,7 +300,8 @@ export function setupNotesTools() {
       },
     },
     {
-      name: "productboard_notes_analytics_insights",
+      name: "notes_analytics_insights",
+      title: "Notes Analytics",
       description: "Generate analytics insights from notes data",
       inputSchema: {
         type: "object",
@@ -332,21 +348,21 @@ export function setupNotesTools() {
  */
 export async function handleNotesTool(name: string, args: any) {
   switch (name) {
-    case "productboard_notes_workflow_feedback_processing":
+    case "notes_workflow_feedback_processing":
       return await processFeedbackWorkflow(args);
-    case "productboard_notes_create":
+    case "notes_create":
       return await createNote(args);
-    case "productboard_notes_list":
+    case "notes_list":
       return await listNotes(args);
-    case "productboard_notes_get":
+    case "notes_get":
       return await getNote(args);
-    case "productboard_notes_update":
+    case "notes_update":
       return await updateNote(args);
-    case "productboard_notes_delete":
+    case "notes_delete":
       return await deleteNote(args);
-    case "productboard_notes_bulk_tag_management":
+    case "notes_bulk_tag_management":
       return await bulkTagManagement(args);
-    case "productboard_notes_analytics_insights":
+    case "notes_analytics_insights":
       return await generateAnalyticsInsights(args);
     default:
       throw new Error(`Unknown notes tool: ${name}`);
@@ -447,6 +463,33 @@ async function listNotes(args: any) {
 
       const response = await context.axios.get("/notes", { params });
 
+      // Apply condensed view by default
+      const condensed = args.condensed !== false;
+      
+      if (condensed && response.data?.data && Array.isArray(response.data.data)) {
+        const condensedData = {
+          ...response.data,
+          data: response.data.data.map((note: any) => ({
+            id: note.id,
+            title: note.title,
+            state: note.state,
+            created_at: note.created_at,
+            ...(note.tags && { tags: note.tags }),
+            ...(note.owner?.email && { owner_email: note.owner.email }),
+            ...(note.company?.name && { company_name: note.company.name }),
+          })),
+        };
+        
+        return {
+          content: [
+            {
+              type: "text",
+              text: formatResponse(condensedData, args.includeRaw),
+            },
+          ],
+        };
+      }
+
       return {
         content: [
           {
@@ -465,6 +508,48 @@ async function getNote(args: any) {
   return await withContext(
     async (context) => {
       const response = await context.axios.get(`/notes/${args.noteId}`);
+      
+      const detail = args.detail || "standard";
+      
+      if (detail !== "full" && response.data?.data) {
+        const note = response.data.data;
+        let filteredNote: any;
+        
+        if (detail === "basic") {
+          filteredNote = {
+            id: note.id,
+            title: note.title,
+            state: note.state,
+            created_at: note.created_at,
+          };
+        } else if (detail === "standard") {
+          filteredNote = {
+            id: note.id,
+            title: note.title,
+            state: note.state,
+            created_at: note.created_at,
+            updated_at: note.updated_at,
+            content: note.content ? note.content.substring(0, 200) + (note.content.length > 200 ? "..." : "") : null,
+            ...(note.tags && { tags: note.tags }),
+            ...(note.owner && { owner: note.owner }),
+            ...(note.company && { company: note.company }),
+          };
+        }
+        
+        const filteredResponse = {
+          ...response.data,
+          data: filteredNote,
+        };
+        
+        return {
+          content: [
+            {
+              type: "text",
+              text: formatResponse(filteredResponse, args.includeRaw),
+            },
+          ],
+        };
+      }
 
       return {
         content: [

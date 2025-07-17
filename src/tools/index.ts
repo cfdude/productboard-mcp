@@ -44,23 +44,23 @@ export function setupToolHandlers(server: Server): void {
     const { name, arguments: args } = request.params;
 
     try {
-      // Route to appropriate handler
-      if (name.startsWith("productboard_notes_")) {
+      // Route to appropriate handler - handle both old and new naming
+      if (name.startsWith("productboard_notes_") || name.startsWith("notes_")) {
         const { handleNotesTool } = await import("./notes.js");
         return await handleNotesTool(name, args || {});
-      } else if (name.startsWith("productboard_features_")) {
+      } else if (name.startsWith("productboard_features_") || name.startsWith("features_")) {
         const { handleFeaturesTool } = await import("./features.js");
         return await handleFeaturesTool(name, args || {});
-      } else if (name.startsWith("productboard_companies_")) {
+      } else if (name.startsWith("productboard_companies_") || name.startsWith("companies_")) {
         const { handleCompaniesTool } = await import("./companies.js");
         return await handleCompaniesTool(name, args || {});
-      } else if (name.startsWith("productboard_users_")) {
+      } else if (name.startsWith("productboard_users_") || name.startsWith("users_")) {
         const { handleUsersTool } = await import("./users.js");
         return await handleUsersTool(name, args || {});
-      } else if (name.startsWith("productboard_releases_")) {
+      } else if (name.startsWith("productboard_releases_") || name.startsWith("releases_")) {
         const { handleReleasesTool } = await import("./releases.js");
         return await handleReleasesTool(name, args || {});
-      } else if (name.startsWith("productboard_webhooks_")) {
+      } else if (name.startsWith("productboard_webhooks_") || name.startsWith("webhooks_")) {
         const { handleWebhooksTool } = await import("./webhooks.js");
         return await handleWebhooksTool(name, args || {});
       } else {

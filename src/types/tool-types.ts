@@ -20,6 +20,7 @@ export interface ToolResponse {
 
 export interface ToolDefinition {
   name: string;
+  title?: string;
   description: string;
   inputSchema: {
     type: string;

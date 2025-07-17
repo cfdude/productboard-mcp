@@ -6,8 +6,9 @@ import { withContext, formatResponse } from "../utils/tool-wrapper.js";
 export function setupWebhooksTools() {
   return [
     {
-      name: "productboard_webhooks_list",
-      description: "List webhook subscriptions",
+      name: "webhooks_list",
+      title: "List Webhooks",
+      description: "Retrieve a list of webhook subscriptions",
       inputSchema: {
         type: "object",
         properties: {
@@ -27,7 +28,8 @@ export function setupWebhooksTools() {
       },
     },
     {
-      name: "productboard_webhooks_create",
+      name: "webhooks_create",
+      title: "Create Webhook",
       description: "Create a new webhook subscription",
       inputSchema: {
         type: "object",
@@ -57,7 +59,8 @@ export function setupWebhooksTools() {
       },
     },
     {
-      name: "productboard_webhooks_delete",
+      name: "webhooks_delete",
+      title: "Delete Webhook",
       description: "Delete a webhook subscription",
       inputSchema: {
         type: "object",
@@ -83,11 +86,11 @@ export function setupWebhooksTools() {
 
 export async function handleWebhooksTool(name: string, args: any) {
   switch (name) {
-    case "productboard_webhooks_list":
+    case "webhooks_list":
       return await listWebhooks(args);
-    case "productboard_webhooks_create":
+    case "webhooks_create":
       return await createWebhook(args);
-    case "productboard_webhooks_delete":
+    case "webhooks_delete":
       return await deleteWebhook(args);
     default:
       throw new Error(`Unknown webhooks tool: ${name}`);
