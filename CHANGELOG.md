@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Critical create_note API Fix**
+  - Fixed create_note function that was sending requests incorrectly
+  - Removed data wrapper for /notes endpoint (sends body directly unlike other endpoints)
+  - Fixed field naming to use snake_case (display_url not displayUrl)
+  - Added Accept header matching API requirements
+  - Enhanced error handling with specific messages for 409 and 422 status codes
+  - Documented MCP tool usage requirements (no JSON formatting or escape characters)
+
 ## [1.1.1] - 2025-01-17
 
 ### 🔧 Bug Fixes & Improvements

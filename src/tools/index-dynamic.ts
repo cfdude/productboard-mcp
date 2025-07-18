@@ -1,17 +1,17 @@
 /**
  * Dynamic tool registration and setup with lazy loading
  */
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import {
   CallToolRequestSchema,
   ErrorCode,
   ListToolsRequestSchema,
   McpError,
-} from "@modelcontextprotocol/sdk/types.js";
-import { join } from "path";
-import { existsSync } from "fs";
-import { ToolRegistry } from "./registry.js";
-import { loadConfig } from "../config.js";
+} from '@modelcontextprotocol/sdk/types.js';
+import { join } from 'path';
+import { existsSync } from 'fs';
+import { ToolRegistry } from './registry.js';
+import { loadConfig } from '../config.js';
 
 /**
  * Get enabled categories from configuration
@@ -22,7 +22,7 @@ function getEnabledCategories(): string[] {
 
   if (!toolConfig) {
     // Default categories if no configuration
-    return ["notes", "features", "companies", "users", "releases", "webhooks"];
+    return ['notes', 'features', 'companies', 'users', 'releases', 'webhooks'];
   }
 
   // Handle profile-based configuration
@@ -36,7 +36,7 @@ function getEnabledCategories(): string[] {
   // Handle explicit enabled/disabled lists
   if (toolConfig.enabled) {
     // Check if wildcard is used
-    if (toolConfig.enabled.includes("*")) {
+    if (toolConfig.enabled.includes('*')) {
       // Return empty array to signal "all categories"
       return [];
     }
@@ -48,18 +48,18 @@ function getEnabledCategories(): string[] {
     // This would require loading manifest to get all categories
     // For now, return default minus disabled
     const defaults = [
-      "notes",
-      "features",
-      "companies",
-      "users",
-      "releases",
-      "webhooks",
+      'notes',
+      'features',
+      'companies',
+      'users',
+      'releases',
+      'webhooks',
     ];
-    return defaults.filter((cat) => !toolConfig.disabled!.includes(cat));
+    return defaults.filter(cat => !toolConfig.disabled!.includes(cat));
   }
 
   // Default categories
-  return ["notes", "features", "companies", "users", "releases", "webhooks"];
+  return ['notes', 'features', 'companies', 'users', 'releases', 'webhooks'];
 }
 
 /**
@@ -70,13 +70,13 @@ export function setupDynamicToolHandlers(server: Server) {
   const registry = new ToolRegistry(getEnabledCategories());
 
   // Load manifest
-  const manifestPath = join(process.cwd(), "generated", "manifest.json");
+  const manifestPath = join(process.cwd(), 'generated', 'manifest.json');
 
   // Check if manifest exists, if not use static tools
   if (!existsSync(manifestPath)) {
-    console.warn("Tool manifest not found, falling back to static tools");
+    console.warn('Tool manifest not found, falling back to static tools');
     // Import and use the original static setup
-    import("./index.js").then((module) => {
+    import('./index.js').then(module => {
       module.setupToolHandlers(server);
     });
     return;
@@ -92,13 +92,13 @@ export function setupDynamicToolHandlers(server: Server) {
       .then(() => {
         // Tools loaded successfully from manifest
       })
-      .catch((error) => {
-        console.error("Failed to register tools from manifest:", error);
+      .catch(error => {
+        console.error('Failed to register tools from manifest:', error);
       });
   } catch (error) {
-    console.error("Failed to load tool manifest:", error);
+    console.error('Failed to load tool manifest:', error);
     // Fall back to static tools
-    import("./index.js").then((module) => {
+    import('./index.js').then(module => {
       module.setupToolHandlers(server);
     });
     return;
@@ -110,7 +110,7 @@ export function setupDynamicToolHandlers(server: Server) {
   }));
 
   // Call tool handler
-  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  server.setRequestHandler(CallToolRequestSchema, async request => {
     const { name, arguments: args } = request.params;
 
     try {
@@ -123,17 +123,17 @@ export function setupDynamicToolHandlers(server: Server) {
       console.error(`Error in tool ${name}:`, error);
       throw new McpError(
         ErrorCode.InternalError,
-        `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
+        `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`
       );
     }
   });
 
   // Handle configuration updates (could be triggered by a special tool)
-  server.onerror = (error) => {
-    console.error("[MCP Error]", error);
+  server.onerror = error => {
+    console.error('[MCP Error]', error);
 
     // Check if we need to reload configuration
-    if (error.message?.includes("configuration")) {
+    if (error.message?.includes('configuration')) {
       const newCategories = getEnabledCategories();
       registry.updateEnabledCategories(newCategories);
       // Categories updated successfully

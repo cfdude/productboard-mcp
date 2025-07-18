@@ -1,132 +1,368 @@
 /**
  * Users management tools
  */
-import { withContext, formatResponse } from "../utils/tool-wrapper.js";
+import { withContext, formatResponse } from '../utils/tool-wrapper.js';
+import {
+  normalizeListParams,
+  normalizeGetParams,
+  filterByDetailLevel,
+  filterArrayByDetailLevel,
+  isEnterpriseError,
+} from '../utils/parameter-utils.js';
+import {
+  StandardListParams,
+  StandardGetParams,
+} from '../types/parameter-types.js';
+import { ProductboardError } from '../errors/index.js';
+import { ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 
 export function setupUsersTools() {
   return [
     {
-      name: "productboard_users_list",
-      description: "List users in Productboard",
+      name: 'create_user',
+      description: 'Create a new user in Productboard',
       inputSchema: {
-        type: "object",
+        type: 'object',
         properties: {
-          limit: {
-            type: "number",
-            description: "Maximum number of users to return",
+          email: {
+            type: 'string',
+            description: 'User email address',
+          },
+          name: {
+            type: 'string',
+            description: 'User full name',
+          },
+          role: {
+            type: 'string',
+            description: 'User role (e.g., admin, member, viewer)',
+          },
+          companyId: {
+            type: 'string',
+            description: 'Company ID to associate with the user',
+          },
+          externalId: {
+            type: 'string',
+            description: 'External ID for the user',
           },
           instance: {
-            type: "string",
-            description: "Productboard instance name (optional)",
+            type: 'string',
+            description: 'Productboard instance name (optional)',
           },
           workspaceId: {
-            type: "string",
-            description: "Workspace ID (optional)",
+            type: 'string',
+            description: 'Workspace ID (optional)',
           },
-          includeRaw: {
-            type: "boolean",
-            description: "Include raw API response",
+        },
+        required: ['email'],
+      },
+    },
+    {
+      name: 'get_users',
+      description: 'List all users in Productboard',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          limit: {
+            type: 'number',
+            description:
+              'Maximum number of users to return (1-100, default: 100)',
+          },
+          startWith: {
+            type: 'number',
+            description: 'Offset for pagination (default: 0)',
+          },
+          detail: {
+            type: 'string',
+            enum: ['basic', 'standard', 'full'],
+            description: 'Level of detail (default: basic)',
+          },
+          includeSubData: {
+            type: 'boolean',
+            description: 'Include nested complex JSON sub-data',
+          },
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
           },
         },
       },
     },
     {
-      name: "productboard_users_update",
-      description: "Update user information",
+      name: 'get_user',
+      description: 'Get a specific user by ID',
       inputSchema: {
-        type: "object",
+        type: 'object',
         properties: {
-          userEmail: {
-            type: "string",
-            description: "User email address",
+          id: {
+            type: 'string',
+            description: 'User ID',
           },
-          name: {
-            type: "string",
-            description: "Updated user name",
+          detail: {
+            type: 'string',
+            enum: ['basic', 'standard', 'full'],
+            description: 'Level of detail (default: standard)',
           },
-          companyName: {
-            type: "string",
-            description: "Updated company name",
-          },
-          externalId: {
-            type: "string",
-            description: "External ID for the user",
+          includeSubData: {
+            type: 'boolean',
+            description: 'Include nested complex JSON sub-data',
           },
           instance: {
-            type: "string",
-            description: "Productboard instance name (optional)",
+            type: 'string',
+            description: 'Productboard instance name (optional)',
           },
           workspaceId: {
-            type: "string",
-            description: "Workspace ID (optional)",
-          },
-          includeRaw: {
-            type: "boolean",
-            description: "Include raw API response",
+            type: 'string',
+            description: 'Workspace ID (optional)',
           },
         },
-        required: ["userEmail"],
+        required: ['id'],
+      },
+    },
+    {
+      name: 'update_user',
+      description: 'Update an existing user',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            description: 'User ID',
+          },
+          name: {
+            type: 'string',
+            description: 'Updated user name',
+          },
+          role: {
+            type: 'string',
+            description: 'Updated user role',
+          },
+          companyId: {
+            type: 'string',
+            description: 'Updated company ID',
+          },
+          externalId: {
+            type: 'string',
+            description: 'Updated external ID',
+          },
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
+          },
+        },
+        required: ['id'],
+      },
+    },
+    {
+      name: 'delete_user',
+      description: 'Delete a user',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            description: 'User ID',
+          },
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
+          },
+        },
+        required: ['id'],
       },
     },
   ];
 }
 
 export async function handleUsersTool(name: string, args: any) {
-  switch (name) {
-    case "productboard_users_list":
-      return await listUsers(args);
-    case "productboard_users_update":
-      return await updateUser(args);
-    default:
-      throw new Error(`Unknown users tool: ${name}`);
+  try {
+    switch (name) {
+      case 'create_user':
+        return await createUser(args);
+      case 'get_users':
+        return await listUsers(args);
+      case 'get_user':
+        return await getUser(args);
+      case 'update_user':
+        return await updateUser(args);
+      case 'delete_user':
+        return await deleteUser(args);
+      default:
+        throw new Error(`Unknown users tool: ${name}`);
+    }
+  } catch (error: any) {
+    const enterpriseInfo = isEnterpriseError(error);
+    if (enterpriseInfo.isEnterpriseFeature) {
+      throw new ProductboardError(
+        ErrorCode.InvalidRequest,
+        enterpriseInfo.message,
+        error
+      );
+    }
+    throw error;
   }
 }
 
-async function listUsers(args: any) {
+async function createUser(args: any) {
   return await withContext(
-    async (context) => {
-      const params: any = {};
-      if (args.limit) params.pageLimit = Math.min(args.limit, 1000);
+    async context => {
+      const body: any = {
+        email: args.email,
+      };
 
-      const response = await context.axios.get("/users", { params });
+      if (args.name) body.name = args.name;
+      if (args.role) body.role = args.role;
+      if (args.companyId) body.company = { id: args.companyId };
+      if (args.externalId) body.externalId = args.externalId;
+
+      const response = await context.axios.post('/users', { data: body });
 
       return {
         content: [
           {
-            type: "text",
-            text: formatResponse(response.data, args.includeRaw),
+            type: 'text',
+            text: formatResponse({
+              success: true,
+              user: response.data,
+            }),
           },
         ],
       };
     },
     args.instance,
-    args.workspaceId,
+    args.workspaceId
+  );
+}
+
+async function listUsers(args: StandardListParams & any) {
+  return await withContext(
+    async context => {
+      const normalizedParams = normalizeListParams(args);
+      const params: any = {
+        pageLimit: normalizedParams.limit,
+        pageOffset: normalizedParams.startWith,
+      };
+
+      const response = await context.axios.get('/users', { params });
+
+      const result = response.data;
+
+      // Apply detail level filtering
+      if (!normalizedParams.includeSubData && result.data) {
+        result.data = filterArrayByDetailLevel(
+          result.data,
+          'user',
+          normalizedParams.detail
+        );
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse(result),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+async function getUser(
+  args: StandardGetParams & {
+    id: string;
+    instance?: string;
+    workspaceId?: string;
+  }
+) {
+  return await withContext(
+    async context => {
+      const normalizedParams = normalizeGetParams(args);
+      const response = await context.axios.get(`/users/${args.id}`);
+
+      let result = response.data;
+
+      // Apply detail level filtering
+      if (!normalizedParams.includeSubData) {
+        result = filterByDetailLevel(result, 'user', normalizedParams.detail);
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse(result),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
   );
 }
 
 async function updateUser(args: any) {
   return await withContext(
-    async (context) => {
-      const updateData: any = {};
-      if (args.name) updateData.name = args.name;
-      if (args.companyName) updateData.company = { name: args.companyName };
-      if (args.externalId) updateData.externalId = args.externalId;
+    async context => {
+      const body: any = {};
 
-      const response = await context.axios.patch(
-        `/users/${args.userEmail}`,
-        updateData,
-      );
+      if (args.name) body.name = args.name;
+      if (args.role) body.role = args.role;
+      if (args.companyId) body.company = { id: args.companyId };
+      if (args.externalId) body.externalId = args.externalId;
+
+      const response = await context.axios.patch(`/users/${args.id}`, {
+        data: body,
+      });
 
       return {
         content: [
           {
-            type: "text",
-            text: formatResponse(response.data, args.includeRaw),
+            type: 'text',
+            text: formatResponse({
+              success: true,
+              user: response.data,
+            }),
           },
         ],
       };
     },
     args.instance,
-    args.workspaceId,
+    args.workspaceId
+  );
+}
+
+async function deleteUser(args: any) {
+  return await withContext(
+    async context => {
+      await context.axios.delete(`/users/${args.id}`);
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse({
+              success: true,
+              message: `User ${args.id} deleted successfully`,
+            }),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
   );
 }
