@@ -42,7 +42,8 @@ export function setupWebhooksTools() {
               properties: {
                 eventType: {
                   type: "string",
-                  description: "Event type (e.g., feature.created, note.updated)",
+                  description:
+                    "Event type (e.g., feature.created, note.updated)",
                 },
               },
               required: ["eventType"],
