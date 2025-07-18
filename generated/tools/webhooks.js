@@ -1,34 +1,13 @@
 /**
- * Auto-generated key results management tools
+ * Auto-generated webhook subscription management tools
  */
 import { withContext, formatResponse } from "../../build/utils/tool-wrapper.js";
 
-export function setupKeyResultsTools() {
+export function setupWebhooksTools() {
     return [
         {
-            name: "get_key_results",
-            description: "List all key results",
-            inputSchema: {
-                type: "object",
-                properties: {
-                    instance: {
-                        type: "string",
-                        description: "instance parameter (optional)"
-                    },
-                    workspaceId: {
-                        type: "string",
-                        description: "workspaceId parameter (optional)"
-                    },
-                    includeRaw: {
-                        type: "boolean",
-                        description: "includeRaw parameter (optional)"
-                    }
-                }
-            }
-        },
-        {
-            name: "create_key_result",
-            description: "Create a key result",
+            name: "post_webhook",
+            description: "Create a new subscription",
             inputSchema: {
                 type: "object",
                 properties: {
@@ -53,14 +32,35 @@ export function setupKeyResultsTools() {
             }
         },
         {
-            name: "get_key_result",
-            description: "Retrieve a key result",
+            name: "get_webhooks",
+            description: "List all subscriptions",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    instance: {
+                        type: "string",
+                        description: "instance parameter (optional)"
+                    },
+                    workspaceId: {
+                        type: "string",
+                        description: "workspaceId parameter (optional)"
+                    },
+                    includeRaw: {
+                        type: "boolean",
+                        description: "includeRaw parameter (optional)"
+                    }
+                }
+            }
+        },
+        {
+            name: "get_webhook",
+            description: "Retrieve a subscription",
             inputSchema: {
                 type: "object",
                 properties: {
                     id: {
                         type: "string",
-                        description: "id parameter"
+                        description: "Subscription ID"
                     },
                     instance: {
                         type: "string",
@@ -79,44 +79,14 @@ export function setupKeyResultsTools() {
             }
         },
         {
-            name: "update_key_result",
-            description: "Update a key result",
+            name: "delete_webhook",
+            description: "Delete a subscription",
             inputSchema: {
                 type: "object",
                 properties: {
                     id: {
                         type: "string",
-                        description: "id parameter"
-                    },
-                    body: {
-                        type: "string",
-                        description: "body parameter"
-                    },
-                    instance: {
-                        type: "string",
-                        description: "instance parameter (optional)"
-                    },
-                    workspaceId: {
-                        type: "string",
-                        description: "workspaceId parameter (optional)"
-                    },
-                    includeRaw: {
-                        type: "boolean",
-                        description: "includeRaw parameter (optional)"
-                    }
-                },
-                required: ["id", "body"]
-            }
-        },
-        {
-            name: "delete_key_result",
-            description: "Delete a key result",
-            inputSchema: {
-                type: "object",
-                properties: {
-                    id: {
-                        type: "string",
-                        description: "id parameter"
+                        description: "Subscription ID"
                     },
                     instance: {
                         type: "string",
@@ -137,39 +107,47 @@ export function setupKeyResultsTools() {
     ];
 }
 
-export async function handleKeyResultsTool(name, args) {
+export async function handleWebhooksTool(name, args) {
     switch (name) {
-        case "get_key_results":
-            return await keyGetResults(args);
-        case "create_key_result":
-            return await keyCreateResult(args);
-        case "get_key_result":
-            return await keyGetResult(args);
-        case "update_key_result":
-            return await keyUpdateResult(args);
-        case "delete_key_result":
-            return await keyDeleteResult(args);
+        case "post_webhook":
+            return await postWebhook(args);
+        case "get_webhooks":
+            return await getWebhooks(args);
+        case "get_webhook":
+            return await getWebhook(args);
+        case "delete_webhook":
+            return await deleteWebhook(args);
         default:
-            throw new Error(`Unknown key results tool: ${name}`);
+            throw new Error(`Unknown webhooks tool: ${name}`);
     }
 }
 
-export async function keyGetResults(args) {
+export async function postWebhook(args) {
+    console.log('[DEBUG postWebhook] Called with args:', JSON.stringify(args, null, 2));
+    
     return await withContext(async (context) => {
-        const response = await context.axios.get(`/key-results`);
-        return {
-            content: [{
-                type: "text",
-                text: formatResponse(response.data, args.includeRaw)
-            }]
-        };
-    }, args.instance, args.workspaceId);
-}
-
-export async function keyCreateResult(args) {
-    return await withContext(async (context) => {
+        console.log('[DEBUG postWebhook] Inside withContext');
         const body = typeof args.body === 'string' ? JSON.parse(args.body) : args.body;
-        const response = await context.axios.post(`/key-results`, { data: body });
+        console.log('[DEBUG postWebhook] Parsed body:', JSON.stringify(body, null, 2));
+        
+        // Ensure proper structure for webhook API
+        const webhookData = {
+            events: body.events || (body.eventType ? [{eventType: body.eventType}] : []),
+            name: body.name || "Webhook subscription",
+            notification: body.notification || {
+                version: 1,
+                url: body.url || body.callback_url || "https://example.com/webhook"
+            }
+        };
+        
+        // Add optional headers if provided
+        if (body.headers) {
+            webhookData.notification.headers = body.headers;
+        }
+        
+        console.log('[DEBUG postWebhook] Sending webhook data:', JSON.stringify({ data: webhookData }, null, 2));
+        
+        const response = await context.axios.post(`/webhooks`, { data: webhookData });
         return {
             content: [{
                 type: "text",
@@ -179,9 +157,9 @@ export async function keyCreateResult(args) {
     }, args.instance, args.workspaceId);
 }
 
-export async function keyGetResult(args) {
+export async function getWebhooks(args) {
     return await withContext(async (context) => {
-        const response = await context.axios.get(`/key-results/${args.id}`);
+        const response = await context.axios.get(`/webhooks`);
         return {
             content: [{
                 type: "text",
@@ -191,10 +169,9 @@ export async function keyGetResult(args) {
     }, args.instance, args.workspaceId);
 }
 
-export async function keyUpdateResult(args) {
+export async function getWebhook(args) {
     return await withContext(async (context) => {
-        const body = typeof args.body === 'string' ? JSON.parse(args.body) : args.body;
-        const response = await context.axios.patch(`/key-results/${args.id}`, { data: body });
+        const response = await context.axios.get(`/webhooks/${args.id}`);
         return {
             content: [{
                 type: "text",
@@ -204,9 +181,9 @@ export async function keyUpdateResult(args) {
     }, args.instance, args.workspaceId);
 }
 
-export async function keyDeleteResult(args) {
+export async function deleteWebhook(args) {
     return await withContext(async (context) => {
-        const response = await context.axios.delete(`/key-results/${args.id}`);
+        const response = await context.axios.delete(`/webhooks/${args.id}`);
         return {
             content: [{
                 type: "text",

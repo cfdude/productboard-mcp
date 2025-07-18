@@ -444,7 +444,8 @@ export async function initiativesGet(args) {
 }
 export async function initiativeCreate(args) {
     return await withContext(async (context) => {
-        const response = await context.axios.post(`/initiatives`, args.body);
+        const body = typeof args.body === 'string' ? JSON.parse(args.body) : args.body;
+        const response = await context.axios.post(`/initiatives`, { data: body });
         return {
             content: [{
                     type: "text",
@@ -466,7 +467,8 @@ export async function initiativeGet(args) {
 }
 export async function initiativeUpdate(args) {
     return await withContext(async (context) => {
-        const response = await context.axios.patch(`/initiatives/${args.id}`, args.body);
+        const body = typeof args.body === 'string' ? JSON.parse(args.body) : args.body;
+        const response = await context.axios.patch(`/initiatives/${args.id}`, { data: body });
         return {
             content: [{
                     type: "text",

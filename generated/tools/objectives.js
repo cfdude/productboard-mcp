@@ -448,7 +448,8 @@ export async function objectivesGet(args) {
 }
 export async function objectiveCreate(args) {
     return await withContext(async (context) => {
-        const response = await context.axios.post(`/objectives`, body);
+        const body = typeof args.body === 'string' ? JSON.parse(args.body) : args.body;
+        const response = await context.axios.post(`/objectives`, { data: body });
         return {
             content: [{
                     type: "text",
@@ -470,7 +471,8 @@ export async function objectiveGet(args) {
 }
 export async function objectiveUpdate(args) {
     return await withContext(async (context) => {
-        const response = await context.axios.patch(`/objectives/${args.id}`, body);
+        const body = typeof args.body === 'string' ? JSON.parse(args.body) : args.body;
+        const response = await context.axios.patch(`/objectives/${args.id}`, { data: body });
         return {
             content: [{
                     type: "text",

@@ -238,15 +238,11 @@ export async function handleCompaniesTool(name: string, args: any) {
 async function createCompany(args: any) {
   return await withContext(
     async context => {
-      const response = await context.axios.post(
-        '/companies',
-        { data: args.body },
-        {
-          headers: {
-            'Productboard-Partner-Id': args['Productboard-Partner-Id'],
-          },
-        }
-      );
+      const response = await context.axios.post('/companies', args.body, {
+        headers: {
+          'Productboard-Partner-Id': args['Productboard-Partner-Id'],
+        },
+      });
 
       return {
         content: [

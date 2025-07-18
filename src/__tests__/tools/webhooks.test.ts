@@ -53,24 +53,27 @@ describe('Webhooks Tools', () => {
       );
     });
 
-    it('should require eventType and url for create_webhook', () => {
+    it('should require events, name and url for create_webhook', () => {
       const tools = setupWebhooksTools();
       const createWebhook = tools.find(
         (t: ToolDefinition) => t.name === 'create_webhook'
       );
 
-      expect(createWebhook?.inputSchema.required).toContain('eventType');
+      expect(createWebhook?.inputSchema.required).toContain('events');
+      expect(createWebhook?.inputSchema.required).toContain('name');
       expect(createWebhook?.inputSchema.required).toContain('url');
     });
 
-    it('should have optional secret and active fields for create_webhook', () => {
+    it('should have optional headers and version fields for create_webhook', () => {
       const tools = setupWebhooksTools();
       const createWebhook = tools.find(
         (t: ToolDefinition) => t.name === 'create_webhook'
       );
 
-      expect(createWebhook?.inputSchema.properties).toHaveProperty('secret');
-      expect(createWebhook?.inputSchema.properties).toHaveProperty('active');
+      expect(createWebhook?.inputSchema.properties).toHaveProperty('headers');
+      expect(createWebhook?.inputSchema.properties).toHaveProperty('version');
+      expect(createWebhook?.inputSchema.properties).toHaveProperty('events');
+      expect(createWebhook?.inputSchema.properties).toHaveProperty('name');
     });
 
     it('should require id for individual webhook operations', () => {
@@ -94,10 +97,12 @@ describe('Webhooks Tools', () => {
       );
     });
 
-    it('should accept valid tool names', () => {
+    it('should accept valid tool names including aliases', () => {
       const validTools = [
         'create_webhook',
+        'post_webhook', // alias for create_webhook
         'list_webhooks',
+        'get_webhooks', // alias for list_webhooks
         'get_webhook',
         'delete_webhook',
       ];

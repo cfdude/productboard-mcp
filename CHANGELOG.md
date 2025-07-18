@@ -17,6 +17,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Enhanced error handling with specific messages for 409 and 422 status codes
   - Documented MCP tool usage requirements (no JSON formatting or escape characters)
 
+- **Enhanced Error Handling for All Tools**
+  - Updated error interceptors to expose original API error details in structured format
+  - Added originalData field to error responses to help AI understand request structure issues
+  - Improved error messages for 400, 409, and 422 status codes with specific guidance
+
+- **Fixed Webhook Tools Implementation**
+  - Created missing webhooks.js file with proper API structure
+  - Implemented correct webhook data format with events array and notification object
+  - Added support for both create_webhook and post_webhook aliases
+  - Fixed handler naming and routing for webhook operations
+
+- **Fixed Release Tools Syntax Errors**
+  - Replaced $2 placeholders with proper URLs in release and release-group endpoints
+  - Fixed handler function name mismatch for releases tools
+
+- **General Tool Fixes**
+  - Fixed description format requirements (must be HTML-wrapped for features)
+  - Fixed parameter type issues (create_user expects string name, not object)
+  - Added support for tool name aliases (post_webhook/create_webhook, get_webhooks/list_webhooks)
+  - Improved tool naming consistency across the codebase
+
 ## [1.1.1] - 2025-01-17
 
 ### 🔧 Bug Fixes & Improvements

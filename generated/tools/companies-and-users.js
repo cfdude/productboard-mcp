@@ -181,6 +181,114 @@ export function setupCompaniesAndUsersTools() {
                     }
                 }
             }
+        },
+        {
+            name: "create_user",
+            description: "Create a user",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    body: {
+                        type: "string",
+                        description: "User data in JSON format"
+                    },
+                    instance: {
+                        type: "string",
+                        description: "Productboard instance URL (optional)"
+                    },
+                    workspaceId: {
+                        type: "string",
+                        description: "Workspace ID (optional)"
+                    },
+                    includeRaw: {
+                        type: "boolean",
+                        description: "Include raw API response. Default: false (condensed output). Set to true for full details."
+                    }
+                },
+                required: ["body"]
+            }
+        },
+        {
+            name: "get_user",
+            description: "Retrieve a user",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    id: {
+                        type: "string",
+                        description: "User ID"
+                    },
+                    instance: {
+                        type: "string",
+                        description: "Productboard instance URL (optional)"
+                    },
+                    workspaceId: {
+                        type: "string",
+                        description: "Workspace ID (optional)"
+                    },
+                    includeRaw: {
+                        type: "boolean",
+                        description: "Include raw API response. Default: false (condensed output). Set to true for full details."
+                    }
+                },
+                required: ["id"]
+            }
+        },
+        {
+            name: "update_user",
+            description: "Update a user",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    id: {
+                        type: "string",
+                        description: "User ID"
+                    },
+                    body: {
+                        type: "string",
+                        description: "Updated user data in JSON format"
+                    },
+                    instance: {
+                        type: "string",
+                        description: "Productboard instance URL (optional)"
+                    },
+                    workspaceId: {
+                        type: "string",
+                        description: "Workspace ID (optional)"
+                    },
+                    includeRaw: {
+                        type: "boolean",
+                        description: "Include raw API response. Default: false (condensed output). Set to true for full details."
+                    }
+                },
+                required: ["id", "body"]
+            }
+        },
+        {
+            name: "delete_user",
+            description: "Delete a user",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    id: {
+                        type: "string",
+                        description: "User ID"
+                    },
+                    instance: {
+                        type: "string",
+                        description: "Productboard instance URL (optional)"
+                    },
+                    workspaceId: {
+                        type: "string",
+                        description: "Workspace ID (optional)"
+                    },
+                    includeRaw: {
+                        type: "boolean",
+                        description: "Include raw API response. Default: false (condensed output). Set to true for full details."
+                    }
+                },
+                required: ["id"]
+            }
         }
     ];
 }
@@ -199,6 +307,14 @@ export async function handleCompaniesUsersTool(name, args) {
             return await deleteCompany(args);
         case "get_users":
             return await getUsers(args);
+        case "create_user":
+            return await createUser(args);
+        case "get_user":
+            return await getUser(args);
+        case "update_user":
+            return await updateUser(args);
+        case "delete_user":
+            return await deleteUser(args);
         default:
             throw new Error(`Unknown companies and users tool: ${name}`);
     }
@@ -300,6 +416,59 @@ export async function getUsers(args) {
             content: [{
                 type: "text",
                 text: formatResponse(response.data, args.includeRaw)
+            }]
+        };
+    }, args.instance, args.workspaceId);
+}
+
+export async function createUser(args) {
+    return await withContext(async (context) => {
+        const body = typeof args.body === 'string' ? JSON.parse(args.body) : args.body;
+        const response = await context.axios.post(`/users`, { data: body });
+        return {
+            content: [{
+                type: "text",
+                text: formatResponse(response.data, args.includeRaw)
+            }]
+        };
+    }, args.instance, args.workspaceId);
+}
+
+export async function getUser(args) {
+    return await withContext(async (context) => {
+        const response = await context.axios.get(`/users/${args.id}`);
+        return {
+            content: [{
+                type: "text",
+                text: formatResponse(response.data, args.includeRaw)
+            }]
+        };
+    }, args.instance, args.workspaceId);
+}
+
+export async function updateUser(args) {
+    return await withContext(async (context) => {
+        const body = typeof args.body === 'string' ? JSON.parse(args.body) : args.body;
+        const response = await context.axios.patch(`/users/${args.id}`, { data: body });
+        return {
+            content: [{
+                type: "text",
+                text: formatResponse(response.data, args.includeRaw)
+            }]
+        };
+    }, args.instance, args.workspaceId);
+}
+
+export async function deleteUser(args) {
+    return await withContext(async (context) => {
+        const response = await context.axios.delete(`/users/${args.id}`);
+        return {
+            content: [{
+                type: "text",
+                text: formatResponse({
+                    success: true,
+                    message: `User ${args.id} deleted successfully`
+                }, args.includeRaw)
             }]
         };
     }, args.instance, args.workspaceId);

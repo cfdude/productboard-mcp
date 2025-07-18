@@ -24,22 +24,38 @@ export function setupWebhooksTools() {
       inputSchema: {
         type: 'object',
         properties: {
-          eventType: {
-            type: 'string',
+          events: {
+            type: 'array',
             description:
-              'Event type to subscribe to (e.g., feature.created, note.updated)',
+              'Array of event types to subscribe to (e.g., [{eventType: "feature.created"}, {eventType: "note.updated"}])',
+            items: {
+              type: 'object',
+              properties: {
+                eventType: {
+                  type: 'string',
+                  description:
+                    'Event type (e.g., feature.created, note.updated, objective.created)',
+                },
+              },
+              required: ['eventType'],
+            },
+          },
+          name: {
+            type: 'string',
+            description: 'Name for the webhook subscription',
           },
           url: {
             type: 'string',
             description: 'Webhook URL to receive notifications',
           },
-          secret: {
-            type: 'string',
-            description: 'Secret key for webhook signature validation',
+          headers: {
+            type: 'object',
+            description:
+              'Optional headers to include in webhook requests (e.g., {"authorization": "Bearer token"})',
           },
-          active: {
-            type: 'boolean',
-            description: 'Whether the webhook is active (default: true)',
+          version: {
+            type: 'number',
+            description: 'Notification version (default: 1)',
           },
           instance: {
             type: 'string',
@@ -50,7 +66,7 @@ export function setupWebhooksTools() {
             description: 'Workspace ID (optional)',
           },
         },
-        required: ['eventType', 'url'],
+        required: ['events', 'name', 'url'],
       },
     },
     {
@@ -148,8 +164,10 @@ export async function handleWebhooksTool(name: string, args: any) {
   try {
     switch (name) {
       case 'create_webhook':
+      case 'post_webhook': // Support both names for compatibility
         return await createWebhook(args);
       case 'list_webhooks':
+      case 'get_webhooks': // Support both names for compatibility
         return await listWebhooks(args);
       case 'get_webhook':
         return await getWebhook(args);
@@ -174,15 +192,32 @@ export async function handleWebhooksTool(name: string, args: any) {
 async function createWebhook(args: any) {
   return await withContext(
     async context => {
-      const body: any = {
-        eventType: args.eventType,
-        url: args.url,
+      // Handle both direct parameters and body parameter formats
+      let webhookParams = args;
+      if (args.body) {
+        // Parse body if it's a string (from MCP calls)
+        webhookParams =
+          typeof args.body === 'string' ? JSON.parse(args.body) : args.body;
+      }
+
+      // Build the webhook data structure
+      const webhookData: any = {
+        events: webhookParams.events,
+        name: webhookParams.name,
+        notification: webhookParams.notification || {
+          version: webhookParams.version || 1,
+          url: webhookParams.url,
+        },
       };
 
-      if (args.secret) body.secret = args.secret;
-      if (args.active !== undefined) body.active = args.active;
+      // Add optional headers if provided
+      if (webhookParams.headers && !webhookData.notification.headers) {
+        webhookData.notification.headers = webhookParams.headers;
+      }
 
-      const response = await context.axios.post('/webhooks', { data: body });
+      const response = await context.axios.post('/webhooks', {
+        data: webhookData,
+      });
 
       return {
         content: [

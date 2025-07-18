@@ -99,3 +99,7 @@ jspm_packages/
 
 # DynamoDB Local files
 .dynamodb/
+
+# Test scripts
+test-*.js
+scripts/test/test-*.js

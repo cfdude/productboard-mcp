@@ -827,7 +827,8 @@ export async function handleProductsTool(name, args) {
 }
 export async function featureCreate(args) {
     return await withContext(async (context) => {
-        const response = await context.axios.post(`/features`, args.body);
+        const body = typeof args.body === 'string' ? JSON.parse(args.body) : args.body;
+        const response = await context.axios.post(`/features`, { data: body });
         return {
             content: [{
                     type: "text",
@@ -919,7 +920,8 @@ export async function featureGet(args) {
 }
 export async function featureUpdate(args) {
     return await withContext(async (context) => {
-        const response = await context.axios.patch(`/features/${args.id}`, args.body);
+        const body = typeof args.body === 'string' ? JSON.parse(args.body) : args.body;
+        const response = await context.axios.patch(`/features/${args.id}`, { data: body });
         return {
             content: [{
                     type: "text",
@@ -930,7 +932,8 @@ export async function featureUpdate(args) {
 }
 export async function featureUpdateDeprecated(args) {
     return await withContext(async (context) => {
-        const response = await context.axios.put(`/features/${args.id}`, args.body);
+        const body = typeof args.body === 'string' ? JSON.parse(args.body) : args.body;
+        const response = await context.axios.put(`/features/${args.id}`, { data: body });
         return {
             content: [{
                     type: "text",
@@ -1018,7 +1021,8 @@ export async function objectiveDeleteLink(args) {
 }
 export async function componentCreate(args) {
     return await withContext(async (context) => {
-        const response = await context.axios.post(`/components`, args.body);
+        const body = typeof args.body === 'string' ? JSON.parse(args.body) : args.body;
+        const response = await context.axios.post(`/components`, { data: body });
         return {
             content: [{
                     type: "text",
@@ -1051,7 +1055,8 @@ export async function componentGet(args) {
 }
 export async function componentUpdate(args) {
     return await withContext(async (context) => {
-        const response = await context.axios.patch(`/components/${args.id}`, args.body);
+        const body = typeof args.body === 'string' ? JSON.parse(args.body) : args.body;
+        const response = await context.axios.patch(`/components/${args.id}`, { data: body });
         return {
             content: [{
                     type: "text",
@@ -1062,7 +1067,8 @@ export async function componentUpdate(args) {
 }
 export async function componentUpdateDeprecated(args) {
     return await withContext(async (context) => {
-        const response = await context.axios.put(`/components/${args.id}`, args.body);
+        const body = typeof args.body === 'string' ? JSON.parse(args.body) : args.body;
+        const response = await context.axios.put(`/components/${args.id}`, { data: body });
         return {
             content: [{
                     type: "text",
@@ -1095,7 +1101,8 @@ export async function productGet(args) {
 }
 export async function productUpdate(args) {
     return await withContext(async (context) => {
-        const response = await context.axios.patch(`/products/${args.id}`, args.body);
+        const body = typeof args.body === 'string' ? JSON.parse(args.body) : args.body;
+        const response = await context.axios.patch(`/products/${args.id}`, { data: body });
         return {
             content: [{
                     type: "text",
@@ -1106,7 +1113,8 @@ export async function productUpdate(args) {
 }
 export async function productUpdateDeprecated(args) {
     return await withContext(async (context) => {
-        const response = await context.axios.put(`/products/${args.id}`, args.body);
+        const body = typeof args.body === 'string' ? JSON.parse(args.body) : args.body;
+        const response = await context.axios.put(`/products/${args.id}`, { data: body });
         return {
             content: [{
                     type: "text",

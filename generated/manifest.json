@@ -518,7 +518,7 @@
       "implementation": "tools/notes.js#submitFeedbackForm"
     },
     "create_company": {
-      "category": "companies & users",
+      "category": "companies",
       "operation": "POST /companies",
       "description": "Create a company",
       "requiredParams": [],
@@ -533,7 +533,7 @@
       "implementation": "tools/companies-and-users.js#createCompany"
     },
     "get_companies": {
-      "category": "companies & users",
+      "category": "companies",
       "operation": "GET /companies",
       "description": "List all companies",
       "requiredParams": [],
@@ -551,7 +551,7 @@
       "implementation": "tools/companies-and-users.js#getCompanies"
     },
     "get_company": {
-      "category": "companies & users",
+      "category": "companies",
       "operation": "GET /companies/{id}",
       "description": "Retrieve company",
       "requiredParams": [
@@ -567,7 +567,7 @@
       "implementation": "tools/companies-and-users.js#getCompany"
     },
     "update_company": {
-      "category": "companies & users",
+      "category": "companies",
       "operation": "PATCH /companies/{id}",
       "description": "Update a company",
       "requiredParams": [
@@ -584,7 +584,7 @@
       "implementation": "tools/companies-and-users.js#updateCompany"
     },
     "delete_company": {
-      "category": "companies & users",
+      "category": "companies",
       "operation": "DELETE /companies/{id}",
       "description": "Delete a company",
       "requiredParams": [
@@ -600,7 +600,7 @@
       "implementation": "tools/companies-and-users.js#deleteCompany"
     },
     "create_company_field": {
-      "category": "companies & users",
+      "category": "companies",
       "operation": "POST /companies/custom-fields",
       "description": "Create a company field",
       "requiredParams": [
@@ -615,7 +615,7 @@
       "implementation": "tools/companies-and-users.js#createCompanyField"
     },
     "list_company_fields": {
-      "category": "companies & users",
+      "category": "companies",
       "operation": "GET /companies/custom-fields",
       "description": "Retrieve company fields",
       "requiredParams": [],
@@ -628,7 +628,7 @@
       "implementation": "tools/companies-and-users.js#listCompanyFields"
     },
     "get_company_field": {
-      "category": "companies & users",
+      "category": "companies",
       "operation": "GET /companies/custom-fields/{id}",
       "description": "Retrieve a company field",
       "requiredParams": [
@@ -644,7 +644,7 @@
       "implementation": "tools/companies-and-users.js#getCompanyField"
     },
     "update_company_field": {
-      "category": "companies & users",
+      "category": "companies",
       "operation": "PATCH /companies/custom-fields/{id}",
       "description": "Update a company field",
       "requiredParams": [
@@ -661,7 +661,7 @@
       "implementation": "tools/companies-and-users.js#updateCompanyField"
     },
     "delete_company_field": {
-      "category": "companies & users",
+      "category": "companies",
       "operation": "DELETE /companies/custom-fields/{id}",
       "description": "Delete a company field",
       "requiredParams": [
@@ -677,7 +677,7 @@
       "implementation": "tools/companies-and-users.js#deleteCompanyField"
     },
     "get_company_field_value": {
-      "category": "companies & users",
+      "category": "companies",
       "operation": "GET /companies/{companyId}/custom-fields/{companyCustomFieldId}/value",
       "description": "Retrieve company field value",
       "requiredParams": [
@@ -695,7 +695,7 @@
       "implementation": "tools/companies-and-users.js#getCompanyFieldValue"
     },
     "set_company_field_value": {
-      "category": "companies & users",
+      "category": "companies",
       "operation": "PUT /companies/{companyId}/custom-fields/{companyCustomFieldId}/value",
       "description": "Sets company field value",
       "requiredParams": [
@@ -714,7 +714,7 @@
       "implementation": "tools/companies-and-users.js#setCompanyFieldValue"
     },
     "delete_company_field_value": {
-      "category": "companies & users",
+      "category": "companies",
       "operation": "DELETE /companies/{companyId}/custom-fields/{companyCustomFieldId}/value",
       "description": "Delete company field value",
       "requiredParams": [
