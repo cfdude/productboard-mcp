@@ -2,19 +2,19 @@
  * Context wrapper pattern for eliminating code duplication
  * Based on Jira MCP server analysis
  */
-import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
-import { loadConfig, getInstance, getWorkspace } from "../config.js";
+import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js';
+import { loadConfig, getInstance, getWorkspace } from '../config.js';
 import {
   MultiInstanceProductboardConfig,
   ProductboardInstanceConfig,
-} from "../types.js";
-import axios, { AxiosInstance } from "axios";
+} from '../types.js';
+import axios, { AxiosInstance } from 'axios';
 import {
   AuthenticationError,
   NetworkError,
   RateLimitError,
   sanitizeErrorMessage,
-} from "../errors/index.js";
+} from '../errors/index.js';
 
 export interface ToolContext {
   config: MultiInstanceProductboardConfig;
@@ -28,7 +28,7 @@ export interface ToolContext {
  */
 export function createToolContext(
   instanceName?: string,
-  workspaceId?: string,
+  workspaceId?: string
 ): ToolContext {
   try {
     const config = loadConfig();
@@ -41,55 +41,148 @@ export function createToolContext(
 
     // Create configured axios instance
     const axiosInstance = axios.create({
-      baseURL: instance.baseUrl || "https://api.productboard.com",
+      baseURL: instance.baseUrl || 'https://api.productboard.com',
       headers: {
         Authorization: `Bearer ${instance.apiToken}`,
-        "Content-Type": "application/json",
-        "X-Version": "1",
+        'Content-Type': 'application/json',
+        Accept: 'application/json; charset=utf-8',
+        'X-Version': '1',
       },
       timeout: 30000,
     });
 
     // Add request interceptor for rate limiting
-    axiosInstance.interceptors.request.use((config) => {
+    axiosInstance.interceptors.request.use(config => {
       // Add workspace context if available
       if (workspaceId) {
         config.headers = config.headers || {};
-        config.headers["X-Workspace-Id"] = workspaceId;
+        config.headers['X-Workspace-Id'] = workspaceId;
       }
       return config;
     });
 
-    // Add response interceptor for error handling
+    // Add response interceptor for error handling FIRST (so it runs last due to LIFO)
     axiosInstance.interceptors.response.use(
-      (response) => response,
-      (error) => {
+      response => response,
+      error => {
+        console.error('[tool-wrapper] Interceptor caught error:', {
+          message: error.message,
+          code: error.code,
+          response: error.response
+            ? {
+                status: error.response.status,
+                data: error.response.data,
+              }
+            : 'No response',
+        });
+
         if (error.response) {
           const status = error.response.status;
-          const retryAfter = error.response.headers?.["retry-after"];
+          const retryAfter = error.response.headers?.['retry-after'];
+          const data = error.response.data;
 
           if (status === 401) {
             throw new AuthenticationError();
           } else if (status === 403) {
-            throw new McpError(ErrorCode.InvalidRequest, "Access denied");
+            throw new McpError(ErrorCode.InvalidRequest, 'Access denied', {
+              status: status,
+              originalData: data,
+            });
           } else if (status === 404) {
-            throw new McpError(ErrorCode.InvalidRequest, "Resource not found");
+            throw new McpError(ErrorCode.InvalidRequest, 'Resource not found', {
+              status: status,
+              originalData: data,
+            });
+          } else if (status === 400) {
+            // Handle 400 bad request errors with actual error details
+            const errors = data?.errors || [];
+            let message = 'Bad request';
+            let details = {};
+
+            if (errors.length > 0) {
+              // Use the first error's detail or title
+              message = errors[0]?.detail || errors[0]?.title || 'Bad request';
+              details = {
+                errors: errors,
+                originalData: data,
+              };
+            }
+
+            // Include the original error details in the data field
+            throw new McpError(ErrorCode.InvalidRequest, message, details);
+          } else if (status === 409) {
+            // Handle specific 409 conflict errors with detailed messages
+            let message = 'Conflict error';
+            const details = {
+              errors: data?.errors || [],
+              originalData: data,
+            };
+
+            if (data?.errors) {
+              const errors = data.errors;
+              if (errors.user) {
+                message =
+                  'User conflict: email/external ID mismatch or company domain conflict';
+              } else if (errors.company) {
+                message = 'Company conflict: domain does not match external ID';
+              }
+            }
+            throw new McpError(ErrorCode.InvalidRequest, message, details);
+          } else if (status === 422) {
+            // Handle specific 422 validation errors with detailed messages
+            let message = 'Validation error';
+            const details = {
+              errors: data?.errors || [],
+              originalData: data,
+            };
+
+            if (data?.errors) {
+              const errors = data.errors;
+              if (errors.source) {
+                message = 'Source already exists';
+              } else if (errors.display_url) {
+                message = 'Invalid URL format for display_url';
+              } else if (errors.user && errors.company) {
+                message =
+                  'Cannot specify both user.email and company.domain together';
+              } else if (errors.owner) {
+                message = 'Owner user does not exist';
+              } else if (errors.company?.id) {
+                message =
+                  'Company does not exist or cannot set both company ID and domain';
+              }
+            }
+            throw new McpError(ErrorCode.InvalidRequest, message, details);
           } else if (status === 429) {
             throw new RateLimitError(
-              retryAfter ? parseInt(retryAfter) : undefined,
+              retryAfter ? parseInt(retryAfter) : undefined
             );
           } else if (status >= 500) {
-            throw new NetworkError("Server error", error);
+            throw new NetworkError('Server error', error);
           }
 
+          console.error(
+            '[tool-wrapper] Throwing generic InvalidRequest for status:',
+            status
+          );
+          const details = {
+            status: status,
+            errors: data?.errors || [],
+            originalData: data,
+            message: error.message,
+          };
           throw new McpError(
             ErrorCode.InvalidRequest,
             sanitizeErrorMessage(error),
+            details
           );
         }
 
-        throw new NetworkError("Network error", error);
-      },
+        console.error(
+          '[tool-wrapper] Throwing NetworkError for non-response error'
+        );
+        throw new NetworkError('Network error', error);
+      }
     );
 
     const context: ToolContext = {
@@ -109,7 +202,7 @@ export function createToolContext(
     }
     throw new McpError(
       ErrorCode.InternalError,
-      `Configuration error: ${error instanceof Error ? error.message : String(error)}`,
+      `Configuration error: ${error instanceof Error ? error.message : String(error)}`
     );
   }
 }
@@ -120,7 +213,7 @@ export function createToolContext(
 export async function withContext<T>(
   handler: (context: ToolContext) => Promise<T>,
   instanceName?: string,
-  workspaceId?: string,
+  workspaceId?: string
 ): Promise<T> {
   const context = createToolContext(instanceName, workspaceId);
   return await handler(context);
@@ -146,7 +239,7 @@ export async function handlePagination<T>(
   context: ToolContext,
   endpoint: string,
   params: Record<string, any> = {},
-  maxPages: number = 10,
+  maxPages: number = 10
 ): Promise<T[]> {
   const results: T[] = [];
   let page = 1;
