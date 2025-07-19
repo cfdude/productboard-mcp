@@ -198,6 +198,7 @@ Many tools support flexible detail levels to optimize response size and performa
 ### Supported Tools
 
 Tools with condensed data support include:
+
 - `get_features` / `list_features`
 - `get_components` / `list_components`
 - `get_products` / `list_products`
@@ -415,36 +416,43 @@ MIT License - see LICENSE file for details
 Based on code review feedback, here are suggested improvements for future development:
 
 ### Type Safety Enhancements
+
 - [ ] Replace `any` types with proper TypeScript interfaces throughout the codebase
 - [ ] Create specific types for API responses instead of using generic types
 - [ ] Add stricter type checking for tool arguments and return values
 
 ### Error Handling Improvements
+
 - [ ] Implement more granular error types for different API failure scenarios
 - [ ] Add retry logic with exponential backoff for transient failures
 - [ ] Improve error messages with actionable suggestions for users
 
 ### Code Organization
+
 - [ ] Consider splitting large tool files (features.ts, notes.ts) into smaller modules
 - [ ] Extract common patterns into shared utilities
 - [ ] Implement a proper dependency injection pattern for better testability
 
 ### Testing Enhancements
+
 - [ ] Add integration tests that mock the Productboard API
 - [ ] Increase test coverage for edge cases and error scenarios
 - [ ] Add performance benchmarks for dynamic tool loading
 
 ### Documentation
+
 - [ ] Add JSDoc comments for all public functions and interfaces
 - [ ] Create detailed examples for complex tool usage patterns
 - [ ] Document the tool generation process more thoroughly
 
 ### Performance Optimizations
+
 - [ ] Implement request batching for multiple API calls
 - [ ] Add response caching with configurable TTL
 - [ ] Optimize the manifest generation for faster startup
 
 ### Security Enhancements
+
 - [ ] Add input validation for all tool parameters
 - [ ] Implement rate limiting at the MCP server level
 - [ ] Add audit logging for sensitive operations
