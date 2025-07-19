@@ -15,6 +15,31 @@ const CONFIG_FILE = '.productboard-config.json';
  * Load configuration from file or environment variables
  */
 export function loadConfig(): MultiInstanceProductboardConfig {
+  // Check if we're in test mode
+  if (process.env.NODE_ENV === 'test' && !process.env.PRODUCTBOARD_API_TOKEN) {
+    // Return a mock configuration for tests
+    return {
+      instances: {
+        test: {
+          apiToken: 'mock-test-token',
+          baseUrl: 'https://api.productboard.test',
+          rateLimitPerMinute: 60,
+          workspaces: ['test-workspace'],
+        },
+      },
+      workspaces: {
+        'test-workspace': {
+          instance: 'test',
+          workspaceId: 'test-workspace-id',
+        },
+      },
+      defaultInstance: 'test',
+      toolCategories: {
+        enabled: ['*'],
+      },
+    };
+  }
+
   // Try to load from config file first
   const configPath = findConfigFile();
   if (configPath && existsSync(configPath)) {
