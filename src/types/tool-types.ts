@@ -10,7 +10,7 @@ export interface ToolArguments {
 
 export interface ToolResponse {
   content: Array<{
-    type: "text" | "image" | "resource";
+    type: 'text' | 'image' | 'resource';
     text?: string;
     data?: unknown;
     mimeType?: string;
@@ -20,7 +20,6 @@ export interface ToolResponse {
 
 export interface ToolDefinition {
   name: string;
-  title?: string;
   description: string;
   inputSchema: {
     type: string;

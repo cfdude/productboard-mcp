@@ -1,16 +1,16 @@
 /**
  * Main ProductboardServer class following non-singleton pattern from Jira MCP analysis
  */
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
   ListResourcesRequestSchema,
   ListPromptsRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
-import { setupToolHandlers } from "./tools/index.js";
-import { setupDynamicToolHandlers } from "./tools/index-dynamic.js";
-import { existsSync } from "fs";
-import { join } from "path";
+} from '@modelcontextprotocol/sdk/types.js';
+import { setupToolHandlers } from './tools/index.js';
+import { setupDynamicToolHandlers } from './tools/index-dynamic.js';
+import { existsSync } from 'fs';
+import { join } from 'path';
 
 export class ProductboardServer {
   private server: Server;
@@ -18,8 +18,8 @@ export class ProductboardServer {
   constructor() {
     this.server = new Server(
       {
-        name: "productboard-server",
-        version: "0.1.0",
+        name: 'productboard-server',
+        version: '0.1.0',
       },
       {
         capabilities: {
@@ -27,16 +27,16 @@ export class ProductboardServer {
           resources: {},
           prompts: {},
         },
-      },
+      }
     );
 
     // Setup tool handlers - use dynamic loading if manifest exists
-    const manifestPath = join(process.cwd(), "generated", "manifest.json");
+    const manifestPath = join(process.cwd(), 'generated', 'manifest.json');
     if (existsSync(manifestPath)) {
-      console.error("Using dynamic tool loading with manifest");
+      console.error('Using dynamic tool loading with manifest');
       setupDynamicToolHandlers(this.server);
     } else {
-      console.error("Using static tool loading (no manifest found)");
+      console.error('Using static tool loading (no manifest found)');
       setupToolHandlers(this.server);
     }
 
@@ -51,8 +51,8 @@ export class ProductboardServer {
     }));
 
     // Setup error handling
-    this.server.onerror = (error) => console.error("[MCP Error]", error);
-    process.on("SIGINT", async () => {
+    this.server.onerror = error => console.error('[MCP Error]', error);
+    process.on('SIGINT', async () => {
       await this.server.close();
       process.exit(0);
     });
@@ -64,6 +64,6 @@ export class ProductboardServer {
   async run() {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    console.error("Productboard MCP server running on stdio");
+    console.error('Productboard MCP server running on stdio');
   }
 }

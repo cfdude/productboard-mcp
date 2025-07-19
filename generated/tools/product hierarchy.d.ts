@@ -1,5 +1,5 @@
-export declare function setupProduct(): any;
-export declare function handleProduct(): any;
+export declare function setupProductHierarchyTools(): any[];
+export declare function handleProductHierarchyTool(name: string, args: any): Promise<any>;
 export declare function featureCreate(args: any): Promise<any>;
 export declare function featuresGet(args: any): Promise<any>;
 export declare function featureGet(args: any): Promise<any>;

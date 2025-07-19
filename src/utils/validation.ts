@@ -1,7 +1,7 @@
 /**
  * Input validation and sanitization utilities
  */
-import { ValidationError } from "../errors/index.js";
+import { ValidationError } from '../errors/index.js';
 
 // Maximum allowed string lengths
 const MAX_DESCRIPTION_LENGTH = 5000;
@@ -19,9 +19,9 @@ const URL_REGEX = /^https?:\/\/.+/;
 export function sanitizeString(
   value: unknown,
   field: string,
-  maxLength: number = MAX_DESCRIPTION_LENGTH,
+  maxLength: number = MAX_DESCRIPTION_LENGTH
 ): string {
-  if (typeof value !== "string") {
+  if (typeof value !== 'string') {
     throw new ValidationError(`${field} must be a string`, field);
   }
 
@@ -34,14 +34,14 @@ export function sanitizeString(
   if (trimmed.length > maxLength) {
     throw new ValidationError(
       `${field} exceeds maximum length of ${maxLength}`,
-      field,
+      field
     );
   }
 
   // Remove potential SQL injection characters
   const sanitized = trimmed
-    .replace(/[<>]/g, "") // Remove HTML tags
-    .replace(/\0/g, ""); // Remove null bytes
+    .replace(/[<>]/g, '') // Remove HTML tags
+    .replace(/\0/g, ''); // Remove null bytes
 
   return sanitized;
 }
@@ -49,7 +49,7 @@ export function sanitizeString(
 /**
  * Validate and sanitize email
  */
-export function validateEmail(value: unknown, field: string = "email"): string {
+export function validateEmail(value: unknown, field: string = 'email'): string {
   const email = sanitizeString(value, field, MAX_EMAIL_LENGTH);
 
   if (!EMAIL_REGEX.test(email)) {
@@ -62,7 +62,7 @@ export function validateEmail(value: unknown, field: string = "email"): string {
 /**
  * Validate and sanitize URL
  */
-export function validateUrl(value: unknown, field: string = "url"): string {
+export function validateUrl(value: unknown, field: string = 'url'): string {
   const url = sanitizeString(value, field, MAX_URL_LENGTH);
 
   if (!URL_REGEX.test(url)) {
@@ -83,7 +83,7 @@ export function validateUrl(value: unknown, field: string = "url"): string {
 export function validateArray<T>(
   value: unknown,
   field: string,
-  validator?: (item: unknown, index: number) => T,
+  validator?: (item: unknown, index: number) => T
 ): T[] {
   if (!Array.isArray(value)) {
     throw new ValidationError(`${field} must be an array`, field);
@@ -92,7 +92,7 @@ export function validateArray<T>(
   if (value.length > MAX_ARRAY_LENGTH) {
     throw new ValidationError(
       `${field} exceeds maximum length of ${MAX_ARRAY_LENGTH}`,
-      field,
+      field
     );
   }
 
@@ -108,7 +108,7 @@ export function validateArray<T>(
  */
 export function validateRequired<T extends Record<string, unknown>>(
   obj: T,
-  requiredFields: (keyof T)[],
+  requiredFields: (keyof T)[]
 ): void {
   for (const field of requiredFields) {
     if (obj[field] === undefined || obj[field] === null) {
@@ -130,11 +130,11 @@ export function validatePagination(params: any): PaginationParams {
   const offset = params.offset !== undefined ? Number(params.offset) : 0;
 
   if (isNaN(limit) || limit < 1 || limit > 100) {
-    throw new ValidationError("Limit must be between 1 and 100", "limit");
+    throw new ValidationError('Limit must be between 1 and 100', 'limit');
   }
 
   if (isNaN(offset) || offset < 0) {
-    throw new ValidationError("Offset must be non-negative", "offset");
+    throw new ValidationError('Offset must be non-negative', 'offset');
   }
 
   return { limit, offset };
@@ -160,12 +160,12 @@ export function validateDate(value: unknown, field: string): string {
 export function validateEnum<T extends string>(
   value: unknown,
   validValues: readonly T[],
-  field: string,
+  field: string
 ): T {
   if (!validValues.includes(value as T)) {
     throw new ValidationError(
-      `Invalid ${field}. Must be one of: ${validValues.join(", ")}`,
-      field,
+      `Invalid ${field}. Must be one of: ${validValues.join(', ')}`,
+      field
     );
   }
 
@@ -176,7 +176,7 @@ export function validateEnum<T extends string>(
  * Sanitize object by removing undefined/null values
  */
 export function sanitizeObject<T extends Record<string, unknown>>(
-  obj: T,
+  obj: T
 ): Partial<T> {
   const cleaned: Partial<T> = {};
 
@@ -197,6 +197,6 @@ export function validateRequestSize(data: unknown): void {
   const maxSize = 1024 * 1024; // 1MB
 
   if (size > maxSize) {
-    throw new ValidationError("Request payload too large");
+    throw new ValidationError('Request payload too large');
   }
 }

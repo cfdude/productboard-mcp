@@ -2,26 +2,51 @@
  * Configuration management for Productboard MCP server
  * Supports multi-workspace setup following Jira MCP patterns
  */
-import { readFileSync, existsSync } from "fs";
-import { join } from "path";
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
 import {
   MultiInstanceProductboardConfig,
   ProductboardInstanceConfig,
-} from "./types.js";
+} from './types.js';
 
-const CONFIG_FILE = ".productboard-config.json";
+const CONFIG_FILE = '.productboard-config.json';
 
 /**
  * Load configuration from file or environment variables
  */
 export function loadConfig(): MultiInstanceProductboardConfig {
+  // Check if we're in test mode
+  if (process.env.NODE_ENV === 'test' && !process.env.PRODUCTBOARD_API_TOKEN) {
+    // Return a mock configuration for tests
+    return {
+      instances: {
+        test: {
+          apiToken: 'mock-test-token',
+          baseUrl: 'https://api.productboard.test',
+          rateLimitPerMinute: 60,
+          workspaces: ['test-workspace'],
+        },
+      },
+      workspaces: {
+        'test-workspace': {
+          instance: 'test',
+          workspaceId: 'test-workspace-id',
+        },
+      },
+      defaultInstance: 'test',
+      toolCategories: {
+        enabled: ['*'],
+      },
+    };
+  }
+
   // Try to load from config file first
   const configPath = findConfigFile();
   if (configPath && existsSync(configPath)) {
     try {
-      const configContent = readFileSync(configPath, "utf-8");
+      const configContent = readFileSync(configPath, 'utf-8');
       const config = JSON.parse(
-        configContent,
+        configContent
       ) as MultiInstanceProductboardConfig;
       return validateConfig(config);
     } catch (error) {
@@ -39,12 +64,12 @@ export function loadConfig(): MultiInstanceProductboardConfig {
 function findConfigFile(): string | null {
   let currentDir = process.cwd();
 
-  while (currentDir !== "/") {
+  while (currentDir !== '/') {
     const configPath = join(currentDir, CONFIG_FILE);
     if (existsSync(configPath)) {
       return configPath;
     }
-    currentDir = join(currentDir, "..");
+    currentDir = join(currentDir, '..');
   }
 
   return null;
@@ -56,11 +81,11 @@ function findConfigFile(): string | null {
 function createConfigFromEnvironment(): MultiInstanceProductboardConfig {
   const apiToken = process.env.PRODUCTBOARD_API_TOKEN;
   const baseUrl =
-    process.env.PRODUCTBOARD_BASE_URL || "https://api.productboard.com";
+    process.env.PRODUCTBOARD_BASE_URL || 'https://api.productboard.com';
   const workspaceId = process.env.PRODUCTBOARD_WORKSPACE_ID;
 
   if (!apiToken) {
-    throw new Error("PRODUCTBOARD_API_TOKEN environment variable is required");
+    throw new Error('PRODUCTBOARD_API_TOKEN environment variable is required');
   }
 
   return {
@@ -75,12 +100,12 @@ function createConfigFromEnvironment(): MultiInstanceProductboardConfig {
     workspaces: workspaceId
       ? {
           [workspaceId]: {
-            instance: "default",
+            instance: 'default',
             workspaceId,
           },
         }
       : {},
-    defaultInstance: "default",
+    defaultInstance: 'default',
   };
 }
 
@@ -88,10 +113,10 @@ function createConfigFromEnvironment(): MultiInstanceProductboardConfig {
  * Validate configuration structure
  */
 function validateConfig(
-  config: MultiInstanceProductboardConfig,
+  config: MultiInstanceProductboardConfig
 ): MultiInstanceProductboardConfig {
   if (!config.instances || Object.keys(config.instances).length === 0) {
-    throw new Error("Configuration must have at least one instance");
+    throw new Error('Configuration must have at least one instance');
   }
 
   for (const [instanceName, instance] of Object.entries(config.instances)) {
@@ -99,7 +124,7 @@ function validateConfig(
       throw new Error(`Instance '${instanceName}' is missing apiToken`);
     }
     if (!instance.baseUrl) {
-      instance.baseUrl = "https://api.productboard.com";
+      instance.baseUrl = 'https://api.productboard.com';
     }
     if (!instance.rateLimitPerMinute) {
       instance.rateLimitPerMinute = 60;
@@ -118,7 +143,7 @@ function validateConfig(
  */
 export function getInstance(
   config: MultiInstanceProductboardConfig,
-  instanceName?: string,
+  instanceName?: string
 ): ProductboardInstanceConfig {
   const name = instanceName || config.defaultInstance;
   if (!name || !config.instances[name]) {
@@ -132,7 +157,7 @@ export function getInstance(
  */
 export function getWorkspace(
   config: MultiInstanceProductboardConfig,
-  workspaceId: string,
+  workspaceId: string
 ): { instance: string; workspaceId: string } {
   const workspace = config.workspaces?.[workspaceId];
   if (!workspace) {

@@ -1,13 +1,11 @@
 /**
  * Auto-generated custom fields management tools
  */
-import { withContext, formatResponse } from "../../utils/tool-wrapper.js";
-export function setupCustom() { }
-fieldsTools();
-{
+import { withContext, formatResponse } from "../../build/utils/tool-wrapper.js";
+export function setupCustomFieldsTools() {
     return [
         {
-            name: "productboard_get_custom_fields",
+            name: "get_custom_fields",
             description: "List all custom fields",
             inputSchema: {
                 type: "object",
@@ -37,7 +35,7 @@ fieldsTools();
             }
         },
         {
-            name: "productboard_get_custom_fields_values",
+            name: "get_custom_fields_values",
             description: "List all custom fields' values",
             inputSchema: {
                 type: "object",
@@ -46,16 +44,121 @@ fieldsTools();
                         type: "string",
                         description: "type parameter (optional)"
                     },
-                    customField, : .id
+                    "customField.id": {
+                        type: "string",
+                        description: "customField.id parameter (optional)"
+                    },
+                    "hierarchyEntity.id": {
+                        type: "string",
+                        description: "hierarchyEntity.id parameter (optional)"
+                    },
+                    null: {
+                        type: "string",
+                        description: "null parameter (optional)"
+                    },
+                    instance: {
+                        type: "string",
+                        description: "instance parameter (optional)"
+                    },
+                    workspaceId: {
+                        type: "string",
+                        description: "workspaceId parameter (optional)"
+                    },
+                    includeRaw: {
+                        type: "boolean",
+                        description: "includeRaw parameter (optional)"
+                    }
+                }
+            }
+        },
+        {
+            name: "get_custom_field",
+            description: "Retrieve a custom field",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    id: {
+                        type: "string",
+                        description: "id parameter"
+                    },
+                    null: {
+                        type: "string",
+                        description: "null parameter (optional)"
+                    },
+                    null: {
+                        type: "string",
+                        description: "null parameter (optional)"
+                    },
+                    instance: {
+                        type: "string",
+                        description: "instance parameter (optional)"
+                    },
+                    workspaceId: {
+                        type: "string",
+                        description: "workspaceId parameter (optional)"
+                    },
+                    includeRaw: {
+                        type: "boolean",
+                        description: "includeRaw parameter (optional)"
+                    }
+                },
+                required: ["id"]
+            }
+        },
+        {
+            name: "get_custom_field_value",
+            description: "Retrieve a custom field's value",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    "customField.id": {
+                        type: "string",
+                        description: "customField.id parameter"
+                    },
+                    "hierarchyEntity.id": {
+                        type: "string",
+                        description: "hierarchyEntity.id parameter"
+                    },
+                    null: {
+                        type: "string",
+                        description: "null parameter (optional)"
+                    },
+                    instance: {
+                        type: "string",
+                        description: "instance parameter (optional)"
+                    },
+                    workspaceId: {
+                        type: "string",
+                        description: "workspaceId parameter (optional)"
+                    },
+                    includeRaw: {
+                        type: "boolean",
+                        description: "includeRaw parameter (optional)"
+                    }
+                },
+                required: ["customField.id", "hierarchyEntity.id"]
+            }
+        },
+        {
+            name: "set_custom_field_value",
+            description: "Set value of a custom field for a given hierarchy entity",
+            inputSchema: {
+                type: "object",
+                properties: {
+                    "customField.id": {
+                        type: "string",
+                        description: "customField.id parameter"
+                    },
+                    "hierarchyEntity.id": {
+                        type: "string",
+                        description: "hierarchyEntity.id parameter"
+                    },
+                    args, : .body
                 }
             }
         }, {
             type: "string",
-            description: "customField.id parameter (optional)"
-        },
-        hierarchyEntity.id, {
-            type: "string",
-            description: "hierarchyEntity.id parameter (optional)"
+            description: "args.body parameter"
         },
         null, {
             type: "string",
@@ -75,150 +178,9 @@ fieldsTools();
         }
     ];
 }
+required: ["customField.id", "hierarchyEntity.id", "args.body"];
 {
-    name: "productboard_get_custom_field",
-        description;
-    "Retrieve a custom field",
-        inputSchema;
-    {
-        type: "object",
-            properties;
-        {
-            id: {
-                type: "string",
-                    description;
-                "id parameter";
-            }
-            null;
-            {
-                type: "string",
-                    description;
-                "null parameter (optional)";
-            }
-            null;
-            {
-                type: "string",
-                    description;
-                "null parameter (optional)";
-            }
-            instance: {
-                type: "string",
-                    description;
-                "instance parameter (optional)";
-            }
-            workspaceId: {
-                type: "string",
-                    description;
-                "workspaceId parameter (optional)";
-            }
-            includeRaw: {
-                type: "boolean",
-                    description;
-                "includeRaw parameter (optional)";
-            }
-        }
-        required: ["id"];
-    }
-}
-{
-    name: "productboard_get_custom_field_value",
-        description;
-    "Retrieve a custom field's value",
-        inputSchema;
-    {
-        type: "object",
-            properties;
-        {
-            customField.id;
-            {
-                type: "string",
-                    description;
-                "customField.id parameter";
-            }
-            hierarchyEntity.id;
-            {
-                type: "string",
-                    description;
-                "hierarchyEntity.id parameter";
-            }
-            null;
-            {
-                type: "string",
-                    description;
-                "null parameter (optional)";
-            }
-            instance: {
-                type: "string",
-                    description;
-                "instance parameter (optional)";
-            }
-            workspaceId: {
-                type: "string",
-                    description;
-                "workspaceId parameter (optional)";
-            }
-            includeRaw: {
-                type: "boolean",
-                    description;
-                "includeRaw parameter (optional)";
-            }
-        }
-        required: ["customField.id", "hierarchyEntity.id"];
-    }
-}
-{
-    name: "productboard_set_custom_field_value",
-        description;
-    "Set value of a custom field for a given hierarchy entity",
-        inputSchema;
-    {
-        type: "object",
-            properties;
-        {
-            customField.id;
-            {
-                type: "string",
-                    description;
-                "customField.id parameter";
-            }
-            hierarchyEntity.id;
-            {
-                type: "string",
-                    description;
-                "hierarchyEntity.id parameter";
-            }
-            body: {
-                type: "string",
-                    description;
-                "body parameter";
-            }
-            null;
-            {
-                type: "string",
-                    description;
-                "null parameter (optional)";
-            }
-            instance: {
-                type: "string",
-                    description;
-                "instance parameter (optional)";
-            }
-            workspaceId: {
-                type: "string",
-                    description;
-                "workspaceId parameter (optional)";
-            }
-            includeRaw: {
-                type: "boolean",
-                    description;
-                "includeRaw parameter (optional)";
-            }
-        }
-        required: ["customField.id", "hierarchyEntity.id", "body"];
-    }
-}
-{
-    name: "productboard_delete_custom_field_value",
+    name: "delete_custom_field_value",
         description;
     "Delete value of a custom field for a given hierarchy entity",
         inputSchema;
@@ -226,13 +188,13 @@ fieldsTools();
         type: "object",
             properties;
         {
-            customField.id;
+            "customField.id";
             {
                 type: "string",
                     description;
                 "customField.id parameter";
             }
-            hierarchyEntity.id;
+            "hierarchyEntity.id";
             {
                 type: "string",
                     description;
@@ -264,21 +226,19 @@ fieldsTools();
     }
 }
 ;
-export async function handleCustom() { }
-fieldsTool(name, string, args, any);
-{
+export async function handleCustomFieldsTool(name, args) {
     switch (name) {
-        case "productboard_get_custom_fields":
+        case "get_custom_fields":
             return await customGetFields(args);
-        case "productboard_get_custom_fields_values":
+        case "get_custom_fields_values":
             return await customGetFieldsvalues(args);
-        case "productboard_get_custom_field":
+        case "get_custom_field":
             return await customGetField(args);
-        case "productboard_get_custom_field_value":
+        case "get_custom_field_value":
             return await customGetFieldvalue(args);
-        case "productboard_set_custom_field_value":
+        case "set_custom_field_value":
             return await customSetFieldvalue(args);
-        case "productboard_delete_custom_field_value":
+        case "delete_custom_field_value":
             return await customDeleteFieldvalue(args);
         default:
             throw new Error(`Unknown custom fields tool: ${name}`);
@@ -343,7 +303,7 @@ export async function customSetFieldvalue(args) {
             params.customField.id = args.customField.id;
         if (args.hierarchyEntity.id)
             params.hierarchyEntity.id = args.hierarchyEntity.id;
-        const response = await context.axios.put(`/hierarchy-entities/custom-fields-values/value`, body, { params });
+        const response = await context.axios.put(`/hierarchy-entities/custom-fields-values/value`, args.body, { params });
         return {
             content: [{
                     type: "text",

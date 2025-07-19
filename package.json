@@ -1,6 +1,6 @@
 {
   "name": "@the_cfdude/productboard-mcp",
-  "version": "1.2.2",
+  "version": "1.1.0",
   "description": "Model Context Protocol server for Productboard REST API with dynamic tool loading",
   "type": "module",
   "bin": {
@@ -27,20 +27,26 @@
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "lint": "tsc --noEmit --strict",
-    "format": "prettier --write \"src/**/*.ts\" \"scripts/**/*.ts\" \"*.json\" \"*.md\"",
-    "format:check": "prettier --check \"src/**/*.ts\" \"scripts/**/*.ts\" \"*.json\" \"*.md\"",
-    "lint-and-format": "npm run lint && npm run format",
-    "pre-commit": "npm run lint-and-format && npm run test && npm run generate-manifest"
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "typecheck": "tsc --noEmit --strict",
+    "quality": "npm run typecheck && npm run lint && npm run format:check"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.6.0",
-    "axios": "^1.7.9"
+    "axios": "^1.10.0"
   },
   "devDependencies": {
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.11.24",
+    "@typescript-eslint/eslint-plugin": "^8.37.0",
+    "@typescript-eslint/parser": "^8.37.0",
+    "eslint": "^9.31.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-prettier": "^5.5.1",
     "jest": "^29.7.0",
     "prettier": "^3.6.2",
     "ts-jest": "^29.1.2",

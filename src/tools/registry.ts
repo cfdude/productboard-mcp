@@ -1,8 +1,8 @@
 /**
  * Dynamic tool registry with lazy loading support
  */
-import { readFileSync } from "fs";
-import { McpError, ErrorCode } from "@modelcontextprotocol/sdk/types.js";
+import { readFileSync } from 'fs';
+import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 
 // Tool handler type
 export type ToolHandler = (args: any) => Promise<any>;
@@ -64,13 +64,13 @@ export class ToolRegistry {
    */
   loadManifest(manifestPath: string): void {
     try {
-      const content = readFileSync(manifestPath, "utf-8");
+      const content = readFileSync(manifestPath, 'utf-8');
       this.manifest = JSON.parse(content);
     } catch (error) {
-      console.error("Failed to load tool manifest:", error);
+      console.error('Failed to load tool manifest:', error);
       throw new McpError(
         ErrorCode.InternalError,
-        "Failed to load tool manifest",
+        'Failed to load tool manifest'
       );
     }
   }
@@ -87,7 +87,7 @@ export class ToolRegistry {
    */
   async registerFromManifest(): Promise<void> {
     if (!this.manifest) {
-      throw new Error("Manifest not loaded");
+      throw new Error('Manifest not loaded');
     }
 
     for (const [toolName, toolInfo] of Object.entries(this.manifest.tools)) {
@@ -104,12 +104,12 @@ export class ToolRegistry {
         try {
           // Check if it's an existing tool in src/tools
           const existingCategories = [
-            "notes",
-            "features",
-            "companies",
-            "users",
-            "releases",
-            "webhooks",
+            'notes',
+            'features',
+            'companies',
+            'users',
+            'releases',
+            'webhooks',
           ];
           if (existingCategories.includes(toolInfo.category)) {
             // Import from existing tools
@@ -121,7 +121,7 @@ export class ToolRegistry {
 
             if (!handler) {
               throw new Error(
-                `Handler ${handlerName} not found in ${toolInfo.category}.js`,
+                `Handler ${handlerName} not found in ${toolInfo.category}.js`
               );
             }
 
@@ -130,22 +130,29 @@ export class ToolRegistry {
           } else {
             // Import from generated tools
             const categoryFile = toolInfo.category
-              .replace(/\s/g, "")
-              .toLowerCase();
+              .toLowerCase()
+              .replace(/&/g, 'and')
+              .replace(/\s+/g, '-')
+              .replace(/[^a-z0-9-]/g, '')
+              .replace(/-+/g, '-')
+              .replace(/^-|-$/g, '');
+            // Use process.cwd() to get the project root
+            const projectRoot = process.cwd();
             const module = await import(
-              `../../generated/tools/${categoryFile}.js`
+              `${projectRoot}/generated/tools/${categoryFile}.js`
             );
 
             // Get the handler function name
             const handlerName = `handle${toolInfo.category
-              .split(" ")
-              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-              .join("")}Tool`;
+              .split(/[\s&]+/)
+              .filter(w => w.length > 0)
+              .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+              .join('')}Tool`;
             const handler = module[handlerName];
 
             if (!handler) {
               throw new Error(
-                `Handler ${handlerName} not found in generated/${categoryFile}.js`,
+                `Handler ${handlerName} not found in generated/${categoryFile}.js`
               );
             }
 
@@ -186,17 +193,17 @@ export class ToolRegistry {
       const properties: Record<string, any> = {};
 
       // Add required parameters
-      toolInfo.requiredParams.forEach((param) => {
+      toolInfo.requiredParams.forEach(param => {
         properties[param] = {
-          type: "string",
+          type: 'string',
           description: `${param} parameter`,
         };
       });
 
       // Add optional parameters
-      toolInfo.optionalParams.forEach((param) => {
+      toolInfo.optionalParams.forEach(param => {
         properties[param] = {
-          type: param === "includeRaw" ? "boolean" : "string",
+          type: param === 'includeRaw' ? 'boolean' : 'string',
           description: `${param} parameter (optional)`,
         };
       });
@@ -205,7 +212,7 @@ export class ToolRegistry {
         name: toolName,
         description: toolInfo.description,
         inputSchema: {
-          type: "object",
+          type: 'object',
           properties,
         },
       };
@@ -233,7 +240,7 @@ export class ToolRegistry {
       if (!loader) {
         throw new McpError(
           ErrorCode.MethodNotFound,
-          `Unknown tool: ${toolName}`,
+          `Unknown tool: ${toolName}`
         );
       }
 
@@ -250,7 +257,7 @@ export class ToolRegistry {
         console.error(`Failed to load tool ${toolName}:`, error);
         throw new McpError(
           ErrorCode.InternalError,
-          `Failed to load tool: ${error instanceof Error ? error.message : String(error)}`,
+          `Failed to load tool: ${error instanceof Error ? error.message : String(error)}`
         );
       }
     }
@@ -258,7 +265,7 @@ export class ToolRegistry {
     // Track access for memory management
     this.handlerAccessCount.set(
       toolName,
-      (this.handlerAccessCount.get(toolName) || 0) + 1,
+      (this.handlerAccessCount.get(toolName) || 0) + 1
     );
     this.lastAccessTime.set(toolName, Date.now());
 
@@ -306,7 +313,7 @@ export class ToolRegistry {
     const handlersToRemove = Math.floor(this.maxLoadedHandlers * 0.2); // Remove 20% of handlers
 
     // Sort handlers by last access time and access count
-    const handlerStats = Array.from(this.loadedHandlers.keys()).map((name) => ({
+    const handlerStats = Array.from(this.loadedHandlers.keys()).map(name => ({
       name,
       accessCount: this.handlerAccessCount.get(name) || 0,
       lastAccess: this.lastAccessTime.get(name) || 0,

@@ -1,19 +1,19 @@
 /**
- * Auto-generated key results management tools
+ * Auto-generated jira integrations management tools
  */
 import { withContext, formatResponse } from "../../utils/tool-wrapper.js";
 
-export function setupKey resultsTools() {
+export function setupJiraIntegrationsTools() {
   return [
     {
-      name: "productboard_get_key_results",
-      description: "List all key results",
+      name: "productboard_get_jira_integration",
+      description: "Retrieve a Jira integration",
       inputSchema: {
         type: "object",
         properties: {
-          null: {
+          id: {
             type: "string",
-            description: "null parameter (optional)"
+            description: "id parameter"
           },
           null: {
             type: "string",
@@ -23,14 +23,28 @@ export function setupKey resultsTools() {
             type: "string",
             description: "null parameter (optional)"
           },
-          null: {
+          instance: {
             type: "string",
-            description: "null parameter (optional)"
+            description: "instance parameter (optional)"
           },
-          null: {
+          workspaceId: {
             type: "string",
-            description: "null parameter (optional)"
+            description: "workspaceId parameter (optional)"
           },
+          includeRaw: {
+            type: "boolean",
+            description: "includeRaw parameter (optional)"
+          }
+        },
+        required: ["id"]
+      }
+    },
+    {
+      name: "productboard_get_jira_integrations",
+      description: "List all Jira integrations",
+      inputSchema: {
+        type: "object",
+        properties: {
           null: {
             type: "string",
             description: "null parameter (optional)"
@@ -51,40 +65,22 @@ export function setupKey resultsTools() {
       }
     },
     {
-      name: "productboard_create_key_result",
-      description: "Create a key result",
-      inputSchema: {
-        type: "object",
-        properties: {
-          body: {
-            type: "string",
-            description: "body parameter"
-          },
-          instance: {
-            type: "string",
-            description: "instance parameter (optional)"
-          },
-          workspaceId: {
-            type: "string",
-            description: "workspaceId parameter (optional)"
-          },
-          includeRaw: {
-            type: "boolean",
-            description: "includeRaw parameter (optional)"
-          }
-        },
-        required: ["body"]
-      }
-    },
-    {
-      name: "productboard_get_key_result",
-      description: "Retrieve a key result",
+      name: "productboard_get_jira_integration_connection",
+      description: "Retrieve a Jira integration connection",
       inputSchema: {
         type: "object",
         properties: {
           id: {
             type: "string",
             description: "id parameter"
+          },
+          featureId: {
+            type: "string",
+            description: "featureId parameter"
+          },
+          null: {
+            type: "string",
+            description: "null parameter (optional)"
           },
           null: {
             type: "string",
@@ -107,50 +103,12 @@ export function setupKey resultsTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["id"]
+        required: ["id","featureId"]
       }
     },
     {
-      name: "productboard_update_key_result",
-      description: "Update a key result",
-      inputSchema: {
-        type: "object",
-        properties: {
-          id: {
-            type: "string",
-            description: "id parameter"
-          },
-          body: {
-            type: "string",
-            description: "body parameter"
-          },
-          null: {
-            type: "string",
-            description: "null parameter (optional)"
-          },
-          null: {
-            type: "string",
-            description: "null parameter (optional)"
-          },
-          instance: {
-            type: "string",
-            description: "instance parameter (optional)"
-          },
-          workspaceId: {
-            type: "string",
-            description: "workspaceId parameter (optional)"
-          },
-          includeRaw: {
-            type: "boolean",
-            description: "includeRaw parameter (optional)"
-          }
-        },
-        required: ["id","body"]
-      }
-    },
-    {
-      name: "productboard_delete_key_result",
-      description: "Delete a key result",
+      name: "productboard_get_jira_integration_connections",
+      description: "List all Jira integration connections",
       inputSchema: {
         type: "object",
         properties: {
@@ -165,6 +123,14 @@ export function setupKey resultsTools() {
           null: {
             type: "string",
             description: "null parameter (optional)"
+          },
+          "connection.issueKey": {
+            type: "string",
+            description: "connection.issueKey parameter (optional)"
+          },
+          "connection.issueId": {
+            type: "string",
+            description: "connection.issueId parameter (optional)"
           },
           instance: {
             type: "string",
@@ -185,27 +151,25 @@ export function setupKey resultsTools() {
   ];
 }
 
-export async function handleKey resultsTool(name: string, args: any) {
+export async function handleJiraIntegrationsTool(name: string, args: any) {
   switch (name) {
-    case "productboard_get_key_results":
-      return await keyGetResults(args);
-    case "productboard_create_key_result":
-      return await keyCreateResult(args);
-    case "productboard_get_key_result":
-      return await keyGetResult(args);
-    case "productboard_update_key_result":
-      return await keyUpdateResult(args);
-    case "productboard_delete_key_result":
-      return await keyDeleteResult(args);
+    case "productboard_get_jira_integration":
+      return await jiraGetIntegration(args);
+    case "productboard_get_jira_integrations":
+      return await jiraGetIntegrations(args);
+    case "productboard_get_jira_integration_connection":
+      return await jiraGetIntegrationconnection(args);
+    case "productboard_get_jira_integration_connections":
+      return await jiraGetIntegrationconnections(args);
     default:
-      throw new Error(`Unknown key results tool: ${name}`);
+      throw new Error(`Unknown jira integrations tool: ${name}`);
   }
 }
 
-export async function keyGetResults(args: any) {
+export async function jiraGetIntegration(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.get(`/key-results`);
+    const response = await context.axios.get(`/jira-integrations/${args.id}`);
     
     return {
       content: [{
@@ -216,10 +180,10 @@ export async function keyGetResults(args: any) {
   }, args.instance, args.workspaceId);
 }
 
-export async function keyCreateResult(args: any) {
+export async function jiraGetIntegrations(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.post(`/key-results`, body);
+    const response = await context.axios.get(`/jira-integrations`);
     
     return {
       content: [{
@@ -230,10 +194,10 @@ export async function keyCreateResult(args: any) {
   }, args.instance, args.workspaceId);
 }
 
-export async function keyGetResult(args: any) {
+export async function jiraGetIntegrationconnection(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.get(`/key-results/${args.id}`);
+    const response = await context.axios.get(`/jira-integrations/${args.id}/connections/${args.featureId}`);
     
     return {
       content: [{
@@ -244,24 +208,10 @@ export async function keyGetResult(args: any) {
   }, args.instance, args.workspaceId);
 }
 
-export async function keyUpdateResult(args: any) {
+export async function jiraGetIntegrationconnections(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.patch(`/key-results/${args.id}`, body);
-    
-    return {
-      content: [{
-        type: "text",
-        text: formatResponse(response.data, args.includeRaw)
-      }]
-    };
-  }, args.instance, args.workspaceId);
-}
-
-export async function keyDeleteResult(args: any) {
-  return await withContext(async (context) => {
-
-    const response = await context.axios.delete(`/key-results/${args.id}`);
+    const response = await context.axios.get(`/jira-integrations/${args.id}/connections`);
     
     return {
       content: [{

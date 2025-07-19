@@ -3,7 +3,7 @@
  */
 import { withContext, formatResponse } from "../../utils/tool-wrapper.js";
 
-export function setupPlugin integrationsTools() {
+export function setupPluginIntegrationsTools() {
   return [
     {
       name: "productboard_post_plugin_integration",
@@ -11,9 +11,9 @@ export function setupPlugin integrationsTools() {
       inputSchema: {
         type: "object",
         properties: {
-          body: {
+          args.body: {
             type: "string",
-            description: "body parameter"
+            description: "args.body parameter"
           },
           null: {
             type: "string",
@@ -32,7 +32,7 @@ export function setupPlugin integrationsTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["body"]
+        required: ["args.body"]
       }
     },
     {
@@ -104,9 +104,9 @@ export function setupPlugin integrationsTools() {
             type: "string",
             description: "id parameter"
           },
-          body: {
+          args.body: {
             type: "string",
-            description: "body parameter"
+            description: "args.body parameter"
           },
           null: {
             type: "string",
@@ -129,7 +129,7 @@ export function setupPlugin integrationsTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["id","body"]
+        required: ["id","args.body"]
       }
     },
     {
@@ -142,9 +142,9 @@ export function setupPlugin integrationsTools() {
             type: "string",
             description: "id parameter"
           },
-          body: {
+          args.body: {
             type: "string",
-            description: "body parameter"
+            description: "args.body parameter"
           },
           null: {
             type: "string",
@@ -167,7 +167,7 @@ export function setupPlugin integrationsTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["id","body"]
+        required: ["id","args.body"]
       }
     },
     {
@@ -294,9 +294,9 @@ export function setupPlugin integrationsTools() {
             type: "string",
             description: "featureId parameter"
           },
-          body: {
+          args.body: {
             type: "string",
-            description: "body parameter"
+            description: "args.body parameter"
           },
           null: {
             type: "string",
@@ -323,7 +323,7 @@ export function setupPlugin integrationsTools() {
             description: "includeRaw parameter (optional)"
           }
         },
-        required: ["id","featureId","body"]
+        required: ["id","featureId","args.body"]
       }
     },
     {
@@ -371,7 +371,7 @@ export function setupPlugin integrationsTools() {
   ];
 }
 
-export async function handlePlugin integrationsTool(name: string, args: any) {
+export async function handlePluginIntegrationsTool(name: string, args: any) {
   switch (name) {
     case "productboard_post_plugin_integration":
       return await pluginPostIntegration(args);
@@ -401,7 +401,7 @@ export async function handlePlugin integrationsTool(name: string, args: any) {
 export async function pluginPostIntegration(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.post(`/plugin-integrations`, body);
+    const response = await context.axios.post($2, args.args.body);
     
     return {
       content: [{
@@ -443,7 +443,7 @@ export async function pluginGetIntegration(args: any) {
 export async function pluginPatchIntegration(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.patch(`/plugin-integrations/${args.id}`, body);
+    const response = await context.axios.patch($2, args.args.body);
     
     return {
       content: [{
@@ -457,7 +457,7 @@ export async function pluginPatchIntegration(args: any) {
 export async function pluginPutIntegration(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.put(`/plugin-integrations/${args.id}`, body);
+    const response = await context.axios.put($2, args.args.body);
     
     return {
       content: [{
@@ -513,7 +513,7 @@ export async function pluginGetIntegrationconnection(args: any) {
 export async function pluginPutIntegrationconnection(args: any) {
   return await withContext(async (context) => {
 
-    const response = await context.axios.put(`/plugin-integrations/${args.id}/connections/${args.featureId}`, body);
+    const response = await context.axios.put($2, args.args.body);
     
     return {
       content: [{

@@ -1,348 +1,523 @@
 /**
  * Notes management tools
- * Tier 1: Workflows, Tier 2: Resource Operations, Tier 3: Power User Tools
  */
-import { withContext, formatResponse } from "../utils/tool-wrapper.js";
+import { withContext, formatResponse } from '../utils/tool-wrapper.js';
+import {
+  normalizeListParams,
+  normalizeGetParams,
+  filterByDetailLevel,
+  filterArrayByDetailLevel,
+  isEnterpriseError,
+} from '../utils/parameter-utils.js';
+import {
+  StandardListParams,
+  StandardGetParams,
+} from '../types/parameter-types.js';
+import { ProductboardError } from '../errors/index.js';
+import { ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 
 /**
  * Setup notes tool definitions
  */
 export function setupNotesTools() {
   return [
-    // Tier 1: Workflow Tools
+    // Core Notes operations
     {
-      name: "notes_workflow_feedback_processing",
-      title: "Process Customer Feedback",
-      description:
-        "Complete workflow to process customer feedback into notes with company linking",
+      name: 'create_note',
+      description: 'Create a new note in Productboard',
       inputSchema: {
-        type: "object",
-        properties: {
-          feedback: {
-            type: "string",
-            description: "Customer feedback content",
-          },
-          customerEmail: {
-            type: "string",
-            description: "Customer email address",
-          },
-          customerName: {
-            type: "string",
-            description: "Customer name (optional)",
-          },
-          companyName: {
-            type: "string",
-            description: "Company name (optional)",
-          },
-          tags: {
-            type: "array",
-            items: { type: "string" },
-            description: "Tags to apply to the note",
-          },
-          instance: {
-            type: "string",
-            description: "Productboard instance name (optional)",
-          },
-          workspaceId: {
-            type: "string",
-            description: "Workspace ID (optional)",
-          },
-        },
-        required: ["feedback", "customerEmail"],
-      },
-    },
-
-    // Tier 2: Resource Operations
-    {
-      name: "notes_create",
-      title: "Create Note",
-      description: "Create a new note in Productboard",
-      inputSchema: {
-        type: "object",
+        type: 'object',
         properties: {
           title: {
-            type: "string",
-            description: "Note title",
+            type: 'string',
+            description: 'Note title',
           },
           content: {
-            type: "string",
-            description: "Note content",
+            type: 'string',
+            description: 'Note content/body',
+          },
+          displayUrl: {
+            type: 'string',
+            description: 'Display URL for the note',
           },
           userEmail: {
-            type: "string",
-            description: "User email",
+            type: 'string',
+            description: 'Email of the user who created the note',
           },
           userName: {
-            type: "string",
-            description: "User name (optional)",
+            type: 'string',
+            description: 'Name of the user',
           },
-          companyName: {
-            type: "string",
-            description: "Company name (optional)",
+          userExternalId: {
+            type: 'string',
+            description: 'External ID for the user',
           },
-          tags: {
-            type: "array",
-            items: { type: "string" },
-            description: "Tags to apply",
-          },
-          instance: {
-            type: "string",
-            description: "Productboard instance name (optional)",
-          },
-          workspaceId: {
-            type: "string",
-            description: "Workspace ID (optional)",
-          },
-          includeRaw: {
-            type: "boolean",
-            description: "Include raw API response",
-          },
-        },
-        required: ["title", "content", "userEmail"],
-      },
-    },
-    {
-      name: "notes_list",
-      title: "List Notes",
-      description:
-        "Retrieve notes with filtering options. Returns condensed view by default for better performance - use condensed=false for full details",
-      inputSchema: {
-        type: "object",
-        properties: {
-          limit: {
-            type: "number",
-            description: "Maximum number of notes to return (default: 100)",
-          },
-          condensed: {
-            type: "boolean",
-            description:
-              "Return condensed view with only essential fields (default: true)",
-          },
-          createdFrom: {
-            type: "string",
-            description: "Filter notes created from this date (YYYY-MM-DD)",
-          },
-          createdTo: {
-            type: "string",
-            description: "Filter notes created to this date (YYYY-MM-DD)",
-          },
-          updatedFrom: {
-            type: "string",
-            description: "Filter notes updated from this date (YYYY-MM-DD)",
-          },
-          updatedTo: {
-            type: "string",
-            description: "Filter notes updated to this date (YYYY-MM-DD)",
-          },
-          term: {
-            type: "string",
-            description: "Search term for fulltext search",
-          },
-          companyId: {
-            type: "string",
-            description: "Filter by company ID",
+          companyDomain: {
+            type: 'string',
+            description: 'Company domain to associate with the note',
           },
           ownerEmail: {
-            type: "string",
-            description: "Filter by owner email",
-          },
-          anyTag: {
-            type: "array",
-            items: { type: "string" },
-            description: "Filter by any of these tags",
-          },
-          allTags: {
-            type: "array",
-            items: { type: "string" },
-            description: "Filter by all of these tags",
-          },
-          instance: {
-            type: "string",
-            description: "Productboard instance name (optional)",
-          },
-          workspaceId: {
-            type: "string",
-            description: "Workspace ID (optional)",
-          },
-          includeRaw: {
-            type: "boolean",
-            description: "Include raw API response",
-          },
-        },
-      },
-    },
-    {
-      name: "notes_get",
-      title: "Get Note Details",
-      description:
-        "Retrieve a specific note by ID with configurable detail levels. Use 'basic' for quick overview, 'standard' for most use cases, 'full' for comprehensive data",
-      inputSchema: {
-        type: "object",
-        properties: {
-          noteId: {
-            type: "string",
-            description: "Note ID",
-          },
-          detail: {
-            type: "string",
-            enum: ["basic", "standard", "full"],
-            description:
-              "Level of detail to return (basic: id/title/created, standard: +content preview/tags, full: all data)",
-          },
-          instance: {
-            type: "string",
-            description: "Productboard instance name (optional)",
-          },
-          workspaceId: {
-            type: "string",
-            description: "Workspace ID (optional)",
-          },
-          includeRaw: {
-            type: "boolean",
-            description: "Include raw API response",
-          },
-        },
-        required: ["noteId"],
-      },
-    },
-    {
-      name: "notes_update",
-      title: "Update Note",
-      description: "Update an existing note",
-      inputSchema: {
-        type: "object",
-        properties: {
-          noteId: {
-            type: "string",
-            description: "Note ID",
-          },
-          title: {
-            type: "string",
-            description: "Updated title",
-          },
-          content: {
-            type: "string",
-            description: "Updated content",
+            type: 'string',
+            description: 'Email of the note owner',
           },
           tags: {
-            type: "array",
-            items: { type: "string" },
-            description: "Updated tags",
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Tags to apply to the note',
+          },
+          sourceOrigin: {
+            type: 'string',
+            description: 'Source origin (e.g., email, slack, api)',
+          },
+          sourceRecordId: {
+            type: 'string',
+            description: 'Source record ID for tracking',
           },
           instance: {
-            type: "string",
-            description: "Productboard instance name (optional)",
+            type: 'string',
+            description: 'Productboard instance name (optional)',
           },
           workspaceId: {
-            type: "string",
-            description: "Workspace ID (optional)",
-          },
-          includeRaw: {
-            type: "boolean",
-            description: "Include raw API response",
+            type: 'string',
+            description: 'Workspace ID (optional)',
           },
         },
-        required: ["noteId"],
+        required: ['title', 'content'],
       },
     },
     {
-      name: "notes_delete",
-      title: "Delete Note",
-      description: "Delete a note from Productboard",
+      name: 'get_notes',
+      description: 'List all notes with filtering and pagination',
       inputSchema: {
-        type: "object",
+        type: 'object',
         properties: {
-          noteId: {
-            type: "string",
-            description: "Note ID",
+          limit: {
+            type: 'number',
+            description:
+              'Maximum number of notes to return (1-100, default: 100)',
+          },
+          startWith: {
+            type: 'number',
+            description: 'Offset for pagination (default: 0)',
+          },
+          detail: {
+            type: 'string',
+            enum: ['basic', 'standard', 'full'],
+            description: 'Level of detail (default: basic)',
+          },
+          includeSubData: {
+            type: 'boolean',
+            description: 'Include nested complex JSON sub-data',
+          },
+          term: {
+            type: 'string',
+            description: 'Search term for fulltext search',
+          },
+          companyId: {
+            type: 'string',
+            description: 'Filter by company ID',
+          },
+          featureId: {
+            type: 'string',
+            description: 'Filter by linked feature ID',
+          },
+          ownerEmail: {
+            type: 'string',
+            description: 'Filter by owner email',
+          },
+          source: {
+            type: 'string',
+            description: 'Filter by source',
+          },
+          anyTag: {
+            type: 'string',
+            description: 'Filter by any of these tags (comma-separated)',
+          },
+          allTags: {
+            type: 'string',
+            description: 'Filter by all of these tags (comma-separated)',
+          },
+          createdFrom: {
+            type: 'string',
+            description: 'Filter notes created from this date (YYYY-MM-DD)',
+          },
+          createdTo: {
+            type: 'string',
+            description: 'Filter notes created to this date (YYYY-MM-DD)',
+          },
+          updatedFrom: {
+            type: 'string',
+            description: 'Filter notes updated from this date (YYYY-MM-DD)',
+          },
+          updatedTo: {
+            type: 'string',
+            description: 'Filter notes updated to this date (YYYY-MM-DD)',
+          },
+          dateFrom: {
+            type: 'string',
+            description: 'Filter notes by date from (YYYY-MM-DD)',
+          },
+          dateTo: {
+            type: 'string',
+            description: 'Filter notes by date to (YYYY-MM-DD)',
+          },
+          pageCursor: {
+            type: 'string',
+            description: 'Cursor for pagination',
           },
           instance: {
-            type: "string",
-            description: "Productboard instance name (optional)",
+            type: 'string',
+            description: 'Productboard instance name (optional)',
           },
           workspaceId: {
-            type: "string",
-            description: "Workspace ID (optional)",
+            type: 'string',
+            description: 'Workspace ID (optional)',
           },
         },
-        required: ["noteId"],
+      },
+    },
+    {
+      name: 'get_note',
+      description: 'Get a specific note by ID',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Note ID',
+          },
+          detail: {
+            type: 'string',
+            enum: ['basic', 'standard', 'full'],
+            description: 'Level of detail (default: standard)',
+          },
+          includeSubData: {
+            type: 'boolean',
+            description: 'Include nested complex JSON sub-data',
+          },
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
+          },
+        },
+        required: ['id'],
+      },
+    },
+    {
+      name: 'update_note',
+      description: 'Update an existing note',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Note ID',
+          },
+          title: {
+            type: 'string',
+            description: 'Updated title',
+          },
+          content: {
+            type: 'string',
+            description: 'Updated content',
+          },
+          tags: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Updated tags (replaces existing tags)',
+          },
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
+          },
+        },
+        required: ['id'],
+      },
+    },
+    {
+      name: 'delete_note',
+      description: 'Delete a note',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Note ID',
+          },
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
+          },
+        },
+        required: ['id'],
       },
     },
 
-    // Tier 3: Power User Tools
+    // Note followers operations
     {
-      name: "notes_bulk_tag_management",
-      title: "Bulk Tag Management",
-      description: "Add or remove tags from multiple notes at once",
+      name: 'add_note_followers',
+      description: 'Add followers to a note',
       inputSchema: {
-        type: "object",
+        type: 'object',
         properties: {
-          noteIds: {
-            type: "array",
-            items: { type: "string" },
-            description: "Array of note IDs",
+          noteId: {
+            type: 'string',
+            description: 'Note ID',
           },
-          addTags: {
-            type: "array",
-            items: { type: "string" },
-            description: "Tags to add",
-          },
-          removeTags: {
-            type: "array",
-            items: { type: "string" },
-            description: "Tags to remove",
+          emails: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Array of email addresses to add as followers',
           },
           instance: {
-            type: "string",
-            description: "Productboard instance name (optional)",
+            type: 'string',
+            description: 'Productboard instance name (optional)',
           },
           workspaceId: {
-            type: "string",
-            description: "Workspace ID (optional)",
+            type: 'string',
+            description: 'Workspace ID (optional)',
           },
         },
-        required: ["noteIds"],
+        required: ['noteId', 'emails'],
       },
     },
     {
-      name: "notes_analytics_insights",
-      title: "Notes Analytics",
-      description: "Generate analytics insights from notes data",
+      name: 'remove_note_follower',
+      description: 'Remove a follower from a note',
       inputSchema: {
-        type: "object",
+        type: 'object',
         properties: {
-          dateRange: {
-            type: "string",
-            description: "Date range for analysis (e.g., '30d', '3m', '1y')",
+          noteId: {
+            type: 'string',
+            description: 'Note ID',
           },
-          groupBy: {
-            type: "string",
-            enum: ["company", "tag", "user", "date"],
-            description: "Group insights by field",
-          },
-          includeMetrics: {
-            type: "array",
-            items: {
-              type: "string",
-              enum: [
-                "count",
-                "growth",
-                "top_companies",
-                "top_tags",
-                "sentiment",
-              ],
-            },
-            description: "Metrics to include in analysis",
+          email: {
+            type: 'string',
+            description: 'Email address to remove from followers',
           },
           instance: {
-            type: "string",
-            description: "Productboard instance name (optional)",
+            type: 'string',
+            description: 'Productboard instance name (optional)',
           },
           workspaceId: {
-            type: "string",
-            description: "Workspace ID (optional)",
+            type: 'string',
+            description: 'Workspace ID (optional)',
           },
         },
+        required: ['noteId', 'email'],
+      },
+    },
+
+    // Note tags operations
+    {
+      name: 'list_note_tags',
+      description: 'List all tags on a note',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          noteId: {
+            type: 'string',
+            description: 'Note ID',
+          },
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
+          },
+        },
+        required: ['noteId'],
+      },
+    },
+    {
+      name: 'add_note_tag',
+      description: 'Add a tag to a note',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          noteId: {
+            type: 'string',
+            description: 'Note ID',
+          },
+          tagName: {
+            type: 'string',
+            description: 'Tag name to add',
+          },
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
+          },
+        },
+        required: ['noteId', 'tagName'],
+      },
+    },
+    {
+      name: 'remove_note_tag',
+      description: 'Remove a tag from a note',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          noteId: {
+            type: 'string',
+            description: 'Note ID',
+          },
+          tagName: {
+            type: 'string',
+            description: 'Tag name to remove',
+          },
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
+          },
+        },
+        required: ['noteId', 'tagName'],
+      },
+    },
+
+    // Note links operations
+    {
+      name: 'list_note_links',
+      description: 'List all links on a note',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          noteId: {
+            type: 'string',
+            description: 'Note ID',
+          },
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
+          },
+        },
+        required: ['noteId'],
+      },
+    },
+    {
+      name: 'create_note_link',
+      description: 'Create a link from a note to another entity',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          noteId: {
+            type: 'string',
+            description: 'Note ID',
+          },
+          entityId: {
+            type: 'string',
+            description: 'ID of entity to link to (e.g., feature ID)',
+          },
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
+          },
+        },
+        required: ['noteId', 'entityId'],
+      },
+    },
+
+    // Feedback form operations
+    {
+      name: 'list_feedback_form_configurations',
+      description: 'List all feedback form configurations',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
+          },
+        },
+      },
+    },
+    {
+      name: 'get_feedback_form_configuration',
+      description: 'Get a specific feedback form configuration',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Feedback form configuration ID',
+          },
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
+          },
+        },
+        required: ['id'],
+      },
+    },
+    {
+      name: 'submit_feedback_form',
+      description: 'Submit a feedback form',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          formId: {
+            type: 'string',
+            description: 'Feedback form ID',
+          },
+          email: {
+            type: 'string',
+            description: 'Email of the person submitting feedback',
+          },
+          content: {
+            type: 'string',
+            description: 'Feedback content',
+          },
+          additionalFields: {
+            type: 'object',
+            description: 'Additional form fields as key-value pairs',
+          },
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
+          },
+        },
+        required: ['formId', 'email', 'content'],
       },
     },
   ];
@@ -352,336 +527,501 @@ export function setupNotesTools() {
  * Handle notes tool calls
  */
 export async function handleNotesTool(name: string, args: any) {
-  switch (name) {
-    case "notes_workflow_feedback_processing":
-      return await processFeedbackWorkflow(args);
-    case "notes_create":
-      return await createNote(args);
-    case "notes_list":
-      return await listNotes(args);
-    case "notes_get":
-      return await getNote(args);
-    case "notes_update":
-      return await updateNote(args);
-    case "notes_delete":
-      return await deleteNote(args);
-    case "notes_bulk_tag_management":
-      return await bulkTagManagement(args);
-    case "notes_analytics_insights":
-      return await generateAnalyticsInsights(args);
-    default:
-      throw new Error(`Unknown notes tool: ${name}`);
+  try {
+    switch (name) {
+      // Core Notes operations
+      case 'create_note':
+        return await createNote(args);
+      case 'get_notes':
+        return await listNotes(args);
+      case 'get_note':
+        return await getNote(args);
+      case 'update_note':
+        return await updateNote(args);
+      case 'delete_note':
+        return await deleteNote(args);
+
+      // Note followers
+      case 'add_note_followers':
+        return await addNoteFollowers(args);
+      case 'remove_note_follower':
+        return await removeNoteFollower(args);
+
+      // Note tags
+      case 'list_note_tags':
+        return await listNoteTags(args);
+      case 'add_note_tag':
+        return await addNoteTag(args);
+      case 'remove_note_tag':
+        return await removeNoteTag(args);
+
+      // Note links
+      case 'list_note_links':
+        return await listNoteLinks(args);
+      case 'create_note_link':
+        return await createNoteLink(args);
+
+      // Feedback forms
+      case 'list_feedback_form_configurations':
+        return await listFeedbackFormConfigurations(args);
+      case 'get_feedback_form_configuration':
+        return await getFeedbackFormConfiguration(args);
+      case 'submit_feedback_form':
+        return await submitFeedbackForm(args);
+
+      default:
+        throw new Error(`Unknown notes tool: ${name}`);
+    }
+  } catch (error: any) {
+    const enterpriseInfo = isEnterpriseError(error);
+    if (enterpriseInfo.isEnterpriseFeature) {
+      throw new ProductboardError(
+        ErrorCode.InvalidRequest,
+        enterpriseInfo.message,
+        error
+      );
+    }
+    throw error;
   }
 }
 
-// Implementation functions
-async function processFeedbackWorkflow(args: any) {
-  return await withContext(
-    async (context) => {
-      // Step 1: Create or find company
-      if (args.companyName) {
-        // Implementation would search for existing company or create new one
-        // For now, we'll include it in the note data
-      }
-
-      // Step 2: Create note with customer feedback
-      const noteData = {
-        title: `Customer Feedback from ${args.customerName || args.customerEmail}`,
-        content: args.feedback,
-        user: {
-          email: args.customerEmail,
-          name: args.customerName,
-        },
-        ...(args.companyName && { company: { name: args.companyName } }),
-        ...(args.tags && { tags: args.tags }),
-      };
-
-      const response = await context.axios.post("/notes", noteData);
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Successfully processed feedback and created note ${response.data.data.id}. 
-        
-Workflow completed:
-✅ Note created with customer feedback
-✅ Customer linked: ${args.customerEmail}
-${args.companyName ? `✅ Company associated: ${args.companyName}` : ""}
-${args.tags ? `✅ Tags applied: ${args.tags.join(", ")}` : ""}
-
-Note URL: ${response.data.links?.html || "N/A"}`,
-          },
-        ],
-      };
-    },
-    args.instance,
-    args.workspaceId,
-  );
-}
-
+// Core Notes implementations
 async function createNote(args: any) {
   return await withContext(
-    async (context) => {
-      const noteData = {
+    async context => {
+      const body: any = {
         title: args.title,
         content: args.content,
-        user: {
-          email: args.userEmail,
-          ...(args.userName && { name: args.userName }),
-        },
-        ...(args.companyName && { company: { name: args.companyName } }),
-        ...(args.tags && { tags: args.tags }),
       };
 
-      const response = await context.axios.post("/notes", noteData);
+      // Add display URL
+      if (args.displayUrl) {
+        body.display_url = args.displayUrl;
+      }
+
+      // Add user information
+      if (args.userEmail || args.userName || args.userExternalId) {
+        body.user = {};
+        if (args.userEmail) body.user.email = args.userEmail;
+        if (args.userName) body.user.name = args.userName;
+        if (args.userExternalId) body.user.external_id = args.userExternalId;
+      }
+
+      // Add company information (can be used with user.email based on CURL example)
+      if (args.companyDomain) {
+        body.company = { domain: args.companyDomain };
+      }
+      // Add owner information
+      if (args.ownerEmail) {
+        body.owner = { email: args.ownerEmail };
+      }
+      // Add source information
+      if (args.sourceOrigin || args.sourceRecordId) {
+        body.source = {};
+        if (args.sourceOrigin) body.source.origin = args.sourceOrigin;
+        if (args.sourceRecordId) body.source.record_id = args.sourceRecordId;
+      }
+      // Add optional fields
+      if (args.tags && args.tags.length > 0) body.tags = args.tags;
+
+      const response = await context.axios.post('/notes', body);
 
       return {
         content: [
           {
-            type: "text",
-            text: formatResponse(response.data, args.includeRaw),
+            type: 'text',
+            text: formatResponse({
+              success: true,
+              note: response.data,
+            }),
           },
         ],
       };
     },
     args.instance,
-    args.workspaceId,
+    args.workspaceId
   );
 }
 
-async function listNotes(args: any) {
+async function listNotes(args: StandardListParams & any) {
   return await withContext(
-    async (context) => {
-      const params: any = {};
+    async context => {
+      const normalizedParams = normalizeListParams(args);
+      const params: any = {
+        pageLimit: normalizedParams.limit,
+      };
 
-      if (args.limit) params.pageLimit = Math.min(args.limit, 2000);
+      // Handle startWith as pageCursor for notes API
+      if (args.pageCursor) {
+        params.pageCursor = args.pageCursor;
+      } else if (normalizedParams.startWith > 0) {
+        params.pageOffset = normalizedParams.startWith;
+      }
+
+      // Add filters
+      if (args.term) params.term = args.term;
+      if (args.companyId) params.companyId = args.companyId;
+      if (args.featureId) params.featureId = args.featureId;
+      if (args.ownerEmail) params.ownerEmail = args.ownerEmail;
+      if (args.source) params.source = args.source;
+      if (args.anyTag) params.anyTag = args.anyTag;
+      if (args.allTags) params.allTags = args.allTags;
+
+      // Date filters
       if (args.createdFrom) params.createdFrom = args.createdFrom;
       if (args.createdTo) params.createdTo = args.createdTo;
       if (args.updatedFrom) params.updatedFrom = args.updatedFrom;
       if (args.updatedTo) params.updatedTo = args.updatedTo;
-      if (args.term) params.term = args.term;
-      if (args.companyId) params.companyId = args.companyId;
-      if (args.ownerEmail) params.ownerEmail = args.ownerEmail;
-      if (args.anyTag) params.anyTag = args.anyTag;
-      if (args.allTags) params.allTags = args.allTags;
+      if (args.dateFrom) params.dateFrom = args.dateFrom;
+      if (args.dateTo) params.dateTo = args.dateTo;
 
-      const response = await context.axios.get("/notes", { params });
+      const response = await context.axios.get('/notes', { params });
 
-      // Apply condensed view by default
-      const condensed = args.condensed !== false;
+      const result = response.data;
 
-      if (
-        condensed &&
-        response.data?.data &&
-        Array.isArray(response.data.data)
-      ) {
-        const condensedData = {
-          ...response.data,
-          data: response.data.data.map((note: any) => ({
-            id: note.id,
-            title: note.title,
-            state: note.state,
-            created_at: note.created_at,
-            ...(note.tags && { tags: note.tags }),
-            ...(note.owner?.email && { owner_email: note.owner.email }),
-            ...(note.company?.name && { company_name: note.company.name }),
-          })),
-        };
-
-        return {
-          content: [
-            {
-              type: "text",
-              text: formatResponse(condensedData, args.includeRaw),
-            },
-          ],
-        };
+      // Apply detail level filtering
+      if (!normalizedParams.includeSubData && result.data) {
+        result.data = filterArrayByDetailLevel(
+          result.data,
+          'note',
+          normalizedParams.detail
+        );
       }
 
       return {
         content: [
           {
-            type: "text",
-            text: formatResponse(response.data, args.includeRaw),
+            type: 'text',
+            text: formatResponse(result),
           },
         ],
       };
     },
     args.instance,
-    args.workspaceId,
+    args.workspaceId
   );
 }
 
-async function getNote(args: any) {
+async function getNote(
+  args: StandardGetParams & {
+    id: string;
+    instance?: string;
+    workspaceId?: string;
+  }
+) {
   return await withContext(
-    async (context) => {
-      const response = await context.axios.get(`/notes/${args.noteId}`);
+    async context => {
+      const normalizedParams = normalizeGetParams(args);
+      const response = await context.axios.get(`/notes/${args.id}`);
 
-      const detail = args.detail || "standard";
+      let result = response.data;
 
-      if (detail !== "full" && response.data?.data) {
-        const note = response.data.data;
-        let filteredNote: any;
-
-        if (detail === "basic") {
-          filteredNote = {
-            id: note.id,
-            title: note.title,
-            state: note.state,
-            created_at: note.created_at,
-          };
-        } else if (detail === "standard") {
-          filteredNote = {
-            id: note.id,
-            title: note.title,
-            state: note.state,
-            created_at: note.created_at,
-            updated_at: note.updated_at,
-            content: note.content
-              ? note.content.substring(0, 200) +
-                (note.content.length > 200 ? "..." : "")
-              : null,
-            ...(note.tags && { tags: note.tags }),
-            ...(note.owner && { owner: note.owner }),
-            ...(note.company && { company: note.company }),
-          };
-        }
-
-        const filteredResponse = {
-          ...response.data,
-          data: filteredNote,
-        };
-
-        return {
-          content: [
-            {
-              type: "text",
-              text: formatResponse(filteredResponse, args.includeRaw),
-            },
-          ],
-        };
+      // Apply detail level filtering
+      if (!normalizedParams.includeSubData) {
+        result = filterByDetailLevel(result, 'note', normalizedParams.detail);
       }
 
       return {
         content: [
           {
-            type: "text",
-            text: formatResponse(response.data, args.includeRaw),
+            type: 'text',
+            text: formatResponse(result),
           },
         ],
       };
     },
     args.instance,
-    args.workspaceId,
+    args.workspaceId
   );
 }
 
 async function updateNote(args: any) {
   return await withContext(
-    async (context) => {
-      const updateData: any = {};
-      if (args.title) updateData.title = args.title;
-      if (args.content) updateData.content = args.content;
-      if (args.tags) updateData.tags = args.tags;
+    async context => {
+      const body: any = {};
 
-      const response = await context.axios.patch(`/notes/${args.noteId}`, {
-        data: updateData,
+      if (args.title) body.title = args.title;
+      if (args.content) body.content = args.content;
+      if (args.tags) body.tags = args.tags;
+
+      const response = await context.axios.patch(`/notes/${args.id}`, {
+        data: body,
       });
 
       return {
         content: [
           {
-            type: "text",
-            text: formatResponse(response.data, args.includeRaw),
+            type: 'text',
+            text: formatResponse({
+              success: true,
+              note: response.data,
+            }),
           },
         ],
       };
     },
     args.instance,
-    args.workspaceId,
+    args.workspaceId
   );
 }
 
 async function deleteNote(args: any) {
   return await withContext(
-    async (context) => {
-      await context.axios.delete(`/notes/${args.noteId}`);
+    async context => {
+      await context.axios.delete(`/notes/${args.id}`);
 
       return {
         content: [
           {
-            type: "text",
-            text: `Note ${args.noteId} deleted successfully`,
+            type: 'text',
+            text: formatResponse({
+              success: true,
+              message: `Note ${args.id} deleted successfully`,
+            }),
           },
         ],
       };
     },
     args.instance,
-    args.workspaceId,
+    args.workspaceId
   );
 }
 
-async function bulkTagManagement(args: any) {
+// Note followers implementations
+async function addNoteFollowers(args: any) {
   return await withContext(
-    async (context) => {
-      const results = [];
+    async context => {
+      const body = {
+        userFollowers: args.emails.map((email: string) => ({ email })),
+      };
 
-      for (const noteId of args.noteIds) {
-        try {
-          // Add tags
-          if (args.addTags) {
-            for (const tag of args.addTags) {
-              await context.axios.post(`/notes/${noteId}/tags/${tag}`);
-            }
-          }
+      const response = await context.axios.post(
+        `/notes/${args.noteId}/user-followers`,
+        { data: body }
+      );
 
-          // Remove tags
-          if (args.removeTags) {
-            for (const tag of args.removeTags) {
-              await context.axios.delete(`/notes/${noteId}/tags/${tag}`);
-            }
-          }
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse({
+              success: true,
+              message: `Added ${args.emails.length} followers to note ${args.noteId}`,
+              data: response.data,
+            }),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
 
-          results.push({ noteId, status: "success" });
-        } catch (error) {
-          results.push({
-            noteId,
-            status: "error",
-            error: error instanceof Error ? error.message : String(error),
-          });
-        }
+async function removeNoteFollower(args: any) {
+  return await withContext(
+    async context => {
+      await context.axios.delete(
+        `/notes/${args.noteId}/user-followers/${args.email}`
+      );
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse({
+              success: true,
+              message: `Removed follower ${args.email} from note ${args.noteId}`,
+            }),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+// Note tags implementations
+async function listNoteTags(args: any) {
+  return await withContext(
+    async context => {
+      const response = await context.axios.get(`/notes/${args.noteId}/tags`);
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse(response.data),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+async function addNoteTag(args: any) {
+  return await withContext(
+    async context => {
+      await context.axios.post(`/notes/${args.noteId}/tags/${args.tagName}`);
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse({
+              success: true,
+              message: `Added tag "${args.tagName}" to note ${args.noteId}`,
+            }),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+async function removeNoteTag(args: any) {
+  return await withContext(
+    async context => {
+      await context.axios.delete(`/notes/${args.noteId}/tags/${args.tagName}`);
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse({
+              success: true,
+              message: `Removed tag "${args.tagName}" from note ${args.noteId}`,
+            }),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+// Note links implementations
+async function listNoteLinks(args: any) {
+  return await withContext(
+    async context => {
+      const response = await context.axios.get(`/notes/${args.noteId}/links`);
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse(response.data),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+async function createNoteLink(args: any) {
+  return await withContext(
+    async context => {
+      await context.axios.post(`/notes/${args.noteId}/links/${args.entityId}`);
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse({
+              success: true,
+              message: `Created link from note ${args.noteId} to entity ${args.entityId}`,
+            }),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+// Feedback form implementations
+async function listFeedbackFormConfigurations(args: any) {
+  return await withContext(
+    async context => {
+      const response = await context.axios.get('/feedback-form-configurations');
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse(response.data),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+async function getFeedbackFormConfiguration(args: any) {
+  return await withContext(
+    async context => {
+      const response = await context.axios.get(
+        `/feedback-form-configurations/${args.id}`
+      );
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse(response.data),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+async function submitFeedbackForm(args: any) {
+  return await withContext(
+    async context => {
+      const body: any = {
+        formId: args.formId,
+        user: {
+          email: args.email,
+        },
+        content: args.content,
+      };
+
+      if (args.additionalFields) {
+        body.fields = args.additionalFields;
       }
 
-      return {
-        content: [
-          {
-            type: "text",
-            text: formatResponse(results),
-          },
-        ],
-      };
-    },
-    args.instance,
-    args.workspaceId,
-  );
-}
+      const response = await context.axios.post('/feedback-forms', {
+        data: body,
+      });
 
-async function generateAnalyticsInsights(args: any) {
-  return await withContext(
-    async () => {
-      // This would implement analytics logic
-      // For now, return placeholder
       return {
         content: [
           {
-            type: "text",
-            text: "Analytics insights feature coming soon. This would analyze notes data for trends, top companies, popular tags, etc.",
+            type: 'text',
+            text: formatResponse({
+              success: true,
+              message: 'Feedback form submitted successfully',
+              data: response.data,
+            }),
           },
         ],
       };
     },
     args.instance,
-    args.workspaceId,
+    args.workspaceId
   );
 }

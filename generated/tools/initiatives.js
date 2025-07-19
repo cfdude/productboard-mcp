@@ -1,11 +1,11 @@
 /**
  * Auto-generated initiatives management tools
  */
-import { withContext, formatResponse } from "../../utils/tool-wrapper.js";
+import { withContext, formatResponse } from "../../build/utils/tool-wrapper.js";
 export function setupInitiativesTools() {
     return [
         {
-            name: "productboard_get_initiatives",
+            name: "get_initiatives",
             description: "List all initiatives",
             inputSchema: {
                 type: "object",
@@ -46,7 +46,7 @@ export function setupInitiativesTools() {
             }
         },
         {
-            name: "productboard_create_initiative",
+            name: "create_initiative",
             description: "Create a new initiative",
             inputSchema: {
                 type: "object",
@@ -76,7 +76,7 @@ export function setupInitiativesTools() {
             }
         },
         {
-            name: "productboard_get_initiative",
+            name: "get_initiative",
             description: "Get a specific initiative",
             inputSchema: {
                 type: "object",
@@ -110,7 +110,7 @@ export function setupInitiativesTools() {
             }
         },
         {
-            name: "productboard_update_initiative",
+            name: "update_initiative",
             description: "Update an existing initiative",
             inputSchema: {
                 type: "object",
@@ -148,7 +148,7 @@ export function setupInitiativesTools() {
             }
         },
         {
-            name: "productboard_delete_initiative",
+            name: "delete_initiative",
             description: "Delete an initiative",
             inputSchema: {
                 type: "object",
@@ -182,7 +182,7 @@ export function setupInitiativesTools() {
             }
         },
         {
-            name: "productboard_list_links_initiative_to_objectives",
+            name: "list_links_initiative_to_objectives",
             description: "List objectives linked to a specific initiative",
             inputSchema: {
                 type: "object",
@@ -216,7 +216,7 @@ export function setupInitiativesTools() {
             }
         },
         {
-            name: "productboard_list_links_initiative_to_features",
+            name: "list_links_initiative_to_features",
             description: "List features linked to a specific initiative",
             inputSchema: {
                 type: "object",
@@ -250,7 +250,7 @@ export function setupInitiativesTools() {
             }
         },
         {
-            name: "productboard_create_initiative_to_objective_link",
+            name: "create_initiative_to_objective_link",
             description: "Create a new link between an initiative and an objective",
             inputSchema: {
                 type: "object",
@@ -288,7 +288,7 @@ export function setupInitiativesTools() {
             }
         },
         {
-            name: "productboard_delete_initiative_to_objective_link",
+            name: "delete_initiative_to_objective_link",
             description: "Delete a link between an initiative and an objective",
             inputSchema: {
                 type: "object",
@@ -326,7 +326,7 @@ export function setupInitiativesTools() {
             }
         },
         {
-            name: "productboard_create_initiative_to_feature_link",
+            name: "create_initiative_to_feature_link",
             description: "Create a new link between an initiative and a feature",
             inputSchema: {
                 type: "object",
@@ -364,7 +364,7 @@ export function setupInitiativesTools() {
             }
         },
         {
-            name: "productboard_delete_initiative_to_feature_link",
+            name: "delete_initiative_to_feature_link",
             description: "Delete a link between an initiative and a feature",
             inputSchema: {
                 type: "object",
@@ -405,27 +405,27 @@ export function setupInitiativesTools() {
 }
 export async function handleInitiativesTool(name, args) {
     switch (name) {
-        case "productboard_get_initiatives":
+        case "get_initiatives":
             return await initiativesGet(args);
-        case "productboard_create_initiative":
+        case "create_initiative":
             return await initiativeCreate(args);
-        case "productboard_get_initiative":
+        case "get_initiative":
             return await initiativeGet(args);
-        case "productboard_update_initiative":
+        case "update_initiative":
             return await initiativeUpdate(args);
-        case "productboard_delete_initiative":
+        case "delete_initiative":
             return await initiativeDelete(args);
-        case "productboard_list_links_initiative_to_objectives":
+        case "list_links_initiative_to_objectives":
             return await linksListInitiativetoobjectives(args);
-        case "productboard_list_links_initiative_to_features":
+        case "list_links_initiative_to_features":
             return await linksListInitiativetofeatures(args);
-        case "productboard_create_initiative_to_objective_link":
+        case "create_initiative_to_objective_link":
             return await initiativeCreateToobjectivelink(args);
-        case "productboard_delete_initiative_to_objective_link":
+        case "delete_initiative_to_objective_link":
             return await initiativeDeleteToobjectivelink(args);
-        case "productboard_create_initiative_to_feature_link":
+        case "create_initiative_to_feature_link":
             return await initiativeCreateTofeaturelink(args);
-        case "productboard_delete_initiative_to_feature_link":
+        case "delete_initiative_to_feature_link":
             return await initiativeDeleteTofeaturelink(args);
         default:
             throw new Error(`Unknown initiatives tool: ${name}`);
@@ -444,7 +444,8 @@ export async function initiativesGet(args) {
 }
 export async function initiativeCreate(args) {
     return await withContext(async (context) => {
-        const response = await context.axios.post(`/initiatives`, body);
+        const body = typeof args.body === 'string' ? JSON.parse(args.body) : args.body;
+        const response = await context.axios.post(`/initiatives`, { data: body });
         return {
             content: [{
                     type: "text",
@@ -466,7 +467,8 @@ export async function initiativeGet(args) {
 }
 export async function initiativeUpdate(args) {
     return await withContext(async (context) => {
-        const response = await context.axios.patch(`/initiatives/${args.id}`, body);
+        const body = typeof args.body === 'string' ? JSON.parse(args.body) : args.body;
+        const response = await context.axios.patch(`/initiatives/${args.id}`, { data: body });
         return {
             content: [{
                     type: "text",

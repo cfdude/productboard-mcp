@@ -5,87 +5,76 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.2] - 2025-07-17
+## [Unreleased]
 
 ### Fixed
 
-- **Development Dependencies**
-  - Added missing `prettier` package to devDependencies for lint-and-format scripts
-  - Ensures development scripts work correctly for all contributors
-  - Resolves "prettier: command not found" error in development workflow
+- **Critical create_note API Fix**
+  - Fixed create_note function that was sending requests incorrectly
+  - Removed data wrapper for /notes endpoint (sends body directly unlike other endpoints)
+  - Fixed field naming to use snake_case (display_url not displayUrl)
+  - Added Accept header matching API requirements
+  - Enhanced error handling with specific messages for 409 and 422 status codes
+  - Documented MCP tool usage requirements (no JSON formatting or escape characters)
 
-## [1.2.1] - 2025-07-17
+- **Enhanced Error Handling for All Tools**
+  - Updated error interceptors to expose original API error details in structured format
+  - Added originalData field to error responses to help AI understand request structure issues
+  - Improved error messages for 400, 409, and 422 status codes with specific guidance
 
-### Added
+- **Fixed Webhook Tools Implementation**
+  - Created missing webhooks.js file with proper API structure
+  - Implemented correct webhook data format with events array and notification object
+  - Added support for both create_webhook and post_webhook aliases
+  - Fixed handler naming and routing for webhook operations
 
-- **Development Tooling**
-  - Added `format` script for automatic code formatting with Prettier
-  - Added `format:check` script for CI-compatible format checking
-  - Added `lint-and-format` script combining TypeScript linting and code formatting
-  - Added `pre-commit` script for comprehensive pre-commit validation (lint + format + test + generate manifest)
+- **Fixed Release Tools Syntax Errors**
+  - Replaced $2 placeholders with proper URLs in release and release-group endpoints
+  - Fixed handler function name mismatch for releases tools
 
-### Improved
+- **General Tool Fixes**
+  - Fixed description format requirements (must be HTML-wrapped for features)
+  - Fixed parameter type issues (create_user expects string name, not object)
+  - Added support for tool name aliases (post_webhook/create_webhook, get_webhooks/list_webhooks)
+  - Improved tool naming consistency across the codebase
 
-- **Developer Experience**
-  - Streamlined code formatting workflow to prevent CI failures
-  - Automated linting and formatting in single commands
-  - Enhanced pre-commit validation process
+## [1.1.1] - 2025-01-17
 
-## [1.2.0] - 2025-07-17
+### 🔧 Bug Fixes & Improvements
 
-### Added
-
-- **Condensed Data Views**
-  - Added `condensed` parameter to all list operations (notes_list, companies_list, releases_list, users_list)
-  - Condensed view returns only essential fields by default for better performance and reduced context usage
-  - Prevents AI models from being overwhelmed by large data responses
-  - Set condensed=false to get full data when needed
-
-- **Configurable Detail Levels**
-  - Added `detail` parameter to all get operations (notes_get, companies_get, releases_get, users_get)
-  - Three detail levels: `basic` (minimal data), `standard` (common use case), `full` (comprehensive data)
-  - Allows AI models to request appropriate level of information based on task requirements
-
-- **Enhanced Tool Documentation**
-  - Updated tool descriptions to clearly explain when to use different detail levels
-  - Added guidance on performance implications of data granularity choices
-  - Improved AI model understanding of tool capabilities and usage patterns
-
-- **New Users Operations**
-  - Added `users_get` tool with configurable detail levels
-  - Updated `users_list` to include condensed view and return user IDs for proper linking
-
-### Improved
-
-- **User Experience**
-  - Removed "productboard\_" prefix from tool names for cleaner display in Claude Desktop
-  - Added `title` parameter to all tool definitions for user-friendly display names
-  - Backward compatibility maintained for existing tool name patterns
-
-- **Tool Performance**
-  - Condensed views reduce response size by 60-80% for large datasets
-  - Faster processing and reduced token usage for AI models
-  - Better scalability for organizations with extensive Productboard data
-
-## [1.1.1] - 2025-07-16
+This release restores the condensed data functionality and improves the tool naming convention for better developer experience.
 
 ### Fixed
 
-- **ESM Module Import Issues**
-  - Fixed `ERR_MODULE_NOT_FOUND` error by adding `.js` extensions to imports from `@modelcontextprotocol/sdk/types`
-  - Updated `src/errors/index.ts` and `src/__tests__/errors.test.ts` to use proper ESM syntax
-  - Server now launches successfully with Claude Code without module resolution errors
+- **Restored Condensed Data Functionality**
+  - Re-implemented data filtering logic in `get_features` and `get_companies` tools
+  - Added `condensed` parameter that defaults to `true` for minimal data output
+  - Fixed formatResponse helper to properly handle condensed views
+  - Restored detail levels from previous implementation (commit 8939a92)
 
-- **Dynamic Tool Loading**
-  - Temporarily disabled dynamic tool loading to avoid syntax errors in generated files
-  - Server falls back to static tool loading when manifest contains invalid syntax
-  - Preserved 20 core tools including full CRUD operations (create, read, update, delete)
+- **Tool Naming Convention**
+  - Removed `productboard_` prefix from all tool names for cleaner API
+  - Updated manifest.json and all generated JavaScript files
+  - Created migration script (`scripts/remove-productboard-prefix.js`)
+  - Tools now use simpler names like `get_features` instead of `productboard_get_features`
 
-### Technical Details
+- **Handler Function Naming Issues**
+  - Fixed handler function name mismatches in registry
+  - Corrected `handleCompaniesAndUsersTools` to `handleCompaniesUsersTool`
+  - Resolved "Handler not found" errors for dynamically loaded tools
 
-- Modified TypeScript imports to comply with ESM module resolution
-- Generated files moved to backup due to invalid JavaScript identifiers (spaces in names)
-- Static tool loading ensures reliable server operation
+- **JavaScript Syntax Errors**
+  - Fixed files with spaces in names causing syntax errors
+  - Corrected malformed property syntax in generated files
+  - Removed TypeScript syntax from JavaScript files
+  - Fixed import path issues
+
+### Changed
+
+- **Tool Parameter Documentation**
+  - Updated tool descriptions to clarify `condensed` vs `pageLimit` parameters
+  - Added proper documentation for detail level options
+  - Improved parameter descriptions in manifest
 
 ## [1.1.0] - 2025-01-16
 

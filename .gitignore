@@ -100,6 +100,6 @@ jspm_packages/
 # DynamoDB Local files
 .dynamodb/
 
-# Test and development files
-test-server.js
-generated/manifest.json.bak
+# Test scripts
+test-*.js
+scripts/test/test-*.js

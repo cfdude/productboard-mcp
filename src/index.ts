@@ -2,7 +2,7 @@
 /**
  * Entry point for the Productboard MCP server
  */
-import { ProductboardServer } from "./productboard-server.js";
+import { ProductboardServer } from './productboard-server.js';
 
 // Create and run the server
 const server = new ProductboardServer();

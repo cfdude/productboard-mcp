@@ -2,18 +2,18 @@
 /**
  * Test dynamic tool loading system
  */
-import { ToolRegistry } from "../build/tools/registry.js";
-import { join } from "path";
-import { existsSync } from "fs";
+import { ToolRegistry } from '../build/tools/registry.js';
+import { join } from 'path';
+import { existsSync } from 'fs';
 
 async function testDynamicLoading() {
-  console.log("🧪 Testing dynamic tool loading system...\n");
+  console.log('🧪 Testing dynamic tool loading system...\n');
 
   // Check manifest exists
-  const manifestPath = join(process.cwd(), "generated", "manifest.json");
+  const manifestPath = join(process.cwd(), 'generated', 'manifest.json');
   if (!existsSync(manifestPath)) {
     console.error(
-      "❌ Manifest not found. Run 'npm run generate-manifest' first.",
+      "❌ Manifest not found. Run 'npm run generate-manifest' first."
     );
     process.exit(1);
   }
@@ -21,39 +21,39 @@ async function testDynamicLoading() {
   // Test different category configurations
   const testConfigs = [
     {
-      name: "Default categories",
+      name: 'Default categories',
       categories: [
-        "notes",
-        "features",
-        "companies",
-        "users",
-        "releases",
-        "webhooks",
+        'notes',
+        'features',
+        'companies',
+        'users',
+        'releases',
+        'webhooks',
       ],
     },
     {
-      name: "Product manager profile",
+      name: 'Product manager profile',
       categories: [
-        "features",
-        "releases",
-        "objectives",
-        "keyresults",
-        "initiatives",
+        'features',
+        'releases',
+        'objectives',
+        'keyresults',
+        'initiatives',
       ],
     },
     {
-      name: "Customer success profile",
-      categories: ["notes", "companies", "users", "companies & users"],
+      name: 'Customer success profile',
+      categories: ['notes', 'companies', 'users', 'companies & users'],
     },
     {
-      name: "Developer profile",
-      categories: ["webhooks", "plugin integrations", "jira integrations"],
+      name: 'Developer profile',
+      categories: ['webhooks', 'plugin integrations', 'jira integrations'],
     },
   ];
 
   for (const config of testConfigs) {
     console.log(`\n📋 Testing: ${config.name}`);
-    console.log(`   Categories: ${config.categories.join(", ")}`);
+    console.log(`   Categories: ${config.categories.join(', ')}`);
 
     try {
       // Create registry with specific categories
@@ -85,15 +85,15 @@ async function testDynamicLoading() {
 
         try {
           // This will trigger lazy loading
-          const mockArgs = { instance: "test", workspaceId: "test" };
+          const mockArgs = { instance: 'test', workspaceId: 'test' };
           // Note: This will fail without proper context, but we're testing the loading mechanism
-          await registry.executeTool(testTool.name, mockArgs).catch((err) => {
+          await registry.executeTool(testTool.name, mockArgs).catch(err => {
             if (
-              err.message.includes("context") ||
-              err.message.includes("config")
+              err.message.includes('context') ||
+              err.message.includes('config')
             ) {
               console.log(
-                `   ✅ Tool loaded successfully (execution failed due to missing context - expected)`,
+                `   ✅ Tool loaded successfully (execution failed due to missing context - expected)`
               );
             } else {
               throw err;
@@ -108,7 +108,7 @@ async function testDynamicLoading() {
     }
   }
 
-  console.log("\n✅ Dynamic loading test completed!");
+  console.log('\n✅ Dynamic loading test completed!');
 }
 
 // Run test
