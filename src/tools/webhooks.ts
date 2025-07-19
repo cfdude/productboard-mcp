@@ -34,13 +34,32 @@ export function setupWebhooksTools() {
       inputSchema: {
         type: "object",
         properties: {
-          eventType: {
+          events: {
+            type: "array",
+            description: "Array of event types to subscribe to",
+            items: {
+              type: "object",
+              properties: {
+                eventType: {
+                  type: "string",
+                  description:
+                    "Event type (e.g., feature.created, note.updated)",
+                },
+              },
+              required: ["eventType"],
+            },
+          },
+          name: {
             type: "string",
-            description: "Event type to subscribe to",
+            description: "Name for the webhook subscription",
           },
           url: {
             type: "string",
-            description: "Webhook URL",
+            description: "Webhook URL to receive notifications",
+          },
+          headers: {
+            type: "object",
+            description: "Optional headers to include in webhook requests",
           },
           instance: {
             type: "string",
@@ -55,7 +74,34 @@ export function setupWebhooksTools() {
             description: "Include raw API response",
           },
         },
-        required: ["eventType", "url"],
+        required: ["events", "name", "url"],
+      },
+    },
+    {
+      name: "webhooks_get",
+      title: "Get Webhook",
+      description: "Get details of a specific webhook subscription",
+      inputSchema: {
+        type: "object",
+        properties: {
+          webhookId: {
+            type: "string",
+            description: "Webhook ID",
+          },
+          instance: {
+            type: "string",
+            description: "Productboard instance name (optional)",
+          },
+          workspaceId: {
+            type: "string",
+            description: "Workspace ID (optional)",
+          },
+          includeRaw: {
+            type: "boolean",
+            description: "Include raw API response",
+          },
+        },
+        required: ["webhookId"],
       },
     },
     {
@@ -90,6 +136,8 @@ export async function handleWebhooksTool(name: string, args: any) {
       return await listWebhooks(args);
     case "webhooks_create":
       return await createWebhook(args);
+    case "webhooks_get":
+      return await getWebhook(args);
     case "webhooks_delete":
       return await deleteWebhook(args);
     default:
@@ -120,11 +168,32 @@ async function createWebhook(args: any) {
   return await withContext(
     async (context) => {
       const webhookData = {
-        eventType: args.eventType,
+        events: args.events,
+        name: args.name,
         url: args.url,
+        headers: args.headers,
       };
 
       const response = await context.axios.post("/webhooks", webhookData);
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: formatResponse(response.data, args.includeRaw),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId,
+  );
+}
+
+async function getWebhook(args: any) {
+  return await withContext(
+    async (context) => {
+      const response = await context.axios.get(`/webhooks/${args.webhookId}`);
 
       return {
         content: [
