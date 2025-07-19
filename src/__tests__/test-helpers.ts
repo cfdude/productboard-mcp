@@ -2,21 +2,8 @@
  * Test helpers for mocking dependencies
  */
 
-import { jest } from '@jest/globals';
+// This file is intentionally minimal for now
+// The test configuration is handled by NODE_ENV=test in jest.config.js
+// and the mock configuration in src/config.ts
 
-// Mock axios at module level before any imports
-jest.mock('axios', () => ({
-  default: {
-    create: jest.fn(() => ({
-      get: jest.fn().mockRejectedValue(new Error('Unmocked axios call')),
-      post: jest.fn().mockRejectedValue(new Error('Unmocked axios call')),
-      put: jest.fn().mockRejectedValue(new Error('Unmocked axios call')),
-      patch: jest.fn().mockRejectedValue(new Error('Unmocked axios call')),
-      delete: jest.fn().mockRejectedValue(new Error('Unmocked axios call')),
-      interceptors: {
-        request: { use: jest.fn() },
-        response: { use: jest.fn() },
-      },
-    })),
-  },
-}));
+export {};
