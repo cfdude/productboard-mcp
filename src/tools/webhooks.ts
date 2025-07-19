@@ -51,7 +51,7 @@ export function setupWebhooksTools() {
           headers: {
             type: 'object',
             description:
-              'Optional headers to include in webhook requests (e.g., {"authorization": "Bearer token"})',
+              'Optional headers to include in webhook requests (e.g., {"authorization": "Token [YOUR_TOKEN]"})',
           },
           version: {
             type: 'number',
