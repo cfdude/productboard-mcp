@@ -65,16 +65,19 @@ export function createToolContext(
     axiosInstance.interceptors.response.use(
       response => response,
       error => {
-        console.error('[tool-wrapper] Interceptor caught error:', {
-          message: error.message,
-          code: error.code,
-          response: error.response
-            ? {
-                status: error.response.status,
-                data: error.response.data,
-              }
-            : 'No response',
-        });
+        // In test mode, suppress network error logging
+        if (process.env.NODE_ENV !== 'test') {
+          console.error('[tool-wrapper] Interceptor caught error:', {
+            message: error.message,
+            code: error.code,
+            response: error.response
+              ? {
+                  status: error.response.status,
+                  data: error.response.data,
+                }
+              : 'No response',
+          });
+        }
 
         if (error.response) {
           const status = error.response.status;
@@ -161,10 +164,12 @@ export function createToolContext(
             throw new NetworkError('Server error', error);
           }
 
-          console.error(
-            '[tool-wrapper] Throwing generic InvalidRequest for status:',
-            status
-          );
+          if (process.env.NODE_ENV !== 'test') {
+            console.error(
+              '[tool-wrapper] Throwing generic InvalidRequest for status:',
+              status
+            );
+          }
           const details = {
             status: status,
             errors: data?.errors || [],
@@ -178,9 +183,11 @@ export function createToolContext(
           );
         }
 
-        console.error(
-          '[tool-wrapper] Throwing NetworkError for non-response error'
-        );
+        if (process.env.NODE_ENV !== 'test') {
+          console.error(
+            '[tool-wrapper] Throwing NetworkError for non-response error'
+          );
+        }
         throw new NetworkError('Network error', error);
       }
     );
