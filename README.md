@@ -11,6 +11,7 @@ A Model Context Protocol (MCP) server that provides comprehensive access to Prod
 
 - **Dynamic Tool Loading**: 119+ API operations loaded on-demand to minimize memory usage
 - **Category-Based Organization**: Tools organized into 15+ logical categories
+- **Condensed Data Views**: Flexible detail levels (basic/standard/full) for optimized responses
 - **Role-Based Profiles**: Pre-configured tool sets for different user types
 - **Auto-Generated Tools**: Generate tool implementations directly from OpenAPI spec
 - **Multi-Workspace Support**: Manage multiple Productboard instances seamlessly
@@ -183,6 +184,81 @@ Create a `.productboard-config.json` file in your project root:
 - **webhooks** (4 tools): Event notifications and subscriptions
 - **pluginIntegrations** (10 tools): Third-party integration management
 - **jiraIntegrations** (4 tools): Jira-specific integrations
+
+## 🔍 Condensed Data Views
+
+Many tools support flexible detail levels to optimize response size and performance:
+
+### Detail Levels
+
+- **`basic`** - Minimal fields (id, name, and essential identifiers)
+- **`standard`** - Common fields for typical use cases (default)
+- **`full`** - All available fields including nested data
+
+### Supported Tools
+
+Tools with condensed data support include:
+- `get_features` / `list_features`
+- `get_components` / `list_components`
+- `get_products` / `list_products`
+- `get_releases` / `list_releases`
+- `get_notes` / `list_notes`
+- `get_companies` / `list_companies`
+- `get_users` / `list_users`
+- `get_objectives` / `list_objectives`
+- `get_initiatives` / `list_initiatives`
+- `get_webhooks` / `list_webhooks`
+
+### Usage Examples
+
+```javascript
+// Get basic feature information (minimal fields)
+{
+  "tool": "get_features",
+  "arguments": {
+    "detail": "basic",
+    "limit": 100
+  }
+}
+
+// Get standard feature details (default)
+{
+  "tool": "get_features",
+  "arguments": {
+    "detail": "standard"
+  }
+}
+
+// Get full feature data including all nested objects
+{
+  "tool": "get_features",
+  "arguments": {
+    "detail": "full",
+    "includeSubData": true
+  }
+}
+```
+
+### Performance Tips
+
+1. Use `basic` detail level for:
+   - Large data sets
+   - Quick lookups by ID/name
+   - Initial exploration
+
+2. Use `standard` detail level for:
+   - Most common operations
+   - Balanced detail vs. performance
+
+3. Use `full` detail level for:
+   - Complete data exports
+   - Detailed analysis
+   - When all fields are needed
+
+4. The `includeSubData` parameter:
+   - When `true`: Returns all nested JSON data
+   - When `false`: Filters based on detail level
+   - Useful for controlling response size
 
 ## 🎯 Usage Examples
 

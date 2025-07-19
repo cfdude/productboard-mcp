@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Comprehensive Condensed Data Views**
+  - Added flexible detail levels (basic/standard/full) to major list and get operations
+  - Implemented data filtering based on detail level to optimize response sizes
+  - Added `includeSubData` parameter to control nested JSON data inclusion
+  - Supported tools include: features, components, products, releases, notes, companies, users, objectives, initiatives, and webhooks
+  - Significantly improves performance for large datasets and reduces token usage
+
+- **Enhanced Test Configuration**
+  - Added mock configuration support for test environment (NODE_ENV=test)
+  - Eliminated requirement for API tokens during CI/CD testing
+  - Suppressed console errors in test mode to prevent log pollution
+
+- **Documentation Improvements**
+  - Added comprehensive "Condensed Data Views" section to README
+  - Created "Future Improvements" section based on code review feedback
+  - Updated key features to highlight condensed data functionality
+
 ### Fixed
 
 - **Critical create_note API Fix**
@@ -37,6 +56,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed parameter type issues (create_user expects string name, not object)
   - Added support for tool name aliases (post_webhook/create_webhook, get_webhooks/list_webhooks)
   - Improved tool naming consistency across the codebase
+
+- **CI/CD and Merge Conflicts**
+  - Resolved merge conflicts between dev and main branches
+  - Fixed prettier formatting issues
+  - Updated security audit to avoid false positives with webhook descriptions
+  - Fixed TypeScript compilation errors in test helpers
 
 ## [1.1.1] - 2025-01-17
 
