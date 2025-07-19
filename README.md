@@ -220,25 +220,25 @@ Add to your Claude Desktop configuration:
 ```typescript
 // Create a note from customer feedback
 productboard_notes_create({
-  title: "Feature request: Dark mode",
-  content: "Customer wants dark mode support",
-  tags: ["ui", "enhancement"],
-  user: { email: "customer@example.com" },
+  title: 'Feature request: Dark mode',
+  content: 'Customer wants dark mode support',
+  tags: ['ui', 'enhancement'],
+  user: { email: 'customer@example.com' },
 });
 
 // List features with filtering
 productboard_features_list({
   limit: 50,
-  status: "in-progress",
+  status: 'in-progress',
   includeRaw: false,
 });
 
 // Create a release
 productboard_releases_create({
-  name: "Q1 2025 Release",
-  description: "Major feature updates",
-  startDate: "2025-01-01",
-  endDate: "2025-03-31",
+  name: 'Q1 2025 Release',
+  description: 'Major feature updates',
+  startDate: '2025-01-01',
+  endDate: '2025-03-31',
 });
 ```
 
