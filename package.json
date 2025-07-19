@@ -1,6 +1,6 @@
 {
   "name": "@the_cfdude/productboard-mcp",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Model Context Protocol server for Productboard REST API with dynamic tool loading",
   "type": "module",
   "bin": {
@@ -18,7 +18,7 @@
   ],
   "scripts": {
     "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
-    "prepare": "npm run build",
+    "prepare": "husky",
     "watch": "tsc --watch",
     "inspector": "npx @modelcontextprotocol/inspector build/index.js",
     "dev": "npm run build && npm run inspector",
@@ -47,32 +47,44 @@
     "eslint": "^9.31.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.5.1",
+    "husky": "^9.1.7",
     "jest": "^29.7.0",
-    "prettier": "^3.6.2",
+    "lint-staged": "^16.1.2",
+    "prettier": "^3.3.3",
     "ts-jest": "^29.1.2",
-    "tsx": "^4.20.3",
+    "tsx": "^4.7.1",
     "typescript": "^5.3.3"
   },
   "keywords": [
     "mcp",
-    "productboard",
     "model-context-protocol",
+    "productboard",
     "api",
-    "dynamic-loading",
+    "cli",
     "product-management",
-    "customer-feedback"
+    "dynamic-loading",
+    "typescript"
   ],
+  "author": "ProductBoard MCP Contributors",
+  "license": "MIT",
+  "homepage": "https://github.com/cfdude/productboard-mcp",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/cfdude/productboard-mcp.git"
+    "url": "https://github.com/cfdude/productboard-mcp.git"
   },
   "bugs": {
     "url": "https://github.com/cfdude/productboard-mcp/issues"
   },
-  "homepage": "https://github.com/cfdude/productboard-mcp#readme",
   "engines": {
     "node": ">=18.0.0"
   },
-  "author": "Productboard MCP Contributors",
-  "license": "MIT"
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  }
 }

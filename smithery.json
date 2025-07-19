@@ -58,7 +58,7 @@
   },
   "npm": {
     "package": "@the_cfdude/productboard-mcp",
-    "version": "1.0.0",
+    "version": "1.2.0",
     "registry": "https://registry.npmjs.org"
   }
 }

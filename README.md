@@ -11,6 +11,7 @@ A Model Context Protocol (MCP) server that provides comprehensive access to Prod
 
 - **Dynamic Tool Loading**: 119+ API operations loaded on-demand to minimize memory usage
 - **Category-Based Organization**: Tools organized into 15+ logical categories
+- **Condensed Data Views**: Flexible detail levels (basic/standard/full) for optimized responses
 - **Role-Based Profiles**: Pre-configured tool sets for different user types
 - **Auto-Generated Tools**: Generate tool implementations directly from OpenAPI spec
 - **Multi-Workspace Support**: Manage multiple Productboard instances seamlessly
@@ -184,6 +185,82 @@ Create a `.productboard-config.json` file in your project root:
 - **pluginIntegrations** (10 tools): Third-party integration management
 - **jiraIntegrations** (4 tools): Jira-specific integrations
 
+## 🔍 Condensed Data Views
+
+Many tools support flexible detail levels to optimize response size and performance:
+
+### Detail Levels
+
+- **`basic`** - Minimal fields (id, name, and essential identifiers)
+- **`standard`** - Common fields for typical use cases (default)
+- **`full`** - All available fields including nested data
+
+### Supported Tools
+
+Tools with condensed data support include:
+
+- `get_features` / `list_features`
+- `get_components` / `list_components`
+- `get_products` / `list_products`
+- `get_releases` / `list_releases`
+- `get_notes` / `list_notes`
+- `get_companies` / `list_companies`
+- `get_users` / `list_users`
+- `get_objectives` / `list_objectives`
+- `get_initiatives` / `list_initiatives`
+- `get_webhooks` / `list_webhooks`
+
+### Usage Examples
+
+```javascript
+// Get basic feature information (minimal fields)
+{
+  "tool": "get_features",
+  "arguments": {
+    "detail": "basic",
+    "limit": 100
+  }
+}
+
+// Get standard feature details (default)
+{
+  "tool": "get_features",
+  "arguments": {
+    "detail": "standard"
+  }
+}
+
+// Get full feature data including all nested objects
+{
+  "tool": "get_features",
+  "arguments": {
+    "detail": "full",
+    "includeSubData": true
+  }
+}
+```
+
+### Performance Tips
+
+1. Use `basic` detail level for:
+   - Large data sets
+   - Quick lookups by ID/name
+   - Initial exploration
+
+2. Use `standard` detail level for:
+   - Most common operations
+   - Balanced detail vs. performance
+
+3. Use `full` detail level for:
+   - Complete data exports
+   - Detailed analysis
+   - When all fields are needed
+
+4. The `includeSubData` parameter:
+   - When `true`: Returns all nested JSON data
+   - When `false`: Filters based on detail level
+   - Useful for controlling response size
+
 ## 🎯 Usage Examples
 
 ### With Claude Desktop
@@ -333,6 +410,52 @@ MIT License - see LICENSE file for details
 - [Productboard API Documentation](https://developer.productboard.com/)
 - [Model Context Protocol](https://modelcontextprotocol.io/)
 - [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
+
+## 📝 Future Improvements
+
+Based on code review feedback, here are suggested improvements for future development:
+
+### Type Safety Enhancements
+
+- [ ] Replace `any` types with proper TypeScript interfaces throughout the codebase
+- [ ] Create specific types for API responses instead of using generic types
+- [ ] Add stricter type checking for tool arguments and return values
+
+### Error Handling Improvements
+
+- [ ] Implement more granular error types for different API failure scenarios
+- [ ] Add retry logic with exponential backoff for transient failures
+- [ ] Improve error messages with actionable suggestions for users
+
+### Code Organization
+
+- [ ] Consider splitting large tool files (features.ts, notes.ts) into smaller modules
+- [ ] Extract common patterns into shared utilities
+- [ ] Implement a proper dependency injection pattern for better testability
+
+### Testing Enhancements
+
+- [ ] Add integration tests that mock the Productboard API
+- [ ] Increase test coverage for edge cases and error scenarios
+- [ ] Add performance benchmarks for dynamic tool loading
+
+### Documentation
+
+- [ ] Add JSDoc comments for all public functions and interfaces
+- [ ] Create detailed examples for complex tool usage patterns
+- [ ] Document the tool generation process more thoroughly
+
+### Performance Optimizations
+
+- [ ] Implement request batching for multiple API calls
+- [ ] Add response caching with configurable TTL
+- [ ] Optimize the manifest generation for faster startup
+
+### Security Enhancements
+
+- [ ] Add input validation for all tool parameters
+- [ ] Implement rate limiting at the MCP server level
+- [ ] Add audit logging for sensitive operations
 
 ## 🏗️ Roadmap
 
