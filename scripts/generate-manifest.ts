@@ -437,8 +437,30 @@ function main() {
     // Generate manifest
     const manifest = generateManifest();
 
-    // Write manifest
-    writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2));
+    // Write manifest with consistent formatting
+    const manifestJson = JSON.stringify(manifest, null, 2);
+
+    // Ensure arrays are consistently formatted (multiline) to match expected CI format
+    const formattedJson = manifestJson.replace(
+      /(\[(?:\s*"[^"]*",?\s*)*\])/g,
+      match => {
+        try {
+          // Parse the array and reformat to multiline if it has multiple items
+          const items = JSON.parse(match.replace(/\s+/g, ' '));
+          if (!Array.isArray(items) || items.length <= 1) return match;
+          return (
+            '[\n        ' +
+            items.map(item => `"${item}"`).join(',\n        ') +
+            '\n      ]'
+          );
+        } catch (e) {
+          // If parsing fails, return original match
+          return match;
+        }
+      }
+    );
+
+    writeFileSync(MANIFEST_PATH, formattedJson);
 
     // Print statistics
     const toolCount = Object.keys(manifest.tools).length;
