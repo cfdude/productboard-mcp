@@ -2,6 +2,7 @@
 node_modules/
 build/
 dist/
+generated/
 
 # Configuration and sensitive files
 .claude/

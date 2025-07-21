@@ -1,0 +1,1 @@
+- Always use claude-code for bash commands

@@ -543,22 +543,28 @@ export async function handleNotesTool(name: string, args: any) {
 
       // Note followers
       case 'add_note_followers':
+      case 'bulk_add_note_followers':
         return await addNoteFollowers(args);
       case 'remove_note_follower':
         return await removeNoteFollower(args);
 
       // Note tags
       case 'list_note_tags':
+      case 'list_tags':
         return await listNoteTags(args);
       case 'add_note_tag':
+      case 'create_note_tag':
         return await addNoteTag(args);
       case 'remove_note_tag':
+      case 'delete_note_tag':
         return await removeNoteTag(args);
 
       // Note links
       case 'list_note_links':
+      case 'list_links':
         return await listNoteLinks(args);
       case 'create_note_link':
+      case 'create_link':
         return await createNoteLink(args);
 
       // Feedback forms
@@ -791,14 +797,29 @@ async function deleteNote(args: any) {
 async function addNoteFollowers(args: any) {
   return await withContext(
     async context => {
-      const body = {
-        userFollowers: args.emails.map((email: string) => ({ email })),
-      };
+      let body: any;
+
+      // Handle different parameter formats
+      if (args.body && typeof args.body === 'object') {
+        // From manifest tools: args.body contains the data
+        body = args.body;
+      } else if (args.emails && Array.isArray(args.emails)) {
+        // From direct tool calls: args.emails is an array
+        body = {
+          userFollowers: args.emails.map((email: string) => ({ email })),
+        };
+      } else {
+        throw new Error(
+          'Missing required parameter: emails or body with userFollowers'
+        );
+      }
 
       const response = await context.axios.post(
         `/notes/${args.noteId}/user-followers`,
         { data: body }
       );
+
+      const emailCount = body.userFollowers ? body.userFollowers.length : 0;
 
       return {
         content: [
@@ -806,7 +827,7 @@ async function addNoteFollowers(args: any) {
             type: 'text',
             text: formatResponse({
               success: true,
-              message: `Added ${args.emails.length} followers to note ${args.noteId}`,
+              message: `Added ${emailCount} followers to note ${args.noteId}`,
               data: response.data,
             }),
           },

@@ -21,8 +21,8 @@ function getEnabledCategories(): string[] {
   const toolConfig = config.toolCategories;
 
   if (!toolConfig) {
-    // Default categories if no configuration
-    return ['notes', 'features', 'companies', 'users', 'releases', 'webhooks'];
+    // Default categories if no configuration - enable ALL categories
+    return [];
   }
 
   // Handle profile-based configuration
@@ -58,14 +58,14 @@ function getEnabledCategories(): string[] {
     return defaults.filter(cat => !toolConfig.disabled!.includes(cat));
   }
 
-  // Default categories
-  return ['notes', 'features', 'companies', 'users', 'releases', 'webhooks'];
+  // Default categories - enable ALL categories
+  return [];
 }
 
 /**
  * Setup dynamic tool handlers for the server
  */
-export function setupDynamicToolHandlers(server: Server) {
+export async function setupDynamicToolHandlers(server: Server) {
   // Create tool registry
   const registry = new ToolRegistry(getEnabledCategories());
 
@@ -76,9 +76,8 @@ export function setupDynamicToolHandlers(server: Server) {
   if (!existsSync(manifestPath)) {
     console.warn('Tool manifest not found, falling back to static tools');
     // Import and use the original static setup
-    import('./index.js').then(module => {
-      module.setupToolHandlers(server);
-    });
+    const module = await import('./index.js');
+    module.setupToolHandlers(server);
     return;
   }
 
@@ -86,27 +85,20 @@ export function setupDynamicToolHandlers(server: Server) {
   try {
     registry.loadManifest(manifestPath);
 
-    // Register tool loaders from manifest
-    registry
-      .registerFromManifest()
-      .then(() => {
-        // Tools loaded successfully from manifest
-      })
-      .catch(error => {
-        console.error('Failed to register tools from manifest:', error);
-      });
+    // Register tool loaders from manifest - AWAIT this!
+    await registry.registerFromManifest();
+    console.error('Successfully registered tools from manifest');
   } catch (error) {
     console.error('Failed to load tool manifest:', error);
     // Fall back to static tools
-    import('./index.js').then(module => {
-      module.setupToolHandlers(server);
-    });
+    const module = await import('./index.js');
+    module.setupToolHandlers(server);
     return;
   }
 
   // List tools handler
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
-    tools: registry.getToolDefinitions(),
+    tools: await registry.getToolDefinitions(),
   }));
 
   // Call tool handler
@@ -121,9 +113,43 @@ export function setupDynamicToolHandlers(server: Server) {
       }
 
       console.error(`Error in tool ${name}:`, error);
+
+      // Check if this is an axios error with response data
+      if ((error as any).response) {
+        const status = (error as any).response.status;
+        const data = (error as any).response.data;
+
+        // Include full error details for AI agents to understand
+        const errorDetails = {
+          status,
+          data,
+          message: error instanceof Error ? error.message : String(error),
+          tool: name,
+          hint: 'Check the data field for API-specific error details',
+        };
+
+        // Construct a helpful error message
+        let message = `API request failed with status ${status}`;
+        if (data?.errors) {
+          message += `: ${JSON.stringify(data.errors)}`;
+        } else if (data?.message) {
+          message += `: ${data.message}`;
+        } else if (data) {
+          message += `: ${JSON.stringify(data)}`;
+        }
+
+        throw new McpError(ErrorCode.InternalError, message, errorDetails);
+      }
+
+      // For non-axios errors, include as much detail as possible
       throw new McpError(
         ErrorCode.InternalError,
-        `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`
+        `Tool execution failed: ${error instanceof Error ? error.message : String(error)}`,
+        {
+          originalError:
+            error instanceof Error ? error.toString() : String(error),
+          tool: name,
+        }
       );
     }
   });

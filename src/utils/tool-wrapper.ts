@@ -51,13 +51,20 @@ export function createToolContext(
       timeout: 30000,
     });
 
-    // Add request interceptor for rate limiting
+    // Add request interceptor for rate limiting and debugging
     axiosInstance.interceptors.request.use(config => {
       // Add workspace context if available
       if (workspaceId) {
         config.headers = config.headers || {};
         config.headers['X-Workspace-Id'] = workspaceId;
       }
+
+      // Debug logging
+      console.error(
+        `[DEBUG] Making request: ${config.method?.toUpperCase()} ${config.url}${config.params ? '?' + new URLSearchParams(config.params).toString() : ''}`
+      );
+      console.error(`[DEBUG] Request params:`, JSON.stringify(config.params));
+
       return config;
     });
 
@@ -77,6 +84,12 @@ export function createToolContext(
                 }
               : 'No response',
           });
+          if (error.response?.data?.errors) {
+            console.error(
+              '[tool-wrapper] API errors:',
+              JSON.stringify(error.response.data.errors, null, 2)
+            );
+          }
         }
 
         if (error.response) {

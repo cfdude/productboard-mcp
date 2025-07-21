@@ -74,9 +74,10 @@ npm install @the_cfdude/productboard-mcp
 git clone https://github.com/cfdude/productboard-mcp.git
 cd productboard-mcp
 npm install
-npm run generate-manifest
 npm run build
 ```
+
+Note: The `generated/` directory is automatically created during the build process. The manifest and tool files are generated from the OpenAPI specification.
 
 ## 🔧 Configuration
 
@@ -296,7 +297,7 @@ Add to your Claude Desktop configuration:
 
 ```typescript
 // Create a note from customer feedback
-productboard_notes_create({
+notes_create({
   title: 'Feature request: Dark mode',
   content: 'Customer wants dark mode support',
   tags: ['ui', 'enhancement'],
@@ -304,14 +305,14 @@ productboard_notes_create({
 });
 
 // List features with filtering
-productboard_features_list({
+features_list({
   limit: 50,
   status: 'in-progress',
   includeRaw: false,
 });
 
 // Create a release
-productboard_releases_create({
+releases_create({
   name: 'Q1 2025 Release',
   description: 'Major feature updates',
   startDate: '2025-01-01',

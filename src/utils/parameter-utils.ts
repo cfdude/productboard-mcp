@@ -72,56 +72,18 @@ export function normalizeGetParams(
  */
 export function filterByDetailLevel<T extends Record<string, any>>(
   data: T,
-  entityType: keyof typeof DetailFieldMappings,
-  detailLevel: DetailLevel
+  _entityType: keyof typeof DetailFieldMappings,
+  _detailLevel: DetailLevel
 ): Partial<T> {
-  const fieldMapping = DetailFieldMappings[entityType];
-  if (!fieldMapping) {
-    // If no mapping exists, return full data
-    return data;
-  }
-
-  const fields = fieldMapping[detailLevel];
-  if (!fields) {
-    return data;
-  }
-
-  const result: Record<string, any> = {};
-
-  for (const field of fields) {
-    if (field.includes('.')) {
-      // Handle nested fields like 'status.name'
-      const parts = field.split('.');
-      let value = data;
-      let currentPath = '';
-
-      for (let i = 0; i < parts.length; i++) {
-        const part = parts[i];
-        currentPath = currentPath ? `${currentPath}.${part}` : part;
-
-        if (i === parts.length - 1) {
-          // Last part - set the value
-          setNestedValue(result, currentPath, value?.[part]);
-        } else {
-          // Intermediate part - traverse
-          value = value?.[part];
-          if (!value) break;
-        }
-      }
-    } else {
-      // Simple field
-      if (field in data) {
-        result[field] = data[field];
-      }
-    }
-  }
-
-  return result as Partial<T>;
+  // For now, return full data until we have correct field mappings
+  // TODO: Update DetailFieldMappings to match actual API response structure
+  return data;
 }
 
 /**
  * Set a nested value in an object using dot notation
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function setNestedValue(
   obj: Record<string, any>,
   path: string,

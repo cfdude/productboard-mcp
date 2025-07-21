@@ -3,6 +3,8 @@
  */
 import { readFileSync } from 'fs';
 import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js';
+import { ToolDefinition } from '../types/tool-types.js';
+import { adaptParameters } from '../utils/parameter-adapter.js';
 
 // Tool handler type
 export type ToolHandler = (args: any) => Promise<any>;
@@ -33,15 +35,7 @@ export interface ToolInfo {
   implementation: string;
 }
 
-export interface ToolDefinition {
-  name: string;
-  description: string;
-  inputSchema: {
-    type: string;
-    properties: Record<string, any>;
-    required?: string[];
-  };
-}
+// ToolDefinition is now imported from types/tool-types.js
 
 /**
  * Dynamic tool registry that supports lazy loading
@@ -103,25 +97,63 @@ export class ToolRegistry {
       this.registerLoader(toolName, async () => {
         try {
           // Check if it's an existing tool in src/tools
-          const existingCategories = [
-            'notes',
-            'features',
-            'companies',
-            'users',
-            'releases',
-            'webhooks',
-          ];
-          if (existingCategories.includes(toolInfo.category)) {
-            // Import from existing tools
-            const module = await import(`./${toolInfo.category}.js`);
+          const categoryMappings: Record<string, string> = {
+            notes: 'notes',
+            features: 'features',
+            companies: 'companies',
+            users: 'companies', // User tools are in companies handler
+            releases: 'releases',
+            webhooks: 'webhooks',
+            objectives: 'objectives',
+            'custom-fields': 'custom-fields',
+            'plugin-integrations': 'plugin-integrations',
+            'jira-integrations': 'jira-integrations',
+            // Handle category name mismatches from manifest
+            followers: 'notes',
+            components: 'features',
+            products: 'features',
+            statuses: 'features',
+            hierarchyentitiescustomfields: 'custom-fields',
+            hierarchyentitiescustomfieldsvalues: 'custom-fields',
+            pluginintegrations: 'plugin-integrations',
+            pluginintegrationconnections: 'plugin-integrations',
+            jiraintegrations: 'jira-integrations',
+            jiraintegrationconnections: 'jira-integrations',
+            releasegroups: 'releases',
+            featurereleaseassignments: 'releases',
+            keyresults: 'objectives',
+            initiatives: 'objectives',
+            // Handle spaces and special characters
+            'companies & users': 'companies',
+            'key results': 'objectives',
+            'custom fields': 'custom-fields',
+            'plugin integrations': 'plugin-integrations',
+            'jira integrations': 'jira-integrations',
+            'product hierarchy': 'features',
+            'releases & release groups': 'releases',
+            'hierarchy entity custom fields': 'custom-fields',
+            'hierarchy entity custom fields values': 'custom-fields',
+            'plugin integration connections': 'plugin-integrations',
+            'jira integration connections': 'jira-integrations',
+            'release groups': 'releases',
+            'feature release assignments': 'releases',
+          };
 
-            // Get the handler function name
-            const handlerName = `handle${toolInfo.category.charAt(0).toUpperCase() + toolInfo.category.slice(1)}Tool`;
+          const moduleFile = categoryMappings[toolInfo.category.toLowerCase()];
+          if (moduleFile) {
+            // Import from existing tools
+            console.error(
+              `Loading existing tool from category: ${toolInfo.category} -> ${moduleFile}`
+            );
+            const module = await import(`./${moduleFile}.js`);
+
+            // Get the handler function name based on the module file
+            const handlerName = `handle${moduleFile.charAt(0).toUpperCase() + moduleFile.slice(1).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())}Tool`;
             const handler = module[handlerName];
 
             if (!handler) {
               throw new Error(
-                `Handler ${handlerName} not found in ${toolInfo.category}.js`
+                `Handler ${handlerName} not found in ${moduleFile}.js`
               );
             }
 
@@ -129,6 +161,9 @@ export class ToolRegistry {
             return async (args: any) => handler(toolName, args);
           } else {
             // Import from generated tools
+            console.error(
+              `Category '${toolInfo.category}' not in existing categories, trying generated tools`
+            );
             const categoryFile = toolInfo.category
               .toLowerCase()
               .replace(/&/g, 'and')
@@ -170,10 +205,122 @@ export class ToolRegistry {
   /**
    * Get tool definitions for enabled categories
    */
-  getToolDefinitions(): ToolDefinition[] {
+  async getToolDefinitions(): Promise<ToolDefinition[]> {
     if (!this.manifest) return [];
 
     const definitions: ToolDefinition[] = [];
+
+    // Tools that have static implementations with their own inputSchemas
+    const staticImplementationTools = [
+      'create_feature',
+      'update_feature',
+      'delete_feature',
+      'get_features',
+      'get_feature',
+      'create_component',
+      'update_component',
+      'get_components',
+      'get_component',
+      'create_product',
+      'update_product',
+      'get_products',
+      'get_product',
+      'create_note',
+      'update_note',
+      'delete_note',
+      'get_notes',
+      'get_note',
+      'create_company',
+      'update_company',
+      'delete_company',
+      'get_companies',
+      'get_company',
+      'create_user',
+      'update_user',
+      'delete_user',
+      'get_users',
+      'get_user',
+      'create_release',
+      'update_release',
+      'delete_release',
+      'get_releases',
+      'get_release',
+      'create_release_group',
+      'update_release_group',
+      'delete_release_group',
+      'get_release_groups',
+      'get_release_group',
+      'create_webhook',
+      'list_webhooks',
+      'get_webhook',
+      'delete_webhook',
+      'create_objective',
+      'update_objective',
+      'delete_objective',
+      'get_objectives',
+      'get_objective',
+      'create_initiative',
+      'update_initiative',
+      'delete_initiative',
+      'get_initiatives',
+      'get_initiative',
+      'create_key_result',
+      'update_key_result',
+      'delete_key_result',
+      'get_key_results',
+      'get_key_result',
+      'get_custom_fields',
+      'get_custom_field',
+      'get_custom_fields_values',
+      'get_custom_field_value',
+      'set_custom_field_value',
+      'delete_custom_field_value',
+      'get_feature_statuses',
+    ];
+
+    // Load static tool definitions from modules
+    const staticToolsMap = new Map<string, ToolDefinition>();
+
+    // Helper to load tool definitions from a module
+    const loadToolDefinitions = async (
+      moduleName: string,
+      setupFunctionName: string
+    ) => {
+      try {
+        const module = await import(`./${moduleName}.js`);
+        const setupFunction = module[setupFunctionName];
+        if (setupFunction) {
+          const tools = setupFunction();
+          tools.forEach((tool: ToolDefinition) => {
+            staticToolsMap.set(tool.name, tool);
+          });
+        }
+      } catch (error) {
+        console.error(`Failed to load static tools from ${moduleName}:`, error);
+      }
+    };
+
+    // Load all static tool definitions
+    await Promise.all([
+      loadToolDefinitions('notes', 'setupNotesTools'),
+      loadToolDefinitions('features', 'setupFeaturesTools'),
+      loadToolDefinitions('companies', 'setupCompaniesTools'),
+      loadToolDefinitions('users', 'setupUsersTools'),
+      loadToolDefinitions('releases', 'setupReleasesTools'),
+      loadToolDefinitions('webhooks', 'setupWebhooksTools'),
+      loadToolDefinitions('objectives', 'setupObjectivesTools'),
+      loadToolDefinitions('custom-fields', 'setupCustomFieldsTools'),
+      loadToolDefinitions(
+        'plugin-integrations',
+        'setupPluginIntegrationsTools'
+      ),
+      loadToolDefinitions('jira-integrations', 'setupJiraIntegrationsTools'),
+    ]);
+
+    console.error(
+      `[DEBUG] Loaded ${staticToolsMap.size} static tools:`,
+      Array.from(staticToolsMap.keys())
+    );
 
     for (const [toolName, toolInfo] of Object.entries(this.manifest.tools)) {
       // Skip if category is not enabled
@@ -189,23 +336,111 @@ export class ToolRegistry {
         continue;
       }
 
-      // Build input schema from manifest
+      // Check if this is a static implementation tool
+      if (staticImplementationTools.includes(toolName)) {
+        console.error(`[DEBUG] Tool ${toolName} is in static list`);
+        if (staticToolsMap.has(toolName)) {
+          console.error(
+            `[DEBUG] Tool ${toolName} found in staticToolsMap, using static definition`
+          );
+          const staticDef = staticToolsMap.get(toolName)!;
+          console.error(
+            `[DEBUG] Static schema for ${toolName}:`,
+            JSON.stringify(staticDef.inputSchema, null, 2)
+          );
+          // Use the actual tool definition from the module
+          definitions.push(staticDef);
+          continue;
+        } else {
+          console.error(
+            `[DEBUG] Tool ${toolName} NOT found in staticToolsMap!`
+          );
+        }
+      }
+
+      // Build input schema from manifest for dynamic tools
       const properties: Record<string, any> = {};
 
+      // Filter nulls from parameter arrays
+      const filteredRequiredParams = toolInfo.requiredParams.filter(
+        param => param != null
+      );
+      const filteredOptionalParams = toolInfo.optionalParams.filter(
+        param => param != null
+      );
+
       // Add required parameters
-      toolInfo.requiredParams.forEach(param => {
-        properties[param] = {
-          type: 'string',
-          description: `${param} parameter`,
-        };
+      filteredRequiredParams.forEach(param => {
+        if (param === 'body') {
+          properties[param] = {
+            type: 'object',
+            description: `${param} parameter`,
+          };
+        } else if (
+          param === 'status' ||
+          param === 'owner' ||
+          param === 'parent' ||
+          param === 'company' ||
+          param === 'user' ||
+          param === 'timeframe'
+        ) {
+          // These are object parameters
+          properties[param] = {
+            type: 'object',
+            description: `${param} parameter`,
+          };
+        } else {
+          properties[param] = {
+            type: 'string',
+            description: `${param} parameter`,
+          };
+        }
       });
 
       // Add optional parameters
-      toolInfo.optionalParams.forEach(param => {
-        properties[param] = {
-          type: param === 'includeRaw' ? 'boolean' : 'string',
-          description: `${param} parameter (optional)`,
-        };
+      filteredOptionalParams.forEach(param => {
+        if (param === 'body') {
+          properties[param] = {
+            type: 'object',
+            description: `${param} parameter (optional)`,
+          };
+        } else if (param === 'includeRaw') {
+          properties[param] = {
+            type: 'boolean',
+            description: `${param} parameter (optional)`,
+          };
+        } else if (
+          param === 'status' ||
+          param === 'owner' ||
+          param === 'parent' ||
+          param === 'company' ||
+          param === 'user' ||
+          param === 'timeframe'
+        ) {
+          // These are object parameters
+          properties[param] = {
+            type: 'object',
+            description: `${param} parameter (optional)`,
+          };
+        } else if (
+          param === 'current' ||
+          param === 'target' ||
+          param === 'limit' ||
+          param === 'startWith' ||
+          param === 'pageLimit' ||
+          param === 'pageOffset'
+        ) {
+          // These are number parameters
+          properties[param] = {
+            type: 'number',
+            description: `${param} parameter (optional)`,
+          };
+        } else {
+          properties[param] = {
+            type: 'string',
+            description: `${param} parameter (optional)`,
+          };
+        }
       });
 
       const toolDef: any = {
@@ -217,8 +452,9 @@ export class ToolRegistry {
         },
       };
 
-      if (toolInfo.requiredParams.length > 0) {
-        toolDef.inputSchema.required = toolInfo.requiredParams;
+      // Add required params to schema if any exist
+      if (filteredRequiredParams.length > 0) {
+        toolDef.inputSchema.required = filteredRequiredParams;
       }
 
       definitions.push(toolDef);
@@ -269,8 +505,10 @@ export class ToolRegistry {
     );
     this.lastAccessTime.set(toolName, Date.now());
 
-    // Execute handler
-    return await handler(args);
+    // Execute handler with error handling
+    // Apply parameter adaptation before calling handler
+    const adaptedArgs = adaptParameters(toolName, args);
+    return await handler(adaptedArgs);
   }
 
   /**
