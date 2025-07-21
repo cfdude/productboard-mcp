@@ -548,7 +548,7 @@ export async function handleFeaturesTool(name: string, args: any) {
 async function createFeature(args: any) {
   return await withContext(
     async context => {
-      console.error('[DEBUG createFeature] args:', JSON.stringify(args));
+      // Debug logging disabled for production
 
       // Determine parent structure - required per Productboard hierarchy
       let parent = null;
@@ -556,18 +556,15 @@ async function createFeature(args: any) {
       if (args.parentId) {
         // Sub-feature: parent is another feature
         parent = { feature: { id: args.parentId } };
-        console.error('[DEBUG createFeature] Using parentId:', args.parentId);
+        // Using parentId
       } else if (args.componentId) {
         // Top-level feature: parent is a component
         parent = { component: { id: args.componentId } };
-        console.error(
-          '[DEBUG createFeature] Using componentId:',
-          args.componentId
-        );
+        // Using componentId
       } else if (args.productId) {
         // Top-level feature: parent is a product
         parent = { product: { id: args.productId } };
-        console.error('[DEBUG createFeature] Using productId:', args.productId);
+        // Using productId
       } else {
         // Parent is required - try to get first available component as fallback
         try {
@@ -617,15 +614,12 @@ async function createFeature(args: any) {
       // Only add parent if we have one
       if (parent) {
         body.data.parent = parent;
-        console.error(
-          '[DEBUG createFeature] Adding parent to body:',
-          JSON.stringify(parent)
-        );
+        // Adding parent to body
       } else {
-        console.error('[DEBUG createFeature] No parent found!');
+        // No parent found
       }
 
-      console.error('[DEBUG createFeature] Final body:', JSON.stringify(body));
+      // Final body prepared
 
       if (args.owner) body.data.owner = args.owner;
 

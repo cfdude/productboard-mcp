@@ -59,11 +59,12 @@ export function createToolContext(
         config.headers['X-Workspace-Id'] = workspaceId;
       }
 
-      // Debug logging
-      console.error(
-        `[DEBUG] Making request: ${config.method?.toUpperCase()} ${config.url}${config.params ? '?' + new URLSearchParams(config.params).toString() : ''}`
-      );
-      console.error(`[DEBUG] Request params:`, JSON.stringify(config.params));
+      // Debug logging disabled for production
+      // Uncomment below for debugging API requests
+      // console.error(
+      //   `[DEBUG] Making request: ${config.method?.toUpperCase()} ${config.url}${config.params ? '?' + new URLSearchParams(config.params).toString() : ''}`
+      // );
+      // console.error(`[DEBUG] Request params:`, JSON.stringify(config.params));
 
       return config;
     });
@@ -73,24 +74,25 @@ export function createToolContext(
       response => response,
       error => {
         // In test mode, suppress network error logging
-        if (process.env.NODE_ENV !== 'test') {
-          console.error('[tool-wrapper] Interceptor caught error:', {
-            message: error.message,
-            code: error.code,
-            response: error.response
-              ? {
-                  status: error.response.status,
-                  data: error.response.data,
-                }
-              : 'No response',
-          });
-          if (error.response?.data?.errors) {
-            console.error(
-              '[tool-wrapper] API errors:',
-              JSON.stringify(error.response.data.errors, null, 2)
-            );
-          }
-        }
+        // Uncomment below for debugging API errors
+        // if (process.env.NODE_ENV !== 'test') {
+        //   console.error('[tool-wrapper] Interceptor caught error:', {
+        //     message: error.message,
+        //     code: error.code,
+        //     response: error.response
+        //       ? {
+        //           status: error.response.status,
+        //           data: error.response.data,
+        //         }
+        //       : 'No response',
+        //   });
+        //   if (error.response?.data?.errors) {
+        //     console.error(
+        //       '[tool-wrapper] API errors:',
+        //       JSON.stringify(error.response.data.errors, null, 2)
+        //     );
+        //   }
+        // }
 
         if (error.response) {
           const status = error.response.status;
@@ -177,12 +179,13 @@ export function createToolContext(
             throw new NetworkError('Server error', error);
           }
 
-          if (process.env.NODE_ENV !== 'test') {
-            console.error(
-              '[tool-wrapper] Throwing generic InvalidRequest for status:',
-              status
-            );
-          }
+          // Uncomment for debugging status codes
+          // if (process.env.NODE_ENV !== 'test') {
+          //   console.error(
+          //     '[tool-wrapper] Throwing generic InvalidRequest for status:',
+          //     status
+          //   );
+          // }
           const details = {
             status: status,
             errors: data?.errors || [],
@@ -196,11 +199,12 @@ export function createToolContext(
           );
         }
 
-        if (process.env.NODE_ENV !== 'test') {
-          console.error(
-            '[tool-wrapper] Throwing NetworkError for non-response error'
-          );
-        }
+        // Uncomment for debugging network errors
+        // if (process.env.NODE_ENV !== 'test') {
+        //   console.error(
+        //     '[tool-wrapper] Throwing NetworkError for non-response error'
+        //   );
+        // }
         throw new NetworkError('Network error', error);
       }
     );

@@ -267,7 +267,7 @@ export async function handleCustomFieldsTool(name: string, args: any) {
 async function getCustomFields(args: any) {
   return await withContext(
     async context => {
-      console.error('getCustomFields args:', JSON.stringify(args));
+      // Debug logging disabled for production
       const params: any = {};
 
       // Add the type parameter if provided - API expects array format
@@ -275,7 +275,7 @@ async function getCustomFields(args: any) {
         params.type = args.type;
       }
 
-      console.error('getCustomFields params:', JSON.stringify(params));
+      // Parameters prepared
 
       const response = await context.axios.get(
         '/hierarchy-entities/custom-fields',
