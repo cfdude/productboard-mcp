@@ -2,6 +2,7 @@
 node_modules/
 build/
 dist/
+# generated/ - commented out as manifest needs to be tracked
 
 # Configuration and sensitive files
 .claude/

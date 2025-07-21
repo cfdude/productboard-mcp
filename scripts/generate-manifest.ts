@@ -227,8 +227,34 @@ function main() {
     // Generate manifest
     const manifest = generateManifest();
 
-    // Write manifest
-    writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2));
+    // Write manifest with compact arrays
+    let manifestJson = JSON.stringify(manifest, null, 2);
+
+    // Convert multiline arrays to single line for better CI compatibility
+    manifestJson = manifestJson.replace(
+      /:\s*\[\s*\n([\s\S]*?)\s*\n\s*\]/g,
+      (match, content) => {
+        // Check if this is an array of strings or simple values
+        const trimmedContent = content.trim();
+        if (trimmedContent === '') {
+          return ': []';
+        }
+
+        // Split by comma and newline, clean up items
+        const items = trimmedContent
+          .split(',\n')
+          .map((item: string) => {
+            const cleaned = item.trim();
+            // Handle both quoted and unquoted values, including null
+            return cleaned;
+          })
+          .filter(item => item !== '');
+
+        return `: [${items.join(', ')}]`;
+      }
+    );
+
+    writeFileSync(MANIFEST_PATH, manifestJson);
 
     // Print statistics
     const toolCount = Object.keys(manifest.tools).length;

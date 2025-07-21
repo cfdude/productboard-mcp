@@ -24,24 +24,21 @@ export function setupCompaniesTools() {
       inputSchema: {
         type: 'object',
         properties: {
-          body: {
-            type: 'object',
-            description: 'Company data',
-            properties: {
-              name: {
-                type: 'string',
-                description: 'Company name',
-              },
-              domain: {
-                type: 'string',
-                description: 'Company domain',
-              },
-              description: {
-                type: 'string',
-                description: 'Company description',
-              },
-            },
-            required: ['name'],
+          name: {
+            type: 'string',
+            description: 'Company name',
+          },
+          domain: {
+            type: 'string',
+            description: 'Company domain',
+          },
+          description: {
+            type: 'string',
+            description: 'Company description',
+          },
+          externalId: {
+            type: 'string',
+            description: 'External ID for the company',
           },
           instance: {
             type: 'string',
@@ -52,7 +49,7 @@ export function setupCompaniesTools() {
             description: 'Workspace ID (optional)',
           },
         },
-        required: ['body'],
+        required: ['name'],
       },
     },
     {
@@ -203,6 +200,231 @@ export function setupCompaniesTools() {
         required: ['id'],
       },
     },
+    // Company Field Management Tools
+    {
+      name: 'create_company_field',
+      description: 'Create a new custom field for companies',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          body: {
+            type: 'object',
+            description: 'Company field data',
+            properties: {
+              name: {
+                type: 'string',
+                description: 'Field name (max 255 characters)',
+                maxLength: 255,
+              },
+              type: {
+                type: 'string',
+                description: 'Field type',
+                enum: ['text', 'number'],
+              },
+            },
+            required: ['name', 'type'],
+          },
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
+          },
+        },
+        required: ['body'],
+      },
+    },
+    {
+      name: 'list_company_fields',
+      description: 'List all custom fields for companies',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
+          },
+        },
+      },
+    },
+    {
+      name: 'get_company_field',
+      description: 'Retrieve a specific company custom field',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Company field ID',
+          },
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
+          },
+        },
+        required: ['id'],
+      },
+    },
+    {
+      name: 'update_company_field',
+      description: 'Update a company custom field',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Company field ID',
+          },
+          body: {
+            type: 'object',
+            description: 'Company field data to update',
+            properties: {
+              name: {
+                type: 'string',
+                description: 'Field name (max 255 characters)',
+                maxLength: 255,
+              },
+              type: {
+                type: 'string',
+                description: 'Field type',
+                enum: ['text', 'number'],
+              },
+            },
+          },
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
+          },
+        },
+        required: ['id', 'body'],
+      },
+    },
+    {
+      name: 'delete_company_field',
+      description: 'Delete a company custom field',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            description: 'Company field ID',
+          },
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
+          },
+        },
+        required: ['id'],
+      },
+    },
+    {
+      name: 'get_company_field_value',
+      description: 'Get the value of a custom field for a specific company',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          companyId: {
+            type: 'string',
+            description: 'Company ID',
+          },
+          companyCustomFieldId: {
+            type: 'string',
+            description: 'Company custom field ID',
+          },
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
+          },
+        },
+        required: ['companyId', 'companyCustomFieldId'],
+      },
+    },
+    {
+      name: 'set_company_field_value',
+      description: 'Set the value of a custom field for a specific company',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          companyId: {
+            type: 'string',
+            description: 'Company ID',
+          },
+          companyCustomFieldId: {
+            type: 'string',
+            description: 'Company custom field ID',
+          },
+          body: {
+            type: 'object',
+            description: 'Field value',
+            properties: {
+              value: {
+                type: ['string', 'number'],
+                description:
+                  'The value to set (string for text fields, number for number fields)',
+              },
+            },
+            required: ['value'],
+          },
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
+          },
+        },
+        required: ['companyId', 'companyCustomFieldId', 'body'],
+      },
+    },
+    {
+      name: 'delete_company_field_value',
+      description: 'Delete the value of a custom field for a specific company',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          companyId: {
+            type: 'string',
+            description: 'Company ID',
+          },
+          companyCustomFieldId: {
+            type: 'string',
+            description: 'Company custom field ID',
+          },
+          instance: {
+            type: 'string',
+            description: 'Productboard instance name (optional)',
+          },
+          workspaceId: {
+            type: 'string',
+            description: 'Workspace ID (optional)',
+          },
+        },
+        required: ['companyId', 'companyCustomFieldId'],
+      },
+    },
   ];
 }
 
@@ -219,6 +441,35 @@ export async function handleCompaniesTool(name: string, args: any) {
         return await updateCompany(args);
       case 'delete_company':
         return await deleteCompany(args);
+      // Company Field Management
+      case 'create_company_field':
+        return await createCompanyField(args);
+      case 'list_company_fields':
+        return await listCompanyFields(args);
+      case 'get_company_field':
+        return await getCompanyField(args);
+      case 'update_company_field':
+        return await updateCompanyField(args);
+      case 'delete_company_field':
+        return await deleteCompanyField(args);
+      case 'get_company_field_value':
+        return await getCompanyFieldValue(args);
+      case 'set_company_field_value':
+        return await setCompanyFieldValue(args);
+      case 'delete_company_field_value':
+        return await deleteCompanyFieldValue(args);
+
+      // User management tools
+      case 'get_users':
+        return await getUsers(args);
+      case 'create_user':
+        return await createUser(args);
+      case 'get_user':
+        return await getUser(args);
+      case 'update_user':
+        return await updateUser(args);
+      case 'delete_user':
+        return await deleteUser(args);
       default:
         throw new Error(`Unknown companies tool: ${name}`);
     }
@@ -238,7 +489,15 @@ export async function handleCompaniesTool(name: string, args: any) {
 async function createCompany(args: any) {
   return await withContext(
     async context => {
-      const response = await context.axios.post('/companies', args.body, {
+      const body: any = {
+        name: args.name,
+      };
+
+      if (args.domain) body.domain = args.domain;
+      if (args.description) body.description = args.description;
+      if (args.externalId) body.externalId = args.externalId;
+
+      const response = await context.axios.post('/companies', body, {
         headers: {
           'Productboard-Partner-Id': args['Productboard-Partner-Id'],
         },
@@ -354,8 +613,18 @@ async function getCompany(args: StandardGetParams & { id: string } & any) {
 async function updateCompany(args: any) {
   return await withContext(
     async context => {
+      // Handle case where body might be passed as a JSON string
+      let body = args.body;
+      if (typeof body === 'string') {
+        try {
+          body = JSON.parse(body);
+        } catch {
+          throw new Error('Invalid JSON in body parameter');
+        }
+      }
+
       const response = await context.axios.patch(`/companies/${args.id}`, {
-        data: args.body,
+        data: body,
       });
 
       return {
@@ -384,6 +653,331 @@ async function deleteCompany(args: any) {
             text: JSON.stringify({
               success: true,
               message: `Company ${args.id} deleted successfully`,
+            }),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+// Company Field Management Functions
+
+async function createCompanyField(args: any) {
+  return await withContext(
+    async context => {
+      // Handle case where body might be passed as a JSON string
+      let body = args.body;
+      if (typeof body === 'string') {
+        try {
+          body = JSON.parse(body);
+        } catch {
+          throw new Error('Invalid JSON in body parameter');
+        }
+      }
+
+      const response = await context.axios.post(
+        '/companies/custom-fields',
+        body
+      );
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse(response.data),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+async function listCompanyFields(args: any) {
+  return await withContext(
+    async context => {
+      const response = await context.axios.get('/companies/custom-fields');
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse(response.data),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+async function getCompanyField(args: any) {
+  return await withContext(
+    async context => {
+      const response = await context.axios.get(
+        `/companies/custom-fields/${args.id}`
+      );
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse(response.data),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+async function updateCompanyField(args: any) {
+  return await withContext(
+    async context => {
+      // Handle case where body might be passed as a JSON string
+      let body = args.body;
+      if (typeof body === 'string') {
+        try {
+          body = JSON.parse(body);
+        } catch {
+          throw new Error('Invalid JSON in body parameter');
+        }
+      }
+
+      const response = await context.axios.patch(
+        `/companies/custom-fields/${args.id}`,
+        {
+          data: body,
+        }
+      );
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse(response.data),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+async function deleteCompanyField(args: any) {
+  return await withContext(
+    async context => {
+      await context.axios.delete(`/companies/custom-fields/${args.id}`);
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: true,
+              message: `Company field ${args.id} deleted successfully`,
+            }),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+async function getCompanyFieldValue(args: any) {
+  return await withContext(
+    async context => {
+      const response = await context.axios.get(
+        `/companies/${args.companyId}/custom-fields/${args.companyCustomFieldId}/value`
+      );
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse(response.data),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+async function setCompanyFieldValue(args: any) {
+  return await withContext(
+    async context => {
+      // Handle case where body might be passed as a JSON string
+      let body = args.body;
+      if (typeof body === 'string') {
+        try {
+          body = JSON.parse(body);
+        } catch {
+          throw new Error('Invalid JSON in body parameter');
+        }
+      }
+
+      const response = await context.axios.put(
+        `/companies/${args.companyId}/custom-fields/${args.companyCustomFieldId}/value`,
+        {
+          data: body,
+        }
+      );
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse(response.data),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+async function deleteCompanyFieldValue(args: any) {
+  return await withContext(
+    async context => {
+      await context.axios.delete(
+        `/companies/${args.companyId}/custom-fields/${args.companyCustomFieldId}/value`
+      );
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: true,
+              message: `Company field value deleted successfully`,
+            }),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+// User management functions
+async function getUsers(args: any) {
+  return await withContext(
+    async context => {
+      const response = await context.axios.get('/users');
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse(response.data),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+async function createUser(args: any) {
+  return await withContext(
+    async context => {
+      // Handle case where body might be passed as a JSON string
+      let body = args.body;
+      if (typeof body === 'string') {
+        try {
+          body = JSON.parse(body);
+        } catch {
+          throw new Error('Invalid JSON in body parameter');
+        }
+      }
+
+      const response = await context.axios.post('/users', body);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse(response.data),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+async function getUser(args: any) {
+  return await withContext(
+    async context => {
+      const response = await context.axios.get(`/users/${args.id}`);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse(response.data),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+async function updateUser(args: any) {
+  return await withContext(
+    async context => {
+      // Handle case where body might be passed as a JSON string
+      let body = args.body;
+      if (typeof body === 'string') {
+        try {
+          body = JSON.parse(body);
+        } catch {
+          throw new Error('Invalid JSON in body parameter');
+        }
+      }
+
+      const response = await context.axios.put(`/users/${args.id}`, {
+        data: body,
+      });
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse(response.data),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+async function deleteUser(args: any) {
+  return await withContext(
+    async context => {
+      await context.axios.delete(`/users/${args.id}`);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              success: true,
+              message: `User ${args.id} deleted successfully`,
             }),
           },
         ],

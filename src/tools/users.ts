@@ -226,7 +226,7 @@ async function createUser(args: any) {
       if (args.companyId) body.company = { id: args.companyId };
       if (args.externalId) body.externalId = args.externalId;
 
-      const response = await context.axios.post('/users', { data: body });
+      const response = await context.axios.post('/users', body);
 
       return {
         content: [

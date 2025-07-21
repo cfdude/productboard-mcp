@@ -18,6 +18,10 @@ import { setupUsersTools } from './users.js';
 import { setupReleasesTools } from './releases.js';
 import { setupWebhooksTools } from './webhooks.js';
 import { setupObjectivesTools } from './objectives.js';
+import { setupCustomFieldsTools } from './custom-fields.js';
+import { setupPluginIntegrationsTools } from './plugin-integrations.js';
+import { setupJiraIntegrationsTools } from './jira-integrations.js';
+import { setupDocumentationTools } from './documentation.js';
 import { ToolDefinition } from '../types/tool-types.js';
 
 /**
@@ -35,6 +39,10 @@ export function setupToolHandlers(server: Server): void {
   tools.push(...setupReleasesTools());
   tools.push(...setupWebhooksTools());
   tools.push(...setupObjectivesTools());
+  tools.push(...setupCustomFieldsTools());
+  tools.push(...setupPluginIntegrationsTools());
+  tools.push(...setupJiraIntegrationsTools());
+  tools.push(...setupDocumentationTools());
 
   // List tools handler
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
@@ -57,12 +65,29 @@ export function setupToolHandlers(server: Server): void {
       } else if (
         name.includes('feature') ||
         name.includes('component') ||
-        name.includes('product') ||
-        name.includes('status') ||
-        name.includes('custom_field')
+        name.includes('product')
       ) {
         const { handleFeaturesTool } = await import('./features.js');
         return await handleFeaturesTool(name, args || {});
+      } else if (
+        name === 'get_custom_fields' ||
+        name.startsWith('get_custom_field') ||
+        name.startsWith('set_custom_field') ||
+        name.startsWith('delete_custom_field') ||
+        name === 'get_feature_statuses'
+      ) {
+        const { handleCustomFieldsTool } = await import('./custom-fields.js');
+        return await handleCustomFieldsTool(name, args || {});
+      } else if (name.includes('plugin_integration')) {
+        const { handlePluginIntegrationsTool } = await import(
+          './plugin-integrations.js'
+        );
+        return await handlePluginIntegrationsTool(name, args || {});
+      } else if (name.includes('jira_integration')) {
+        const { handleJiraIntegrationsTool } = await import(
+          './jira-integrations.js'
+        );
+        return await handleJiraIntegrationsTool(name, args || {});
       } else if (name.includes('company')) {
         const { handleCompaniesTool } = await import('./companies.js');
         return await handleCompaniesTool(name, args || {});
@@ -82,6 +107,9 @@ export function setupToolHandlers(server: Server): void {
       ) {
         const { handleObjectivesTool } = await import('./objectives.js');
         return await handleObjectivesTool(name, args || {});
+      } else if (name === 'get_docs') {
+        const { handleDocumentationTool } = await import('./documentation.js');
+        return await handleDocumentationTool(name, args || {});
       } else {
         throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
       }

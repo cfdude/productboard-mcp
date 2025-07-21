@@ -918,7 +918,7 @@ async function createObjective(args: any) {
         if (args.endDate) body.timeframe.endDate = args.endDate;
       }
 
-      const response = await context.axios.post('/objectives', { data: body });
+      const response = await context.axios.post('/objectives', body);
 
       return {
         content: [
@@ -1218,7 +1218,7 @@ async function createInitiative(args: any) {
       if (args.ownerId) body.owner = { id: args.ownerId };
       if (args.status) body.status = args.status;
 
-      const response = await context.axios.post('/initiatives', { data: body });
+      const response = await context.axios.post('/initiatives', body);
 
       return {
         content: [
@@ -1517,7 +1517,7 @@ async function createKeyResult(args: any) {
       if (args.currentValue !== undefined)
         body.currentValue = args.currentValue;
 
-      const response = await context.axios.post('/key-results', { data: body });
+      const response = await context.axios.post('/key-results', body);
 
       return {
         content: [

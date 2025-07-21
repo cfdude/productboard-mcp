@@ -18,7 +18,7 @@ describe('Companies Tools', () => {
     it('should define all companies tools with correct schemas', () => {
       const tools = setupCompaniesTools();
 
-      expect(tools).toHaveLength(5);
+      expect(tools).toHaveLength(13);
 
       const toolNames = tools.map((tool: ToolDefinition) => tool.name);
       expect(toolNames).toContain('create_company');
@@ -26,6 +26,15 @@ describe('Companies Tools', () => {
       expect(toolNames).toContain('get_company');
       expect(toolNames).toContain('update_company');
       expect(toolNames).toContain('delete_company');
+      // Company custom fields tools
+      expect(toolNames).toContain('create_company_field');
+      expect(toolNames).toContain('list_company_fields');
+      expect(toolNames).toContain('get_company_field');
+      expect(toolNames).toContain('update_company_field');
+      expect(toolNames).toContain('delete_company_field');
+      expect(toolNames).toContain('get_company_field_value');
+      expect(toolNames).toContain('set_company_field_value');
+      expect(toolNames).toContain('delete_company_field_value');
     });
 
     it('should have standardized parameters for list operations', () => {

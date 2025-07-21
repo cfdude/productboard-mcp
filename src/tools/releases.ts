@@ -538,9 +538,7 @@ async function createReleaseGroup(args: any) {
       if (args.description) body.description = args.description;
       if (args.isDefault !== undefined) body.isDefault = args.isDefault;
 
-      const response = await context.axios.post('/release-groups', {
-        data: body,
-      });
+      const response = await context.axios.post('/release-groups', body);
 
       return {
         content: [
@@ -700,7 +698,7 @@ async function createRelease(args: any) {
       if (args.releaseDate)
         body.timeframe = { ...body.timeframe, endDate: args.releaseDate };
 
-      const response = await context.axios.post('/releases', { data: body });
+      const response = await context.axios.post('/releases', body);
 
       return {
         content: [

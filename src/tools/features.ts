@@ -49,9 +49,22 @@ export function setupFeaturesTools() {
               email: { type: 'string', description: 'Owner email' },
             },
           },
-          parentId: {
-            type: 'string',
-            description: 'Parent feature ID',
+          parent: {
+            type: 'object',
+            description: 'Parent entity to associate this feature with',
+            properties: {
+              id: {
+                type: 'string',
+                description:
+                  'ID of the parent entity (product, component, or feature)',
+              },
+              type: {
+                type: 'string',
+                enum: ['product', 'component', 'feature'],
+                description: 'Type of parent entity',
+              },
+            },
+            required: ['id', 'type'],
           },
           instance: {
             type: 'string',
@@ -468,6 +481,7 @@ export async function handleFeaturesTool(name: string, args: any) {
       case 'get_feature':
         return await getFeature(args);
       case 'update_feature':
+      case 'update_feature_deprecated':
         return await updateFeature(args);
       case 'delete_feature':
         return await deleteFeature(args);
@@ -480,6 +494,7 @@ export async function handleFeaturesTool(name: string, args: any) {
       case 'get_component':
         return await getComponent(args);
       case 'update_component':
+      case 'update_component_deprecated':
         return await updateComponent(args);
 
       // Products
@@ -488,7 +503,30 @@ export async function handleFeaturesTool(name: string, args: any) {
       case 'get_product':
         return await getProduct(args);
       case 'update_product':
+      case 'update_product_deprecated':
         return await updateProduct(args);
+
+      // Feature linking (implement basic stubs for now)
+      case 'list_links_to_initiatives':
+      case 'create_initiative_link':
+      case 'delete_initiative_link':
+      case 'list_links_to_objectives':
+      case 'create_objective_link':
+      case 'delete_objective_link':
+        return {
+          content: [
+            {
+              type: 'text',
+              text: JSON.stringify({
+                message: 'Feature linking not yet implemented',
+              }),
+            },
+          ],
+        };
+
+      // Feature statuses
+      case 'get_feature_statuses':
+        return await getFeatureStatuses(args);
 
       default:
         throw new Error(`Unknown features tool: ${name}`);
@@ -510,16 +548,82 @@ export async function handleFeaturesTool(name: string, args: any) {
 async function createFeature(args: any) {
   return await withContext(
     async context => {
+      // Debug logging disabled for production
+
+      // Determine parent structure - required per Productboard hierarchy
+      let parent = null;
+
+      if (args.parentId) {
+        // Sub-feature: parent is another feature
+        parent = { feature: { id: args.parentId } };
+        // Using parentId
+      } else if (args.componentId) {
+        // Top-level feature: parent is a component
+        parent = { component: { id: args.componentId } };
+        // Using componentId
+      } else if (args.productId) {
+        // Top-level feature: parent is a product
+        parent = { product: { id: args.productId } };
+        // Using productId
+      } else {
+        // Parent is required - try to get first available component as fallback
+        try {
+          const componentsResponse = await context.axios.get('/components', {
+            params: { pageLimit: 1 },
+          });
+          if (
+            componentsResponse.data.data &&
+            componentsResponse.data.data.length > 0
+          ) {
+            const firstComponent = componentsResponse.data.data[0];
+            parent = { component: { id: firstComponent.id } };
+          } else {
+            // If no components, try to get first product
+            const productsResponse = await context.axios.get('/products', {
+              params: { pageLimit: 1 },
+            });
+            if (
+              productsResponse.data.data &&
+              productsResponse.data.data.length > 0
+            ) {
+              const firstProduct = productsResponse.data.data[0];
+              parent = { product: { id: firstProduct.id } };
+            }
+          }
+        } catch {
+          // If we can't find a parent, this will fail at API level with proper error
+        }
+      }
+
+      // Validate that we have a parent (required by Productboard hierarchy)
+      if (!parent) {
+        throw new Error(
+          'Parent is required for features. Provide parentId (for sub-features), componentId, or productId.'
+        );
+      }
+
       const body: any = {
-        name: args.name,
+        data: {
+          name: args.name,
+          type: 'feature', // API requires this field
+          description: args.description ? `<p>${args.description}</p>` : '', // API expects HTML content
+          status: args.status || { name: 'Candidate' }, // API requires this field with default
+        },
       };
 
-      if (args.description) body.description = args.description;
-      if (args.status) body.status = args.status;
-      if (args.owner) body.owner = args.owner;
-      if (args.parentId) body.parent = { id: args.parentId };
+      // Only add parent if we have one
+      if (parent) {
+        body.data.parent = parent;
+        // Adding parent to body
+      } else {
+        // No parent found
+      }
 
-      const response = await context.axios.post('/features', { data: body });
+      // Final body prepared
+
+      if (args.owner) body.data.owner = args.owner;
+
+      const response = await context.axios.post('/features', body);
 
       return {
         content: [
@@ -684,7 +788,7 @@ async function createComponent(args: any) {
       if (args.description) body.description = args.description;
       if (args.productId) body.product = { id: args.productId };
 
-      const response = await context.axios.post('/components', { data: body });
+      const response = await context.axios.post('/components', body);
 
       return {
         content: [
@@ -901,6 +1005,25 @@ async function updateProduct(args: any) {
               success: true,
               product: response.data,
             }),
+          },
+        ],
+      };
+    },
+    args.instance,
+    args.workspaceId
+  );
+}
+
+async function getFeatureStatuses(args: any) {
+  return await withContext(
+    async context => {
+      const response = await context.axios.get('/feature-statuses');
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: formatResponse(response.data),
           },
         ],
       };

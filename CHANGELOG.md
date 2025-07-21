@@ -5,6 +5,58 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2025-01-21
+
+### Added
+
+- **Complete Static Tool Implementations**
+  - Implemented all 119 tools with proper static schemas and handlers
+  - Added static implementations for: notes (15), companies (18), features (22), custom fields (6), releases (13), webhooks (4), objectives (11), initiatives (11), key results (5), plugin integrations (10), JIRA integrations (4)
+  - Each tool now has proper input validation and error handling
+
+- **Parameter Adapter System**
+  - Created parameter adapter (`src/utils/parameter-adapter.ts`) to handle schema mismatches
+  - Integrated adapter into registry for seamless parameter transformation
+  - Supports custom transformations per tool
+
+- **Documentation System**
+  - Added comprehensive tool documentation generation
+  - Created `src/documentation/` directory with tool-specific docs
+  - Enhanced README with MCP server overview and setup instructions
+
+### Fixed
+
+- **Critical Schema Validation Issues**
+  - Fixed `create_feature` schema to use `parent: {id, type}` object format instead of separate fields
+  - Fixed `get_custom_fields` to use correct field type enum values: `['text', 'custom-description', 'number', 'dropdown', 'multi-dropdown', 'member']`
+  - Aligned all static tool schemas with their implementations
+
+- **Tool Implementation Fixes**
+  - Fixed all create operations to work correctly through MCP validation
+  - Fixed empty response issues in get operations
+  - Fixed parameter handling for complex object parameters
+  - Fixed HTML content requirements for description fields
+
+- **Registry and Routing**
+  - Fixed static tool loading in registry to use actual tool definitions
+  - Fixed tool routing to correctly map all 119 tools
+  - Fixed handler function naming mismatches
+
+### Changed
+
+- **Build System Improvements**
+  - Simplified build output structure
+  - Added post-build script to restructure output
+  - Improved manifest generation with better error handling
+
+### Testing
+
+- **100% API Coverage Achieved**
+  - All 119 tools implemented and available
+  - 104 tools fully functional (all non-enterprise tools)
+  - 15 enterprise-only tools correctly implemented (Initiatives & Key Results)
+  - Comprehensive testing completed across all categories
+
 ## [1.2.0] - 2025-01-19
 
 ### Added
@@ -81,7 +133,7 @@ This release restores the condensed data functionality and improves the tool nam
   - Removed `productboard_` prefix from all tool names for cleaner API
   - Updated manifest.json and all generated JavaScript files
   - Created migration script (`scripts/remove-productboard-prefix.js`)
-  - Tools now use simpler names like `get_features` instead of `productboard_get_features`
+  - Tools now use simpler names like `get_features` instead of `get_features`
 
 - **Handler Function Naming Issues**
   - Fixed handler function name mismatches in registry

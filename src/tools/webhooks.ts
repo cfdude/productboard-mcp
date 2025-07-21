@@ -215,9 +215,7 @@ async function createWebhook(args: any) {
         webhookData.notification.headers = webhookParams.headers;
       }
 
-      const response = await context.axios.post('/webhooks', {
-        data: webhookData,
-      });
+      const response = await context.axios.post('/webhooks', webhookData);
 
       return {
         content: [
