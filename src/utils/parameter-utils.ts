@@ -81,29 +81,6 @@ export function filterByDetailLevel<T extends Record<string, any>>(
 }
 
 /**
- * Set a nested value in an object using dot notation
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function setNestedValue(
-  obj: Record<string, any>,
-  path: string,
-  value: any
-): void {
-  const parts = path.split('.');
-  let current = obj;
-
-  for (let i = 0; i < parts.length - 1; i++) {
-    const part = parts[i];
-    if (!current[part]) {
-      current[part] = {};
-    }
-    current = current[part];
-  }
-
-  current[parts[parts.length - 1]] = value;
-}
-
-/**
  * Filter array of items by detail level
  */
 export function filterArrayByDetailLevel<T extends Record<string, any>>(
