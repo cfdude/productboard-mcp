@@ -438,27 +438,37 @@ function main() {
     const manifest = generateManifest();
 
     // Write manifest with consistent formatting
+    // First, convert to JSON with proper indentation
     const manifestJson = JSON.stringify(manifest, null, 2);
 
-    // Ensure arrays are consistently formatted (multiline) to match expected CI format
-    const formattedJson = manifestJson.replace(
-      /(\[(?:\s*"[^"]*",?\s*)*\])/g,
-      match => {
-        try {
-          // Parse the array and reformat to multiline if it has multiple items
-          const items = JSON.parse(match.replace(/\s+/g, ' '));
-          if (!Array.isArray(items) || items.length <= 1) return match;
-          return (
-            '[\n        ' +
-            items.map(item => `"${item}"`).join(',\n        ') +
-            '\n      ]'
-          );
-        } catch (e) {
-          // If parsing fails, return original match
-          return match;
-        }
+    // Then ensure all arrays are formatted as multiline for CI consistency
+    const formattedJson = manifestJson.replace(/\[[^\[\]]+\]/g, match => {
+      // Skip empty arrays or single item arrays
+      const trimmed = match.trim();
+      if (trimmed === '[]' || !trimmed.includes(',')) {
+        return match;
       }
-    );
+
+      // Extract items from the array
+      const inner = match.slice(1, -1); // Remove [ and ]
+      const items = inner.split(',').map(item => item.trim());
+
+      // Find indentation by looking backwards from the match
+      const startIndex = manifestJson.indexOf(match);
+      const lineStart = manifestJson.lastIndexOf('\n', startIndex) + 1;
+      const currentLine = manifestJson.substring(lineStart, startIndex);
+      const baseIndent = currentLine;
+      const itemIndent = baseIndent + '  ';
+
+      // Reconstruct as multiline
+      return (
+        '[\n' +
+        items.map(item => itemIndent + item).join(',\n') +
+        '\n' +
+        baseIndent +
+        ']'
+      );
+    });
 
     writeFileSync(MANIFEST_PATH, formattedJson);
 
