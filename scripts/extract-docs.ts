@@ -60,6 +60,31 @@ async function extractDocs() {
     }
 
     console.log('✅ Documentation extracted to generated/');
+
+    // Compile TypeScript documentation to JavaScript if it exists
+    const tsDocPath = path.join(outputDir, 'tool-documentation.ts');
+    const jsDocPath = path.join(outputDir, 'tool-documentation.js');
+
+    if (fs.existsSync(tsDocPath)) {
+      console.log('📝 Compiling documentation TypeScript to JavaScript...');
+      const { execSync } = await import('child_process');
+      try {
+        execSync(
+          `npx tsc "${tsDocPath}" --module esnext --target es2022 --moduleResolution node`,
+          {
+            stdio: 'inherit',
+          }
+        );
+        console.log('✅ Documentation compiled to JavaScript');
+      } catch (compileError) {
+        console.error('❌ Failed to compile documentation:', compileError);
+        // Create a minimal JS file if compilation fails
+        fs.writeFileSync(
+          jsDocPath,
+          'export const generatedToolDocumentation = {};\n'
+        );
+      }
+    }
   } catch (error) {
     console.error('❌ Failed to extract documentation:', error);
     process.exit(1);
