@@ -639,26 +639,7 @@ They enable segmentation, prioritization by business value, and account-based ro
 export async function getMergedDocumentation(): Promise<
   Record<string, ToolDocumentation>
 > {
-  try {
-    // Try to import generated documentation
-    const { generatedToolDocumentation } = await import(
-      '../../generated/tool-documentation.js'
-    );
-
-    // Fix tool names (remove productboard_ prefix from generated names)
-    const fixedGeneratedDocs: Record<string, ToolDocumentation> = {};
-    for (const [key, value] of Object.entries(generatedToolDocumentation)) {
-      const fixedKey = key.replace('productboard_', '');
-      fixedGeneratedDocs[fixedKey] = value as ToolDocumentation;
-    }
-
-    // Merge with manual taking precedence
-    return {
-      ...fixedGeneratedDocs,
-      ...toolDocumentation,
-    };
-  } catch {
-    // If generated docs not available, return manual only
-    return toolDocumentation;
-  }
+  // In production/CI, generated documentation may not be available
+  // Return manual documentation only
+  return toolDocumentation;
 }
