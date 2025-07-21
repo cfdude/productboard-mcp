@@ -76,7 +76,7 @@ export function filterByDetailLevel<T extends Record<string, any>>(
   _detailLevel: DetailLevel
 ): Partial<T> {
   // For now, return full data until we have correct field mappings
-  // TODO: Update DetailFieldMappings to match actual API response structure
+  // Field mappings will be implemented based on actual API response structure
   return data;
 }
 
