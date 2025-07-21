@@ -1,0 +1,7 @@
+# Exclude auto-generated files
+generated/
+build/
+dist/
+
+# Exclude manifest - must maintain CI-compatible formatting
+generated/manifest.json
