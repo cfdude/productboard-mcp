@@ -1,6 +1,6 @@
 {
   "name": "@the_cfdude/productboard-mcp",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Model Context Protocol server for Productboard REST API with dynamic tool loading",
   "type": "module",
   "bin": {
@@ -12,7 +12,6 @@
     "src",
     "productboard_openapi.yaml",
     "smithery.json",
-    "manifest.json",
     "claude-connector.json",
     "tool-docs.tar.gz",
     "README.md",
@@ -20,10 +19,9 @@
     "tsconfig.json"
   ],
   "scripts": {
-    "prebuild": "npm run generate-all && npm run extract-docs",
+    "prebuild": "npm run extract-docs",
     "build": "tsc && node scripts/post-build.js && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
     "prepare": "husky",
-    "postinstall": "npm run generate-manifest",
     "watch": "tsc --watch",
     "inspector": "npx @modelcontextprotocol/inspector build/index.js",
     "dev": "npm run build && npm run inspector",

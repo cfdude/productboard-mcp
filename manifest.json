@@ -143,11 +143,7 @@
     },
     "source": {
       "repository": "https://github.com/cfdude/productboard-mcp.git",
-      "buildCommands": [
-        "npm install",
-        "npm run generate-manifest",
-        "npm run build"
-      ]
+      "buildCommands": ["npm install", "npm run build"]
     }
   }
 }
