@@ -19,9 +19,10 @@
     "tsconfig.json"
   ],
   "scripts": {
-    "prebuild": "npm run extract-docs",
+    "prebuild": "npm run generate-all && npm run extract-docs",
     "build": "tsc && node scripts/post-build.js && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
     "prepare": "husky",
+    "postinstall": "npm run generate-manifest",
     "watch": "tsc --watch",
     "inspector": "npx @modelcontextprotocol/inspector build/index.js",
     "dev": "npm run build && npm run inspector",
