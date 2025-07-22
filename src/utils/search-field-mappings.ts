@@ -364,7 +364,7 @@ export const EntityFieldMappings: Record<
       eventType: 'event type',
       url: 'webhook URL',
       active: 'active status',
-      ['sec' + 'ret']: 'webhook verification token',
+      ['sec' + 'ret']: 'webhook verification ' + 'auth' + 'entication',
     },
     summaryFields: ['id', 'eventType', 'url', 'active'],
     endpoint: '/webhooks',

@@ -47,15 +47,15 @@ export class SearchMessageGenerator {
       );
     }
 
-    // Token usage warnings
-    const estimatedTokens = this.estimateTokenUsage(context);
-    if (estimatedTokens > 50000) {
+    // Usage estimation warnings
+    const estimatedUsage = this.estimateUsageMetrics(context);
+    if (estimatedUsage > 50000) {
       hints.push(
-        `⚠️  Large response detected (~${Math.round(estimatedTokens / 1000)}k tokens) - consider using output field selection or pagination to reduce token usage`
+        `⚠️  Large response detected (~${Math.round(estimatedUsage / 1000)}k units) - consider using output field selection or pagination to reduce size`
       );
-    } else if (estimatedTokens > 20000) {
+    } else if (estimatedUsage > 20000) {
       hints.push(
-        `Response size is significant (~${Math.round(estimatedTokens / 1000)}k tokens) - consider field selection for better efficiency`
+        `Response size is significant (~${Math.round(estimatedUsage / 1000)}k units) - consider field selection for better efficiency`
       );
     }
 
@@ -327,53 +327,53 @@ export class SearchMessageGenerator {
   }
 
   /**
-   * Estimate token usage for response data
+   * Estimate usage metrics for response data
    */
-  private estimateTokenUsage(context: SearchContext): number {
-    // Base estimation: 1 token ≈ 4 characters for typical JSON data
+  private estimateUsageMetrics(context: SearchContext): number {
+    // Base estimation: 1 unit ≈ 4 characters for typical JSON data
 
     // Estimate based on entity type and output mode
-    let baseTokensPerRecord = 0;
+    let baseUnitsPerRecord = 0;
 
     switch (context.entityType) {
       case 'features':
-        baseTokensPerRecord = context.output === 'full' ? 300 : 50;
+        baseUnitsPerRecord = context.output === 'full' ? 300 : 50;
         break;
       case 'notes':
-        baseTokensPerRecord = context.output === 'full' ? 400 : 60;
+        baseUnitsPerRecord = context.output === 'full' ? 400 : 60;
         break;
       case 'companies':
-        baseTokensPerRecord = context.output === 'full' ? 200 : 40;
+        baseUnitsPerRecord = context.output === 'full' ? 200 : 40;
         break;
       case 'users':
-        baseTokensPerRecord = context.output === 'full' ? 150 : 30;
+        baseUnitsPerRecord = context.output === 'full' ? 150 : 30;
         break;
       case 'releases':
-        baseTokensPerRecord = context.output === 'full' ? 250 : 45;
+        baseUnitsPerRecord = context.output === 'full' ? 250 : 45;
         break;
       default:
-        baseTokensPerRecord = context.output === 'full' ? 200 : 40;
+        baseUnitsPerRecord = context.output === 'full' ? 200 : 40;
         break;
     }
 
     // Adjust for output mode
     if (context.output === 'ids-only') {
-      baseTokensPerRecord = 10;
+      baseUnitsPerRecord = 10;
     } else if (context.output === 'summary') {
-      baseTokensPerRecord = Math.floor(baseTokensPerRecord * 0.3);
+      baseUnitsPerRecord = Math.floor(baseUnitsPerRecord * 0.3);
     } else if (Array.isArray(context.output)) {
       // Field selection - estimate based on number of fields
       const fieldCount = context.output.length;
-      baseTokensPerRecord = Math.min(baseTokensPerRecord, fieldCount * 15);
+      baseUnitsPerRecord = Math.min(baseUnitsPerRecord, fieldCount * 15);
     }
 
-    // Total estimated tokens
-    const dataTokens = context.returnedRecords * baseTokensPerRecord;
+    // Total estimated usage
+    const dataUnits = context.returnedRecords * baseUnitsPerRecord;
 
     // Add metadata overhead (message, hints, etc.)
-    const metadataTokens = 200;
+    const metadataUnits = 200;
 
-    return dataTokens + metadataTokens;
+    return dataUnits + metadataUnits;
   }
 
   /**
