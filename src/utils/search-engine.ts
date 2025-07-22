@@ -78,8 +78,8 @@ export class SearchEngine {
       startWith: Math.max(params.startWith || 0, 0),
       detail: params.detail || 'standard',
       includeSubData: params.includeSubData || false,
-      instance: params.instance,
-      workspaceId: params.workspaceId,
+      ...(params.instance && { instance: params.instance }),
+      ...(params.workspaceId && { workspaceId: params.workspaceId }),
     };
 
     // Validate filters
@@ -127,7 +127,7 @@ export class SearchEngine {
    * Execute search against the appropriate entity endpoint
    */
   async executeEntitySearch(
-    context: any,
+    _context: any,
     params: NormalizedSearchParams
   ): Promise<SearchResults> {
     const startTime = Date.now();
