@@ -1,16 +1,15 @@
 # delete_feature
 
 ## Description
-
 Delete a feature
 
 ## Parameters
 
-| Parameter     | Type   | Required | Description                           |
-| ------------- | ------ | -------- | ------------------------------------- |
-| `id`          | string | Yes      | Feature ID                            |
-| `instance`    | string | No       | Productboard instance name (optional) |
-| `workspaceId` | string | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | string | Yes | Feature ID |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -26,5 +25,5 @@ Delete a feature
 ```
 
 ## Category
-
 features
+

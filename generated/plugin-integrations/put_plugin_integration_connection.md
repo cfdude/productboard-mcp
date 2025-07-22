@@ -1,18 +1,17 @@
 # put_plugin_integration_connection
 
 ## Description
-
 Set the state of a plugin integration connection
 
 ## Parameters
 
-| Parameter     | Type                   | Required | Description                           |
-| ------------- | ---------------------- | -------- | ------------------------------------- |
-| `body`        | { connection: object } | Yes      | Connection configuration              |
-| `featureId`   | string                 | Yes      | Feature ID                            |
-| `id`          | string                 | Yes      | Plugin integration ID                 |
-| `instance`    | string                 | No       | Productboard instance name (optional) |
-| `workspaceId` | string                 | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `body` | { connection: object } | Yes | Connection configuration |
+| `featureId` | string | Yes | Feature ID |
+| `id` | string | Yes | Plugin integration ID |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -39,5 +38,5 @@ Set the state of a plugin integration connection
 ```
 
 ## Category
-
 plugin-integrations
+

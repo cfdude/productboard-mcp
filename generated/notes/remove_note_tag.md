@@ -1,17 +1,16 @@
 # remove_note_tag
 
 ## Description
-
 Remove a tag from a note
 
 ## Parameters
 
-| Parameter     | Type   | Required | Description                           |
-| ------------- | ------ | -------- | ------------------------------------- |
-| `noteId`      | string | Yes      | Note ID                               |
-| `tagName`     | string | Yes      | Tag name to remove                    |
-| `instance`    | string | No       | Productboard instance name (optional) |
-| `workspaceId` | string | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `noteId` | string | Yes | Note ID |
+| `tagName` | string | Yes | Tag name to remove |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -28,5 +27,5 @@ Remove a tag from a note
 ```
 
 ## Category
-
 notes
+

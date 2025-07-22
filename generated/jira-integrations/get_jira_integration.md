@@ -1,16 +1,15 @@
 # get_jira_integration
 
 ## Description
-
 Retrieve a specific JIRA integration
 
 ## Parameters
 
-| Parameter     | Type   | Required | Description                           |
-| ------------- | ------ | -------- | ------------------------------------- |
-| `id`          | string | Yes      | JIRA integration ID                   |
-| `instance`    | string | No       | Productboard instance name (optional) |
-| `workspaceId` | string | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | string | Yes | JIRA integration ID |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -26,5 +25,5 @@ Retrieve a specific JIRA integration
 ```
 
 ## Category
-
 jira-integrations
+

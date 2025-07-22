@@ -1,17 +1,16 @@
 # put_plugin_integration
 
 ## Description
-
 Update a plugin integration (PUT - deprecated)
 
 ## Parameters
 
-| Parameter     | Type                                                                                            | Required | Description                           |
-| ------------- | ----------------------------------------------------------------------------------------------- | -------- | ------------------------------------- |
-| `body`        | { type: string, name: string, integrationStatus: string, initialState: object, action: object } | Yes      | Complete plugin integration data      |
-| `id`          | string                                                                                          | Yes      | Plugin integration ID                 |
-| `instance`    | string                                                                                          | No       | Productboard instance name (optional) |
-| `workspaceId` | string                                                                                          | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `body` | { type: string, name: string, integrationStatus: string, initialState: object, action: object } | Yes | Complete plugin integration data |
+| `id` | string | Yes | Plugin integration ID |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -34,5 +33,5 @@ Update a plugin integration (PUT - deprecated)
 ```
 
 ## Category
-
 plugin-integrations
+

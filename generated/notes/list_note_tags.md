@@ -1,16 +1,15 @@
 # list_note_tags
 
 ## Description
-
 List all tags on a note
 
 ## Parameters
 
-| Parameter     | Type   | Required | Description                           |
-| ------------- | ------ | -------- | ------------------------------------- |
-| `noteId`      | string | Yes      | Note ID                               |
-| `instance`    | string | No       | Productboard instance name (optional) |
-| `workspaceId` | string | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `noteId` | string | Yes | Note ID |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -26,5 +25,5 @@ List all tags on a note
 ```
 
 ## Category
-
 notes
+

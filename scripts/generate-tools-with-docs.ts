@@ -10,7 +10,7 @@ import type { ToolDocumentation } from '../src/documentation/tool-documentation.
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, '..');
 const MANIFEST_PATH = join(PROJECT_ROOT, 'generated', 'manifest.json');
-const OPENAPI_PATH = join(PROJECT_ROOT, 'productboard_openapi.yaml');
+const OPENAPI_PATH = join(PROJECT_ROOT, 'openapi.yaml');
 const OUTPUT_DIR = join(PROJECT_ROOT, 'generated', 'tools');
 const DOCS_OUTPUT_PATH = join(
   PROJECT_ROOT,

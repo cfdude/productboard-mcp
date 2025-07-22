@@ -1,19 +1,18 @@
 # get_initiatives
 
 ## Description
-
 List all initiatives
 
 ## Parameters
 
-| Parameter        | Type    | Required   | Description                                                   |
-| ---------------- | ------- | ---------- | ------------------------------------------------------------- | --- | -------------------------------- |
-| `detail`         | "basic" | "standard" | "full"                                                        | No  | Level of detail (default: basic) |
-| `includeSubData` | boolean | No         | Include nested complex JSON sub-data                          |
-| `instance`       | string  | No         | Productboard instance name (optional)                         |
-| `limit`          | number  | No         | Maximum number of initiatives to return (1-100, default: 100) |
-| `startWith`      | number  | No         | Offset for pagination (default: 0)                            |
-| `workspaceId`    | string  | No         | Workspace ID (optional)                                       |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `detail` | "basic" | "standard" | "full" | No | Level of detail (default: basic) |
+| `includeSubData` | boolean | No | Include nested complex JSON sub-data |
+| `instance` | string | No | Productboard instance name (optional) |
+| `limit` | number | No | Maximum number of initiatives to return (1-100, default: 100) |
+| `startWith` | number | No | Offset for pagination (default: 0) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -28,5 +27,5 @@ List all initiatives
 ```
 
 ## Category
-
 objectives
+

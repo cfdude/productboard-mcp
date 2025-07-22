@@ -1,15 +1,14 @@
 # get_plugin_integrations
 
 ## Description
-
 List all plugin integrations
 
 ## Parameters
 
-| Parameter     | Type   | Required | Description                           |
-| ------------- | ------ | -------- | ------------------------------------- |
-| `instance`    | string | No       | Productboard instance name (optional) |
-| `workspaceId` | string | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -24,5 +23,5 @@ List all plugin integrations
 ```
 
 ## Category
-
 plugin-integrations
+

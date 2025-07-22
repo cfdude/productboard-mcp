@@ -22,7 +22,9 @@ import { setupCustomFieldsTools } from './custom-fields.js';
 import { setupPluginIntegrationsTools } from './plugin-integrations.js';
 import { setupJiraIntegrationsTools } from './jira-integrations.js';
 import { setupDocumentationTools } from './documentation.js';
+import { setupSearchTools } from './search.js';
 import { ToolDefinition } from '../types/tool-types.js';
+import { SearchParams } from '../types/search-types.js';
 
 /**
  * Setup all tool handlers for the server
@@ -32,6 +34,7 @@ export function setupToolHandlers(server: Server): void {
   const tools: ToolDefinition[] = [];
 
   // Register tool categories
+  tools.push(...setupSearchTools());
   tools.push(...setupNotesTools());
   tools.push(...setupFeaturesTools());
   tools.push(...setupCompaniesTools());
@@ -55,7 +58,64 @@ export function setupToolHandlers(server: Server): void {
 
     try {
       // Route to appropriate handler based on tool name patterns
-      if (
+      if (name === 'search') {
+        const { handleSearchTool } = await import('./search.js');
+
+        // Debug logging
+        console.error('[DEBUG] Original args:', JSON.stringify(args, null, 2));
+        console.error('[DEBUG] Original output type:', typeof args?.output);
+        console.error('[DEBUG] Original output value:', args?.output);
+
+        // Parse any JSON-stringified parameters - more robust approach
+        const parsedArgs = args ? { ...args } : {};
+
+        // Handle output parameter that might come in as a stringified array
+        if (parsedArgs.output && typeof parsedArgs.output === 'string') {
+          console.error(
+            '[DEBUG] Attempting to parse stringified output:',
+            parsedArgs.output
+          );
+          // Try to parse as JSON if it looks like an array or object
+          if (
+            (parsedArgs.output.startsWith('[') &&
+              parsedArgs.output.endsWith(']')) ||
+            (parsedArgs.output.startsWith('{') &&
+              parsedArgs.output.endsWith('}'))
+          ) {
+            try {
+              const parsed = JSON.parse(parsedArgs.output);
+              parsedArgs.output = parsed;
+              console.error(
+                '[DEBUG] Successfully parsed output to:',
+                parsed,
+                'type:',
+                typeof parsed
+              );
+            } catch (e) {
+              console.error(
+                '[DEBUG] Failed to parse output, leaving as string:',
+                (e as Error).message
+              );
+              // If parsing fails, leave as string (might be a preset like "ids-only")
+            }
+          } else {
+            console.error(
+              '[DEBUG] Output string does not look like JSON, leaving as-is'
+            );
+          }
+        } else {
+          console.error(
+            '[DEBUG] Output is not a string, type:',
+            typeof parsedArgs.output
+          );
+        }
+
+        console.error('[DEBUG] Final parsed args output:', parsedArgs.output);
+        return await handleSearchTool(
+          name,
+          parsedArgs as unknown as SearchParams
+        );
+      } else if (
         name.includes('note') ||
         name.includes('tag') ||
         name.includes('link')

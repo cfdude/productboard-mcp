@@ -1,16 +1,15 @@
 # delete_webhook
 
 ## Description
-
 Delete a webhook subscription
 
 ## Parameters
 
-| Parameter     | Type   | Required | Description                           |
-| ------------- | ------ | -------- | ------------------------------------- |
-| `id`          | string | Yes      | Webhook ID                            |
-| `instance`    | string | No       | Productboard instance name (optional) |
-| `workspaceId` | string | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | string | Yes | Webhook ID |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -26,5 +25,5 @@ Delete a webhook subscription
 ```
 
 ## Category
-
 webhooks
+

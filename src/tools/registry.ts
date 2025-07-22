@@ -48,6 +48,7 @@ export class ToolRegistry {
   private maxLoadedHandlers = 100; // Maximum number of handlers to keep in memory
   private handlerAccessCount = new Map<string, number>();
   private lastAccessTime = new Map<string, number>();
+  private customTools = new Map<string, ToolDefinition>();
 
   constructor(enabledCategories: string[] = []) {
     this.enabledCategories = new Set(enabledCategories);
@@ -200,6 +201,19 @@ export class ToolRegistry {
         }
       });
     }
+  }
+
+  /**
+   * Register a custom tool (not from manifest/OpenAPI)
+   */
+  registerCustomTool(name: string, tool: ToolDefinition): void {
+    this.customTools.set(name, tool);
+
+    // Register the tool handler
+    this.registerLoader(name, async () => {
+      const { handleSearchTool } = await import('./search.js');
+      return async (args: any) => handleSearchTool(name, args);
+    });
   }
 
   /**
@@ -458,6 +472,11 @@ export class ToolRegistry {
       }
 
       definitions.push(toolDef);
+    }
+
+    // Add custom tools (not from manifest/OpenAPI)
+    for (const [, tool] of this.customTools) {
+      definitions.push(tool);
     }
 
     return definitions;

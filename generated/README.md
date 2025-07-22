@@ -17,43 +17,33 @@ It reflects EXACTLY what parameters the MCP tools accept, NOT what the Productbo
 ## Categories
 
 ### [Companies](./companies/)
-
 13 tools available
 
 ### [Custom Fields](./custom-fields/)
-
 7 tools available
 
 ### [Features](./features/)
-
 12 tools available
 
 ### [Jira Integrations](./jira-integrations/)
-
 4 tools available
 
 ### [Notes](./notes/)
-
 15 tools available
 
 ### [Objectives](./objectives/)
-
 27 tools available
 
 ### [Plugin Integrations](./plugin-integrations/)
-
 10 tools available
 
 ### [Releases](./releases/)
-
 13 tools available
 
 ### [Users](./users/)
-
 5 tools available
 
 ### [Webhooks](./webhooks/)
-
 4 tools available
 
 ## Using These Tools

@@ -1,17 +1,16 @@
 # remove_note_follower
 
 ## Description
-
 Remove a follower from a note
 
 ## Parameters
 
-| Parameter     | Type   | Required | Description                            |
-| ------------- | ------ | -------- | -------------------------------------- |
-| `email`       | string | Yes      | Email address to remove from followers |
-| `noteId`      | string | Yes      | Note ID                                |
-| `instance`    | string | No       | Productboard instance name (optional)  |
-| `workspaceId` | string | No       | Workspace ID (optional)                |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `email` | string | Yes | Email address to remove from followers |
+| `noteId` | string | Yes | Note ID |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -28,5 +27,5 @@ Remove a follower from a note
 ```
 
 ## Category
-
 notes
+

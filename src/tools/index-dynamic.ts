@@ -88,6 +88,14 @@ export async function setupDynamicToolHandlers(server: Server) {
     // Register tool loaders from manifest - AWAIT this!
     await registry.registerFromManifest();
     console.error('Successfully registered tools from manifest');
+
+    // Register custom MCP tools (not from OpenAPI)
+    const { setupSearchTools } = await import('./search.js');
+    const searchTools = setupSearchTools();
+    for (const tool of searchTools) {
+      registry.registerCustomTool(tool.name, tool);
+    }
+    console.error('Successfully registered custom MCP tools');
   } catch (error) {
     console.error('Failed to load tool manifest:', error);
     // Fall back to static tools

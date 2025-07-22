@@ -1,17 +1,16 @@
 # update_company_field
 
 ## Description
-
 Update a company custom field
 
 ## Parameters
 
-| Parameter     | Type                           | Required | Description                           |
-| ------------- | ------------------------------ | -------- | ------------------------------------- |
-| `body`        | { name: string, type: string } | Yes      | Company field data to update          |
-| `id`          | string                         | Yes      | Company field ID                      |
-| `instance`    | string                         | No       | Productboard instance name (optional) |
-| `workspaceId` | string                         | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `body` | { name: string, type: string } | Yes | Company field data to update |
+| `id` | string | Yes | Company field ID |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -31,5 +30,5 @@ Update a company custom field
 ```
 
 ## Category
-
 companies
+

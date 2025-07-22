@@ -1,17 +1,16 @@
 # delete_custom_field_value
 
 ## Description
-
 Delete value of a custom field for a hierarchy entity
 
 ## Parameters
 
-| Parameter            | Type   | Required | Description                           |
-| -------------------- | ------ | -------- | ------------------------------------- |
-| `customField.id`     | string | Yes      | ID of the custom field                |
-| `hierarchyEntity.id` | string | Yes      | ID of the hierarchy entity            |
-| `instance`           | string | No       | Productboard instance name (optional) |
-| `workspaceId`        | string | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `customField.id` | string | Yes | ID of the custom field |
+| `hierarchyEntity.id` | string | Yes | ID of the hierarchy entity |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -28,5 +27,5 @@ Delete value of a custom field for a hierarchy entity
 ```
 
 ## Category
-
 custom-fields
+

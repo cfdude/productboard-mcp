@@ -1,16 +1,15 @@
 # delete_plugin_integration
 
 ## Description
-
 Delete a plugin integration
 
 ## Parameters
 
-| Parameter     | Type   | Required | Description                           |
-| ------------- | ------ | -------- | ------------------------------------- |
-| `id`          | string | Yes      | Plugin integration ID                 |
-| `instance`    | string | No       | Productboard instance name (optional) |
-| `workspaceId` | string | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | string | Yes | Plugin integration ID |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -26,5 +25,5 @@ Delete a plugin integration
 ```
 
 ## Category
-
 plugin-integrations
+

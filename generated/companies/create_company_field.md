@@ -1,16 +1,15 @@
 # create_company_field
 
 ## Description
-
 Create a new custom field for companies
 
 ## Parameters
 
-| Parameter     | Type                           | Required | Description                           |
-| ------------- | ------------------------------ | -------- | ------------------------------------- |
-| `body`        | { name: string, type: string } | Yes      | Company field data                    |
-| `instance`    | string                         | No       | Productboard instance name (optional) |
-| `workspaceId` | string                         | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `body` | { name: string, type: string } | Yes | Company field data |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -29,5 +28,5 @@ Create a new custom field for companies
 ```
 
 ## Category
-
 companies
+

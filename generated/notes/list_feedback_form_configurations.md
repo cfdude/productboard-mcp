@@ -1,15 +1,14 @@
 # list_feedback_form_configurations
 
 ## Description
-
 List all feedback form configurations
 
 ## Parameters
 
-| Parameter     | Type   | Required | Description                           |
-| ------------- | ------ | -------- | ------------------------------------- |
-| `instance`    | string | No       | Productboard instance name (optional) |
-| `workspaceId` | string | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -24,5 +23,5 @@ List all feedback form configurations
 ```
 
 ## Category
-
 notes
+

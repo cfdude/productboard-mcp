@@ -1,16 +1,15 @@
 # get_plugin_integration_connections
 
 ## Description
-
 List plugin integration connections for a specific integration
 
 ## Parameters
 
-| Parameter     | Type   | Required | Description                           |
-| ------------- | ------ | -------- | ------------------------------------- |
-| `id`          | string | Yes      | Plugin integration ID                 |
-| `instance`    | string | No       | Productboard instance name (optional) |
-| `workspaceId` | string | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | string | Yes | Plugin integration ID |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -26,5 +25,5 @@ List plugin integration connections for a specific integration
 ```
 
 ## Category
-
 plugin-integrations
+
