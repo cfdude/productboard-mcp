@@ -66,10 +66,10 @@ function generateToolName(
 ): string {
   // Use operationId if available
   if (operationId) {
-    return `productboard_${operationId
+    return operationId
       .replace(/([A-Z])/g, '_$1')
       .toLowerCase()
-      .replace(/^_/, '')}`;
+      .replace(/^_/, '');
   }
 
   // Otherwise generate from path
@@ -89,10 +89,10 @@ function generateToolName(
   // Handle nested resources
   if (parts.length > 2) {
     const subResource = parts[parts.length - 1];
-    return `productboard_${resource}_${action}_${subResource}`;
+    return `${resource}_${action}_${subResource}`;
   }
 
-  return `productboard_${resource}_${action}`;
+  return `${resource}_${action}`;
 }
 
 // Extract category from tags or path
