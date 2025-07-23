@@ -1,18 +1,17 @@
 # set_custom_field_value
 
 ## Description
-
 Set value of a custom field for a hierarchy entity
 
 ## Parameters
 
-| Parameter            | Type                         | Required | Description                           |
-| -------------------- | ---------------------------- | -------- | ------------------------------------- |
-| `body`               | { type: string, value: any } | Yes      | Custom field value data               |
-| `customField.id`     | string                       | Yes      | ID of the custom field to be set      |
-| `hierarchyEntity.id` | string                       | Yes      | ID of the hierarchy entity            |
-| `instance`           | string                       | No       | Productboard instance name (optional) |
-| `workspaceId`        | string                       | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `body` | { type: string, value: any } | Yes | Custom field value data |
+| `customField.id` | string | Yes | ID of the custom field to be set |
+| `hierarchyEntity.id` | string | Yes | ID of the hierarchy entity |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -33,5 +32,5 @@ Set value of a custom field for a hierarchy entity
 ```
 
 ## Category
-
 custom-fields
+

@@ -1,17 +1,16 @@
 # add_note_followers
 
 ## Description
-
 Add followers to a note
 
 ## Parameters
 
-| Parameter     | Type     | Required | Description                                  |
-| ------------- | -------- | -------- | -------------------------------------------- |
-| `emails`      | string[] | Yes      | Array of email addresses to add as followers |
-| `noteId`      | string   | Yes      | Note ID                                      |
-| `instance`    | string   | No       | Productboard instance name (optional)        |
-| `workspaceId` | string   | No       | Workspace ID (optional)                      |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `emails` | string[] | Yes | Array of email addresses to add as followers |
+| `noteId` | string | Yes | Note ID |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -20,7 +19,10 @@ Add followers to a note
   "tool": "add_note_followers",
   "arguments": {
     "noteId": "example-noteId",
-    "emails": ["user1@example.com", "user2@example.com"],
+    "emails": [
+      "user1@example.com",
+      "user2@example.com"
+    ],
     "instance": "example-instance",
     "workspaceId": "example-workspaceId"
   }
@@ -28,5 +30,5 @@ Add followers to a note
 ```
 
 ## Category
-
 notes
+

@@ -1,16 +1,15 @@
 # post_plugin_integration
 
 ## Description
-
 Create a new plugin integration
 
 ## Parameters
 
-| Parameter     | Type                                                                                            | Required | Description                           |
-| ------------- | ----------------------------------------------------------------------------------------------- | -------- | ------------------------------------- |
-| `body`        | { type: string, name: string, integrationStatus: string, initialState: object, action: object } | Yes      | Plugin integration data               |
-| `instance`    | string                                                                                          | No       | Productboard instance name (optional) |
-| `workspaceId` | string                                                                                          | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `body` | { type: string, name: string, integrationStatus: string, initialState: object, action: object } | Yes | Plugin integration data |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -38,5 +37,5 @@ Create a new plugin integration
 ```
 
 ## Category
-
 plugin-integrations
+

@@ -203,6 +203,21 @@ export function setupFeaturesTools() {
             type: 'boolean',
             description: 'Archive status',
           },
+          timeframe: {
+            type: 'object',
+            description: 'Feature timeframe with start and end dates',
+            properties: {
+              startDate: {
+                type: 'string',
+                description: 'Start date (YYYY-MM-DD)',
+              },
+              endDate: { type: 'string', description: 'End date (YYYY-MM-DD)' },
+              granularity: {
+                type: 'string',
+                description: 'Timeframe granularity (optional)',
+              },
+            },
+          },
           instance: {
             type: 'string',
             description: 'Productboard instance name (optional)',
@@ -733,6 +748,21 @@ async function updateFeature(args: any) {
       if (args.status) body.status = args.status;
       if (args.owner) body.owner = args.owner;
       if (args.archived !== undefined) body.archived = args.archived;
+      if (args.timeframe) {
+        // Handle timeframe parameter - can be string or object
+        if (typeof args.timeframe === 'string') {
+          try {
+            body.timeframe = JSON.parse(args.timeframe);
+          } catch {
+            // If parsing fails, treat as invalid
+            throw new Error(
+              'Invalid timeframe format. Expected JSON object with startDate and endDate'
+            );
+          }
+        } else {
+          body.timeframe = args.timeframe;
+        }
+      }
 
       const response = await context.axios.patch(`/features/${args.id}`, {
         data: body,

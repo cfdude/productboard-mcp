@@ -46,10 +46,10 @@ function loadManifest(): ToolManifest {
   return JSON.parse(content);
 }
 
-// Parse OpenAPI spec
+// Parse OpenAPI spec (deprecated - now uses manifest only)
 function parseOpenAPI(): any {
-  const content = readFileSync(OPENAPI_PATH, 'utf-8');
-  return JSON.parse(content);
+  // Return empty spec since we no longer use OpenAPI
+  return { paths: {} };
 }
 
 // Convert tool name to function name

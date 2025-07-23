@@ -1,17 +1,16 @@
 # update_company
 
 ## Description
-
 Update a company
 
 ## Parameters
 
-| Parameter     | Type                                                  | Required | Description                           |
-| ------------- | ----------------------------------------------------- | -------- | ------------------------------------- |
-| `body`        | { name: string, domain: string, description: string } | Yes      | Company data to update                |
-| `id`          | string                                                | Yes      | Company ID                            |
-| `instance`    | string                                                | No       | Productboard instance name (optional) |
-| `workspaceId` | string                                                | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `body` | { name: string, domain: string, description: string } | Yes | Company data to update |
+| `id` | string | Yes | Company ID |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -32,5 +31,5 @@ Update a company
 ```
 
 ## Category
-
 companies
+

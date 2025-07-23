@@ -1,17 +1,16 @@
 # delete_objective_to_feature_link
 
 ## Description
-
 Delete a link between an objective and a feature
 
 ## Parameters
 
-| Parameter     | Type   | Required | Description                           |
-| ------------- | ------ | -------- | ------------------------------------- |
-| `featureId`   | string | Yes      | Feature ID to unlink                  |
-| `id`          | string | Yes      | Objective ID                          |
-| `instance`    | string | No       | Productboard instance name (optional) |
-| `workspaceId` | string | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `featureId` | string | Yes | Feature ID to unlink |
+| `id` | string | Yes | Objective ID |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -28,5 +27,5 @@ Delete a link between an objective and a feature
 ```
 
 ## Category
-
 objectives
+

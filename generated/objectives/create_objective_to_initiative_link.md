@@ -1,17 +1,16 @@
 # create_objective_to_initiative_link
 
 ## Description
-
 Create a new link between an objective and an initiative
 
 ## Parameters
 
-| Parameter      | Type   | Required | Description                           |
-| -------------- | ------ | -------- | ------------------------------------- |
-| `id`           | string | Yes      | Objective ID                          |
-| `initiativeId` | string | Yes      | Initiative ID to link                 |
-| `instance`     | string | No       | Productboard instance name (optional) |
-| `workspaceId`  | string | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | string | Yes | Objective ID |
+| `initiativeId` | string | Yes | Initiative ID to link |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -28,5 +27,5 @@ Create a new link between an objective and an initiative
 ```
 
 ## Category
-
 objectives
+

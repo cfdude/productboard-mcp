@@ -1,18 +1,17 @@
 # update_product
 
 ## Description
-
 Update a product
 
 ## Parameters
 
-| Parameter     | Type   | Required | Description                           |
-| ------------- | ------ | -------- | ------------------------------------- |
-| `id`          | string | Yes      | Product ID                            |
-| `description` | string | No       | Product description                   |
-| `instance`    | string | No       | Productboard instance name (optional) |
-| `name`        | string | No       | Product name                          |
-| `workspaceId` | string | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | string | Yes | Product ID |
+| `description` | string | No | Product description |
+| `instance` | string | No | Productboard instance name (optional) |
+| `name` | string | No | Product name |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -28,5 +27,5 @@ Update a product
 ```
 
 ## Category
-
 features
+

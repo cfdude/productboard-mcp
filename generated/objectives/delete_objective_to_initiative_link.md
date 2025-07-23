@@ -1,17 +1,16 @@
 # delete_objective_to_initiative_link
 
 ## Description
-
 Delete a link between an objective and an initiative
 
 ## Parameters
 
-| Parameter      | Type   | Required | Description                           |
-| -------------- | ------ | -------- | ------------------------------------- |
-| `id`           | string | Yes      | Objective ID                          |
-| `initiativeId` | string | Yes      | Initiative ID to unlink               |
-| `instance`     | string | No       | Productboard instance name (optional) |
-| `workspaceId`  | string | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | string | Yes | Objective ID |
+| `initiativeId` | string | Yes | Initiative ID to unlink |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -28,5 +27,5 @@ Delete a link between an objective and an initiative
 ```
 
 ## Category
-
 objectives
+

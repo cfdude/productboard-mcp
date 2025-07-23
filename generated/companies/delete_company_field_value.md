@@ -1,17 +1,16 @@
 # delete_company_field_value
 
 ## Description
-
 Delete the value of a custom field for a specific company
 
 ## Parameters
 
-| Parameter              | Type   | Required | Description                           |
-| ---------------------- | ------ | -------- | ------------------------------------- |
-| `companyCustomFieldId` | string | Yes      | Company custom field ID               |
-| `companyId`            | string | Yes      | Company ID                            |
-| `instance`             | string | No       | Productboard instance name (optional) |
-| `workspaceId`          | string | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `companyCustomFieldId` | string | Yes | Company custom field ID |
+| `companyId` | string | Yes | Company ID |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -28,5 +27,5 @@ Delete the value of a custom field for a specific company
 ```
 
 ## Category
-
 companies
+

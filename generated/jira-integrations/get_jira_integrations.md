@@ -1,15 +1,14 @@
 # get_jira_integrations
 
 ## Description
-
 List all JIRA integrations
 
 ## Parameters
 
-| Parameter     | Type   | Required | Description                           |
-| ------------- | ------ | -------- | ------------------------------------- |
-| `instance`    | string | No       | Productboard instance name (optional) |
-| `workspaceId` | string | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -24,5 +23,5 @@ List all JIRA integrations
 ```
 
 ## Category
-
 jira-integrations
+

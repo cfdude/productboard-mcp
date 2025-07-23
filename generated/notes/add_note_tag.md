@@ -1,17 +1,16 @@
 # add_note_tag
 
 ## Description
-
 Add a tag to a note
 
 ## Parameters
 
-| Parameter     | Type   | Required | Description                           |
-| ------------- | ------ | -------- | ------------------------------------- |
-| `noteId`      | string | Yes      | Note ID                               |
-| `tagName`     | string | Yes      | Tag name to add                       |
-| `instance`    | string | No       | Productboard instance name (optional) |
-| `workspaceId` | string | No       | Workspace ID (optional)               |
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `noteId` | string | Yes | Note ID |
+| `tagName` | string | Yes | Tag name to add |
+| `instance` | string | No | Productboard instance name (optional) |
+| `workspaceId` | string | No | Workspace ID (optional) |
 
 ## Example
 
@@ -28,5 +27,5 @@ Add a tag to a note
 ```
 
 ## Category
-
 notes
+
