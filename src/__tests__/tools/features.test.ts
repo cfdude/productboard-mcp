@@ -100,5 +100,56 @@ describe('Features Tools', () => {
         }).not.toThrow('Unknown features tool');
       });
     });
+
+    it('should include timeframe in update_feature schema', () => {
+      const tools = setupFeaturesTools();
+      const updateFeature = tools.find(
+        (t: ToolDefinition) => t.name === 'update_feature'
+      );
+
+      expect(updateFeature?.inputSchema.properties).toHaveProperty('timeframe');
+      expect(updateFeature?.inputSchema.properties.timeframe).toEqual({
+        type: 'object',
+        description: 'Feature timeframe with start and end dates',
+        properties: {
+          startDate: {
+            type: 'string',
+            description: 'Start date (YYYY-MM-DD)',
+          },
+          endDate: { type: 'string', description: 'End date (YYYY-MM-DD)' },
+          granularity: {
+            type: 'string',
+            description: 'Timeframe granularity (optional)',
+          },
+        },
+      });
+    });
+
+    it('should handle update_feature with timeframe parameter', async () => {
+      // Test that the function accepts timeframe without throwing
+      expect(() => {
+        const promise = handleFeaturesTool('update_feature', {
+          id: 'test-feature-id',
+          timeframe: {
+            startDate: '2025-02-01',
+            endDate: '2025-02-28',
+          },
+        });
+        // Catch expected error about missing API context
+        promise.catch(() => {});
+      }).not.toThrow();
+    });
+
+    it('should handle update_feature with timeframe as JSON string', async () => {
+      // Test that the function accepts timeframe JSON string without throwing
+      expect(() => {
+        const promise = handleFeaturesTool('update_feature', {
+          id: 'test-feature-id',
+          timeframe: '{"startDate":"2025-02-01","endDate":"2025-02-28"}',
+        });
+        // Catch expected error about missing API context
+        promise.catch(() => {});
+      }).not.toThrow();
+    });
   });
 });

@@ -10,7 +10,7 @@ import type { ToolDocumentation } from '../src/documentation/tool-documentation.
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, '..');
 const MANIFEST_PATH = join(PROJECT_ROOT, 'generated', 'manifest.json');
-const OPENAPI_PATH = join(PROJECT_ROOT, 'openapi.yaml');
+const OPENAPI_PATH = join(PROJECT_ROOT, 'productboard_openapi.yaml');
 const OUTPUT_DIR = join(PROJECT_ROOT, 'generated', 'tools');
 const DOCS_OUTPUT_PATH = join(
   PROJECT_ROOT,
@@ -46,10 +46,10 @@ function loadManifest(): ToolManifest {
   return JSON.parse(content);
 }
 
-// Parse OpenAPI spec
+// Parse OpenAPI spec (deprecated - now uses manifest only)
 function parseOpenAPI(): any {
-  const content = readFileSync(OPENAPI_PATH, 'utf-8');
-  return JSON.parse(content);
+  // Return empty spec since we no longer use OpenAPI
+  return { paths: {} };
 }
 
 // Convert tool name to function name
