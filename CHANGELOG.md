@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2025-01-25
+
 ### Added
 
 - **Multi-Entity Search Support**
@@ -16,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added validation to ensure filters and output fields are valid for at least one entity type
   - Improved performance by executing searches in parallel for multiple entity types
   - Added comprehensive test coverage for multi-entity search functionality
+  - Added MCP protocol compatibility for stringified arrays
+  - Updated documentation with examples and usage guidelines
 
 ## [1.3.2] - 2025-01-23
 
