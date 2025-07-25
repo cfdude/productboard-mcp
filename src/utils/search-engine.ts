@@ -34,43 +34,28 @@ export class SearchEngine {
   async validateAndNormalizeParams(
     params: SearchParams
   ): Promise<NormalizedSearchParams> {
-    // Validate entity type
-    if (!this.entityMappings[params.entityType]) {
-      throw new ValidationError(
-        `Unsupported entity type: ${params.entityType}. Supported types: ${Object.keys(this.entityMappings).join(', ')}`,
-        'entityType'
-      );
-    }
+    // Normalize entityType to array
+    const entityTypes = Array.isArray(params.entityType)
+      ? params.entityType
+      : [params.entityType];
 
-    // Output parameter is already parsed at the index.ts level
-    let output = params.output || 'full';
-
-    // Additional safety check: if output is still a stringified array, parse it here
-    if (
-      typeof output === 'string' &&
-      output.startsWith('[') &&
-      output.endsWith(']')
-    ) {
-      try {
-        const parsed = JSON.parse(output);
-        if (Array.isArray(parsed)) {
-          output = parsed;
-          console.error(
-            '[DEBUG SearchEngine] Emergency parsed stringified array:',
-            parsed
-          );
-        }
-      } catch (e) {
-        console.error(
-          '[DEBUG SearchEngine] Failed emergency parse:',
-          (e as Error).message
+    // Validate all entity types
+    for (const entityType of entityTypes) {
+      if (!this.entityMappings[entityType]) {
+        throw new ValidationError(
+          `Unsupported entity type: ${entityType}. Supported types: ${Object.keys(this.entityMappings).join(', ')}`,
+          'entityType'
         );
       }
     }
 
+    // Output parameter should already be parsed at the search.ts level
+    const output = params.output || 'full';
+
     // Normalize parameters with defaults
     const normalized: NormalizedSearchParams = {
-      entityType: params.entityType,
+      entityType: params.entityType, // Keep original for compatibility
+      entityTypes: entityTypes, // Always normalized to array
       filters: params.filters || {},
       operators: params.operators || {},
       output: output,
@@ -82,9 +67,9 @@ export class SearchEngine {
       ...(params.workspaceId && { workspaceId: params.workspaceId }),
     };
 
-    // Validate filters
-    const filterValidation = this.validateFilters(
-      normalized.entityType,
+    // Validate filters for all entity types
+    const filterValidation = this.validateFiltersForMultipleTypes(
+      normalized.entityTypes,
       normalized.filters
     );
     if (!filterValidation.isValid) {
@@ -106,10 +91,10 @@ export class SearchEngine {
       );
     }
 
-    // Validate output parameter
+    // Validate output parameter for all entity types
     if (Array.isArray(normalized.output)) {
-      const outputValidation = this.validateOutputFields(
-        normalized.entityType,
+      const outputValidation = this.validateOutputFieldsForMultipleTypes(
+        normalized.entityTypes,
         normalized.output
       );
       if (!outputValidation.isValid) {
@@ -124,7 +109,7 @@ export class SearchEngine {
   }
 
   /**
-   * Execute search against the appropriate entity endpoint
+   * Execute search against the appropriate entity endpoint(s)
    */
   async executeEntitySearch(
     _context: any,
@@ -132,6 +117,80 @@ export class SearchEngine {
   ): Promise<SearchResults> {
     const startTime = Date.now();
 
+    // If single entity type, use existing logic
+    if (params.entityTypes.length === 1) {
+      return this.executeSingleEntitySearch(
+        _context,
+        {
+          ...params,
+          entityType: params.entityTypes[0],
+        },
+        startTime
+      );
+    }
+
+    // For multiple entity types, execute searches in parallel
+    const searchPromises = params.entityTypes.map(entityType =>
+      this.executeSingleEntitySearch(
+        _context,
+        {
+          ...params,
+          entityType,
+        },
+        startTime
+      ).then(result => ({
+        entityType,
+        result,
+      }))
+    );
+
+    try {
+      const results = await Promise.all(searchPromises);
+
+      // Aggregate results from all entity types
+      let allData: any[] = [];
+      let totalRecords = 0;
+      let hasMore = false;
+      const warnings: string[] = [];
+
+      for (const { entityType, result } of results) {
+        // Add entity type to each item if not already present
+        const dataWithType = result.data.map(item => ({
+          ...item,
+          _entityType: entityType, // Add entity type identifier
+        }));
+
+        allData = allData.concat(dataWithType);
+        totalRecords += result.totalRecords;
+        hasMore = hasMore || result.hasMore;
+        warnings.push(...result.warnings);
+      }
+
+      const queryTime = Date.now() - startTime;
+
+      return {
+        data: allData,
+        totalRecords,
+        hasMore,
+        warnings: [...new Set(warnings)], // Remove duplicates
+        queryTimeMs: queryTime,
+        cacheHit: false,
+      };
+    } catch (error: any) {
+      throw new Error(
+        `Multi-entity search failed for ${params.entityTypes.join(', ')}: ${error.message}`
+      );
+    }
+  }
+
+  /**
+   * Execute search for a single entity type
+   */
+  private async executeSingleEntitySearch(
+    _context: any,
+    params: NormalizedSearchParams & { entityType: EntityType },
+    startTime: number
+  ): Promise<SearchResults> {
     // Generate cache key
     const cacheKey = this.generateCacheKey(params);
 
@@ -153,7 +212,7 @@ export class SearchEngine {
       const entityConfig = this.entityMappings[params.entityType];
 
       // Build parameters for the underlying list function
-      const listParams = this.buildListParams(params);
+      const listParams = this.buildListParams(params, params.entityType);
 
       // Route to appropriate handler based on entity type
       const response = await this.routeToEntityHandler(
@@ -213,27 +272,37 @@ export class SearchEngine {
 
     // Apply output processing
     if (params.output !== 'full') {
-      console.error(
-        '[DEBUG SearchEngine processResults] About to call outputProcessor.processOutput with:',
-        params.output,
-        'type:',
-        typeof params.output,
-        'isArray:',
-        Array.isArray(params.output)
-      );
-
-      processedData = this.outputProcessor.processOutput(
-        processedData,
-        params.entityType,
-        params.output
-      );
-
-      console.error(
-        '[DEBUG SearchEngine processResults] After outputProcessor, got',
-        processedData.length,
-        'items. First item keys:',
-        processedData.length > 0 ? Object.keys(processedData[0]) : 'none'
-      );
+      // When processing multi-entity results, we need to handle entity type per item
+      if (params.entityTypes.length > 1) {
+        // Special handling for ids-only mode - can't add properties to strings
+        if (params.output === 'ids-only') {
+          processedData = this.outputProcessor.processOutput(
+            processedData,
+            params.entityTypes[0], // Entity type doesn't matter for ids-only
+            params.output
+          );
+        } else {
+          processedData = processedData.map(item => {
+            const entityType = item._entityType || params.entityTypes[0];
+            const processed = this.outputProcessor.processOutput(
+              [item],
+              entityType,
+              params.output
+            )[0];
+            // Preserve the _entityType field if it exists and we're not in ids-only mode
+            if (item._entityType && typeof processed === 'object') {
+              processed._entityType = item._entityType;
+            }
+            return processed;
+          });
+        }
+      } else {
+        processedData = this.outputProcessor.processOutput(
+          processedData,
+          params.entityTypes[0],
+          params.output
+        );
+      }
     }
 
     return {
@@ -325,6 +394,94 @@ export class SearchEngine {
   }
 
   /**
+   * Validate filters for multiple entity types
+   */
+  private validateFiltersForMultipleTypes(
+    entityTypes: EntityType[],
+    filters: Record<string, any>
+  ): FilterValidationResult {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+    const normalizedFilters: Record<string, any> = {};
+
+    for (const [field, value] of Object.entries(filters)) {
+      // Check if field is searchable in at least one entity type
+      const searchableInTypes = entityTypes.filter(entityType =>
+        this.isFieldSearchable(entityType, field)
+      );
+
+      if (searchableInTypes.length === 0) {
+        errors.push(
+          `Field "${field}" is not searchable in any of the specified entity types`
+        );
+        continue;
+      }
+
+      if (searchableInTypes.length < entityTypes.length) {
+        warnings.push(
+          `Field "${field}" is only searchable in: ${searchableInTypes.join(', ')}`
+        );
+      }
+
+      // Normalize filter value
+      normalizedFilters[field] = this.normalizeFilterValue(value);
+
+      // Add warnings for potentially problematic filters
+      if (value === '' || value === null || value === undefined) {
+        warnings.push(`Searching for empty/missing values in field "${field}"`);
+      }
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+      normalizedFilters,
+    };
+  }
+
+  /**
+   * Validate output fields for multiple entity types
+   */
+  private validateOutputFieldsForMultipleTypes(
+    entityTypes: EntityType[],
+    fields: string[]
+  ): FilterValidationResult {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    for (const field of fields) {
+      // Skip the special _entityType field we add
+      if (field === '_entityType') continue;
+
+      // Check if field is available in at least one entity type
+      const availableInTypes = entityTypes.filter(entityType =>
+        this.isFieldSearchable(entityType, field)
+      );
+
+      if (availableInTypes.length === 0) {
+        errors.push(
+          `Output field "${field}" is not available in any of the specified entity types`
+        );
+        continue;
+      }
+
+      if (availableInTypes.length < entityTypes.length) {
+        warnings.push(
+          `Output field "${field}" is only available in: ${availableInTypes.join(', ')}`
+        );
+      }
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+      normalizedFilters: {},
+    };
+  }
+
+  /**
    * Validate operator fields and values
    */
   private validateOperators(
@@ -368,7 +525,10 @@ export class SearchEngine {
   /**
    * Build parameters for the underlying list function
    */
-  private buildListParams(params: NormalizedSearchParams): any {
+  private buildListParams(
+    params: NormalizedSearchParams,
+    entityType?: EntityType
+  ): any {
     const listParams: any = {
       limit: params.limit,
       startWith: params.startWith,
@@ -378,10 +538,15 @@ export class SearchEngine {
       workspaceId: params.workspaceId,
     };
 
-    // Add entity-specific filters
-    for (const [field, value] of Object.entries(params.filters)) {
-      if (this.canFilterServerSide(params.entityType, field)) {
-        listParams[this.mapFilterToApiParam(params.entityType, field)] = value;
+    // Add entity-specific filters if we have a single entity type
+    const singleEntityType =
+      entityType ||
+      (params.entityTypes.length === 1 ? params.entityTypes[0] : null);
+    if (singleEntityType) {
+      for (const [field, value] of Object.entries(params.filters)) {
+        if (this.canFilterServerSide(singleEntityType, field)) {
+          listParams[this.mapFilterToApiParam(singleEntityType, field)] = value;
+        }
       }
     }
 
@@ -478,7 +643,11 @@ export class SearchEngine {
     let filtered = data;
 
     for (const [field, value] of Object.entries(params.filters)) {
-      if (this.canFilterServerSide(params.entityType, field)) {
+      // Skip server-side filters only if we have a single entity type
+      if (
+        params.entityTypes.length === 1 &&
+        this.canFilterServerSide(params.entityTypes[0], field)
+      ) {
         continue; // Already filtered server-side
       }
 

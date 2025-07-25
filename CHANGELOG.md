@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Multi-Entity Search Support**
+  - Enhanced search tool to accept array of entity types for simultaneous searching
+  - Added support for searching multiple entity types in a single request (e.g., `["products", "components", "features"]`)
+  - Results include `_entityType` field to distinguish items from different entity types
+  - Added validation to ensure filters and output fields are valid for at least one entity type
+  - Improved performance by executing searches in parallel for multiple entity types
+  - Added comprehensive test coverage for multi-entity search functionality
+
 ## [1.3.2] - 2025-01-23
 
 ### Fixed

@@ -13,6 +13,16 @@ search({
 
 // Response:
 // "Found 47 features. Filtered by: missing description"
+
+// NEW: Search multiple entity types in a single request
+search({
+  entityType: ['products', 'components', 'features'],
+  output: ['id', 'name'],
+});
+
+// Response:
+// "Found 125 items across products, components, features"
+// Data includes _entityType field to distinguish results
 ```
 
 ## Output Control Examples
@@ -75,6 +85,28 @@ search({
     'status.name': 'Active',
   },
 });
+```
+
+### Multi-Entity Search
+
+```javascript
+// Search across multiple entity types simultaneously
+search({
+  entityType: ['products', 'components', 'features'],
+  filters: { name: 'dashboard' },
+  operators: { name: 'contains' },
+  output: ['id', 'name', '_entityType'],
+});
+
+// Response data includes _entityType field:
+// [
+//   { id: "prod-1", name: "Admin Dashboard", _entityType: "products" },
+//   { id: "comp-5", name: "Dashboard UI", _entityType: "components" },
+//   { id: "feat-8", name: "Dashboard Analytics", _entityType: "features" }
+// ]
+
+// Note: Filters/output fields must be valid for at least one entity type
+// Fields only available in some types will show a warning but still work
 ```
 
 ### Complex Operators
@@ -195,6 +227,52 @@ search({
 3. **Use pagination** for results over 50 items
 4. **Prefer specific filters** over broad searches
 5. **Consider ids-only mode** for bulk operations
+
+## Multi-Entity Search Scenarios
+
+### Searching Product Hierarchy
+
+```javascript
+// Find all product-related items with a common name pattern
+search({
+  entityType: ['products', 'components', 'features'],
+  filters: { name: 'mobile' },
+  operators: { name: 'contains' },
+  output: ['id', 'name', '_entityType'],
+});
+
+// Response: "Found 32 items across products, components, features"
+```
+
+### Cross-Entity ID Collection
+
+```javascript
+// Collect IDs from multiple entity types for reporting
+const result = search({
+  entityType: ['features', 'objectives', 'initiatives'],
+  output: 'ids-only',
+  limit: 100,
+});
+
+// Response data: ["feat-1", "feat-2", "obj-1", "init-1", ...]
+// Note: With ids-only mode, entity type distinction is lost
+```
+
+### Entity Type Filtering Considerations
+
+```javascript
+// When using filters that don't exist in all types
+search({
+  entityType: ['features', 'notes', 'companies'],
+  filters: {
+    status: 'active', // Only exists in features
+  },
+});
+
+// Response includes warning:
+// "Field 'status' is only searchable in: features"
+// But search still executes, filtering features by status
+```
 
 ## Real-World Scenarios
 
