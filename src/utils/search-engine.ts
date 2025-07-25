@@ -313,41 +313,6 @@ export class SearchEngine {
   }
 
   /**
-   * Validate filter fields and values
-   */
-  private validateFilters(
-    entityType: EntityType,
-    filters: Record<string, any>
-  ): FilterValidationResult {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-    const normalizedFilters: Record<string, any> = {};
-
-    for (const [field, value] of Object.entries(filters)) {
-      // Check if field is searchable
-      if (!this.isFieldSearchable(entityType, field)) {
-        errors.push(`Field "${field}" is not searchable for ${entityType}`);
-        continue;
-      }
-
-      // Normalize filter value
-      normalizedFilters[field] = this.normalizeFilterValue(value);
-
-      // Add warnings for potentially problematic filters
-      if (value === '' || value === null || value === undefined) {
-        warnings.push(`Searching for empty/missing values in field "${field}"`);
-      }
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      warnings,
-      normalizedFilters,
-    };
-  }
-
-  /**
    * Check if a field is searchable for the given entity type
    */
   private isFieldSearchable(entityType: EntityType, field: string): boolean {
@@ -366,31 +331,6 @@ export class SearchEngine {
         searchableField.startsWith(baseField + '.') ||
         searchableField === baseField
     );
-  }
-
-  /**
-   * Validate output fields
-   */
-  private validateOutputFields(
-    entityType: EntityType,
-    fields: string[]
-  ): FilterValidationResult {
-    const errors: string[] = [];
-
-    for (const field of fields) {
-      if (!this.isFieldSearchable(entityType, field)) {
-        errors.push(
-          `Output field "${field}" is not available for ${entityType}`
-        );
-      }
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-      warnings: [],
-      normalizedFilters: {},
-    };
   }
 
   /**
