@@ -229,6 +229,151 @@ Supports pagination for large result sets and multiple filter combinations.
             'get_note_statistics',
         ],
     },
+    // Search Tool
+    search: {
+        description: 'Universal search tool providing powerful, flexible searching across all Productboard entities with intelligent output control',
+        detailedDescription: `
+The search tool is the most powerful and flexible way to find information across your entire Productboard workspace. It supports:
+
+**Multi-Entity Search**: Search across multiple entity types simultaneously (products, components, features, notes, companies, etc.)
+**Intelligent Output Control**: Choose exactly which fields to return for optimal performance
+**Advanced Filtering**: Complex filters with multiple operators and field combinations
+**Hierarchical Relationships**: Access parent-child relationships across the product hierarchy
+**Smart Validation**: Automatic validation with helpful warnings for cross-entity operations
+
+Key capabilities:
+- Search single or multiple entity types in one request
+- Filter by any searchable field with various operators (equals, contains, etc.)
+- Control output with field selection or preset modes (ids-only, summary, full)
+- Access hierarchical relationships (parent.product.id, parent.component.id, parent.feature.id)
+- Pagination support for large result sets
+- Performance optimization with server-side and client-side filtering
+- Intelligent messaging with suggestions and performance warnings
+    `,
+        examples: [
+            {
+                title: 'Basic single-entity search',
+                description: 'Find features missing descriptions',
+                input: {
+                    entityType: 'features',
+                    filters: { description: '' },
+                },
+                expectedOutput: {
+                    message: 'Found 47 features. Filtered by: missing description',
+                    data: '[array of feature objects]',
+                    count: 47
+                }
+            },
+            {
+                title: 'Multi-entity search with hierarchy',
+                description: 'Search across products, components, and features with parent relationships',
+                input: {
+                    entityType: ['products', 'components', 'features'],
+                    output: ['id', 'name', 'parent.product.id', 'parent.component.id', '_entityType'],
+                    limit: 100
+                },
+                expectedOutput: {
+                    message: 'Found 125 items across products, components, features',
+                    data: [
+                        { id: 'prod-1', name: 'Mobile App', _entityType: 'products' },
+                        { id: 'comp-5', name: 'User Auth', parent: { product: { id: 'prod-1' } }, _entityType: 'components' },
+                        { id: 'feat-8', name: 'Login Screen', parent: { component: { id: 'comp-5' } }, _entityType: 'features' }
+                    ],
+                    count: 125
+                }
+            },
+            {
+                title: 'Advanced filtering with operators',
+                description: 'Find notes with specific criteria using multiple filters and operators',
+                input: {
+                    entityType: 'notes',
+                    filters: {
+                        title: 'urgent',
+                        'company.domain': 'acme.com'
+                    },
+                    operators: {
+                        title: 'contains',
+                        'company.domain': 'equals'
+                    },
+                    output: ['id', 'title', 'company.name']
+                }
+            },
+            {
+                title: 'Output control for performance',
+                description: 'Get only IDs for bulk operations',
+                input: {
+                    entityType: 'features',
+                    filters: { archived: false },
+                    output: 'ids-only'
+                },
+                expectedOutput: {
+                    message: 'Found 156 features. Filtered by: archived status = false',
+                    data: ['feat-123', 'feat-456', 'feat-789'],
+                    count: 156
+                }
+            },
+            {
+                title: 'Complete hierarchy mapping',
+                description: 'Get complete product hierarchy for UUID mapping',
+                input: {
+                    entityType: ['products', 'components', 'features'],
+                    output: [
+                        'id',
+                        'name',
+                        'parent.product.id',
+                        'parent.component.id',
+                        'parent.feature.id',
+                        '_entityType'
+                    ],
+                    limit: 2000
+                },
+                notes: 'This gives you everything needed to build complete UUID relationship mappings'
+            }
+        ],
+        commonErrors: [
+            {
+                error: 'Unsupported entity type',
+                cause: 'entityType contains invalid entity type name',
+                solution: 'Use supported types: features, notes, companies, users, products, components, releases, etc.'
+            },
+            {
+                error: 'Invalid output fields',
+                cause: 'Output field is not available for the specified entity type',
+                solution: 'Check field mappings or use fields that exist across all entity types when using multi-entity search'
+            },
+            {
+                error: 'Field not searchable',
+                cause: 'Filter field is not in the searchable fields list for the entity type',
+                solution: 'Use only searchable fields for filters, or use client-side processing for non-searchable fields'
+            },
+            {
+                error: 'Limit exceeds maximum',
+                cause: 'Limit parameter exceeds the maximum allowed value',
+                solution: 'Use pagination with limit <= 100 and implement multiple requests for larger datasets'
+            }
+        ],
+        bestPractices: [
+            'Use multi-entity search to reduce API calls when working with hierarchical data',
+            'Select specific output fields instead of full objects for better performance',
+            'Use ids-only mode for bulk operations and reference lookups',
+            'Implement pagination for result sets over 50 items',
+            'Combine server-side filters with client-side processing for complex queries',
+            'Use hierarchical fields (parent.product.id) to build complete relationship mappings',
+            'Cache search results when performing multiple operations on the same dataset',
+            'Use _entityType field to distinguish results in multi-entity searches',
+            'Apply more specific filters before less specific ones for better performance',
+            'Consider using summary output mode for dashboard displays'
+        ],
+        relatedTools: [
+            'list_notes',
+            'list_features',
+            'list_companies',
+            'list_products',
+            'list_components',
+            'get_notes',
+            'get_features'
+        ]
+    },
     // Features Tools
     create_feature: {
         description: 'Create a new feature in your product roadmap',

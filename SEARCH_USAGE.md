@@ -228,6 +228,105 @@ search({
 4. **Prefer specific filters** over broad searches
 5. **Consider ids-only mode** for bulk operations
 
+## Hierarchical Relationships
+
+### Parent-Child Relationship Fields
+
+The search tool supports accessing parent relationships across the ProductBoard hierarchy:
+
+**Product → Component → Feature hierarchy:**
+
+- **Components**: Use `parent.product.id` to get the parent product ID
+- **Features**: Use `parent.component.id` to get the parent component ID
+- **Sub-features**: Use `parent.feature.id` to get the parent feature ID
+
+```javascript
+// Get components with their parent product IDs
+search({
+  entityType: 'components',
+  output: ['id', 'name', 'parent.product.id'],
+});
+
+// Response:
+// [
+//   {
+//     id: "comp-123",
+//     name: "Agent Intel",
+//     parent: { product: { id: "prod-456" } }
+//   }
+// ]
+```
+
+```javascript
+// Get features with their parent relationships
+search({
+  entityType: 'features',
+  output: ['id', 'name', 'parent.component.id', 'parent.feature.id'],
+});
+
+// Response shows either parent.component.id (for features under components)
+// or parent.feature.id (for sub-features under other features)
+```
+
+### Complete Hierarchy Mapping
+
+Get the complete product hierarchy in a single API call:
+
+```javascript
+// Get all entities with their hierarchical relationships
+search({
+  entityType: ['products', 'components', 'features'],
+  output: [
+    'id',
+    'name',
+    'parent.product.id', // For components
+    'parent.component.id', // For features under components
+    'parent.feature.id', // For sub-features under features
+    '_entityType', // To distinguish entity types
+  ],
+  limit: 2000,
+});
+
+// This gives you everything needed to build a complete UUID mapping:
+// - Products (no parent)
+// - Components (with parent.product.id)
+// - Features (with parent.component.id or parent.feature.id)
+// - Entity type distinction via _entityType field
+```
+
+### Building UUID Mappings
+
+Use hierarchical search to efficiently build UUID relationship mappings:
+
+```javascript
+// Single API call to get complete hierarchy
+const hierarchyData = await search({
+  entityType: ['products', 'components', 'features'],
+  output: [
+    'id',
+    'name',
+    'parent.product.id',
+    'parent.component.id',
+    'parent.feature.id',
+    '_entityType',
+  ],
+});
+
+// Process results to build relationships:
+const products = hierarchyData.data.filter(
+  item => item._entityType === 'products'
+);
+const components = hierarchyData.data.filter(
+  item => item._entityType === 'components'
+);
+const features = hierarchyData.data.filter(
+  item => item._entityType === 'features'
+);
+
+// Each component now has parent.product.id to map to its product
+// Each feature has either parent.component.id or parent.feature.id
+```
+
 ## Multi-Entity Search Scenarios
 
 ### Searching Product Hierarchy
@@ -238,10 +337,17 @@ search({
   entityType: ['products', 'components', 'features'],
   filters: { name: 'mobile' },
   operators: { name: 'contains' },
-  output: ['id', 'name', '_entityType'],
+  output: [
+    'id',
+    'name',
+    'parent.product.id',
+    'parent.component.id',
+    '_entityType',
+  ],
 });
 
 // Response: "Found 32 items across products, components, features"
+// Results include parent relationships for building hierarchy
 ```
 
 ### Cross-Entity ID Collection
