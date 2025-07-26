@@ -691,7 +691,6 @@ ${paramDoc.examples.map((ex: any) => `- **${ex.value}**: ${ex.useCase}`).join('\
 
     // Debug what's actually available
     const availableKeys = Object.keys(docs);
-    console.log('Available tools:', availableKeys.length, availableKeys);
 
     let content = '# Productboard MCP Tools Documentation\n\n';
     content += 'Complete documentation for all available tools.\n\n';
