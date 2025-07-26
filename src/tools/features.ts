@@ -218,6 +218,19 @@ export function setupFeaturesTools() {
               },
             },
           },
+          parentId: {
+            type: 'string',
+            description: 'Parent feature ID (for sub-features)',
+          },
+          componentId: {
+            type: 'string',
+            description:
+              'Component ID (to move feature to a different component)',
+          },
+          productId: {
+            type: 'string',
+            description: 'Product ID (to move feature to a different product)',
+          },
           instance: {
             type: 'string',
             description: 'Productboard instance name (optional)',
@@ -761,6 +774,26 @@ async function updateFeature(args: any) {
           }
         } else {
           body.timeframe = args.timeframe;
+        }
+      }
+
+      // Handle parent reassignment (component/product changes)
+      if (args.parentId || args.componentId || args.productId) {
+        let parent = null;
+
+        if (args.parentId) {
+          // Sub-feature: parent is another feature
+          parent = { feature: { id: args.parentId } };
+        } else if (args.componentId) {
+          // Top-level feature: parent is a component
+          parent = { component: { id: args.componentId } };
+        } else if (args.productId) {
+          // Top-level feature: parent is a product
+          parent = { product: { id: args.productId } };
+        }
+
+        if (parent) {
+          body.parent = parent;
         }
       }
 

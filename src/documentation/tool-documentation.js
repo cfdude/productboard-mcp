@@ -261,26 +261,42 @@ Key capabilities:
                 expectedOutput: {
                     message: 'Found 47 features. Filtered by: missing description',
                     data: '[array of feature objects]',
-                    count: 47
-                }
+                    count: 47,
+                },
             },
             {
                 title: 'Multi-entity search with hierarchy',
                 description: 'Search across products, components, and features with parent relationships',
                 input: {
                     entityType: ['products', 'components', 'features'],
-                    output: ['id', 'name', 'parent.product.id', 'parent.component.id', '_entityType'],
-                    limit: 100
+                    output: [
+                        'id',
+                        'name',
+                        'parent.product.id',
+                        'parent.component.id',
+                        '_entityType',
+                    ],
+                    limit: 100,
                 },
                 expectedOutput: {
                     message: 'Found 125 items across products, components, features',
                     data: [
                         { id: 'prod-1', name: 'Mobile App', _entityType: 'products' },
-                        { id: 'comp-5', name: 'User Auth', parent: { product: { id: 'prod-1' } }, _entityType: 'components' },
-                        { id: 'feat-8', name: 'Login Screen', parent: { component: { id: 'comp-5' } }, _entityType: 'features' }
+                        {
+                            id: 'comp-5',
+                            name: 'User Auth',
+                            parent: { product: { id: 'prod-1' } },
+                            _entityType: 'components',
+                        },
+                        {
+                            id: 'feat-8',
+                            name: 'Login Screen',
+                            parent: { component: { id: 'comp-5' } },
+                            _entityType: 'features',
+                        },
                     ],
-                    count: 125
-                }
+                    count: 125,
+                },
             },
             {
                 title: 'Advanced filtering with operators',
@@ -289,14 +305,14 @@ Key capabilities:
                     entityType: 'notes',
                     filters: {
                         title: 'urgent',
-                        'company.domain': 'acme.com'
+                        'company.domain': 'acme.com',
                     },
                     operators: {
                         title: 'contains',
-                        'company.domain': 'equals'
+                        'company.domain': 'equals',
                     },
-                    output: ['id', 'title', 'company.name']
-                }
+                    output: ['id', 'title', 'company.name'],
+                },
             },
             {
                 title: 'Output control for performance',
@@ -304,13 +320,13 @@ Key capabilities:
                 input: {
                     entityType: 'features',
                     filters: { archived: false },
-                    output: 'ids-only'
+                    output: 'ids-only',
                 },
                 expectedOutput: {
                     message: 'Found 156 features. Filtered by: archived status = false',
                     data: ['feat-123', 'feat-456', 'feat-789'],
-                    count: 156
-                }
+                    count: 156,
+                },
             },
             {
                 title: 'Complete hierarchy mapping',
@@ -323,34 +339,34 @@ Key capabilities:
                         'parent.product.id',
                         'parent.component.id',
                         'parent.feature.id',
-                        '_entityType'
+                        '_entityType',
                     ],
-                    limit: 2000
+                    limit: 2000,
                 },
-                notes: 'This gives you everything needed to build complete UUID relationship mappings'
-            }
+                notes: 'This gives you everything needed to build complete UUID relationship mappings',
+            },
         ],
         commonErrors: [
             {
                 error: 'Unsupported entity type',
                 cause: 'entityType contains invalid entity type name',
-                solution: 'Use supported types: features, notes, companies, users, products, components, releases, etc.'
+                solution: 'Use supported types: features, notes, companies, users, products, components, releases, etc.',
             },
             {
                 error: 'Invalid output fields',
                 cause: 'Output field is not available for the specified entity type',
-                solution: 'Check field mappings or use fields that exist across all entity types when using multi-entity search'
+                solution: 'Check field mappings or use fields that exist across all entity types when using multi-entity search',
             },
             {
                 error: 'Field not searchable',
                 cause: 'Filter field is not in the searchable fields list for the entity type',
-                solution: 'Use only searchable fields for filters, or use client-side processing for non-searchable fields'
+                solution: 'Use only searchable fields for filters, or use client-side processing for non-searchable fields',
             },
             {
                 error: 'Limit exceeds maximum',
                 cause: 'Limit parameter exceeds the maximum allowed value',
-                solution: 'Use pagination with limit <= 100 and implement multiple requests for larger datasets'
-            }
+                solution: 'Use pagination with limit <= 100 and implement multiple requests for larger datasets',
+            },
         ],
         bestPractices: [
             'Use multi-entity search to reduce API calls when working with hierarchical data',
@@ -362,7 +378,7 @@ Key capabilities:
             'Cache search results when performing multiple operations on the same dataset',
             'Use _entityType field to distinguish results in multi-entity searches',
             'Apply more specific filters before less specific ones for better performance',
-            'Consider using summary output mode for dashboard displays'
+            'Consider using summary output mode for dashboard displays',
         ],
         relatedTools: [
             'list_notes',
@@ -371,8 +387,8 @@ Key capabilities:
             'list_products',
             'list_components',
             'get_notes',
-            'get_features'
-        ]
+            'get_features',
+        ],
     },
     // Features Tools
     create_feature: {
