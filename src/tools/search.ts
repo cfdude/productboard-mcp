@@ -20,30 +20,60 @@ export function setupSearchTools() {
     {
       name: 'search',
       description:
-        'Universal search across all Productboard entities with flexible filtering and output control',
+        'Universal search across all Productboard entities with flexible filtering and output control. Supports searching multiple entity types in a single request.',
       inputSchema: {
         type: 'object',
         properties: {
           entityType: {
-            type: 'string',
-            enum: [
-              'features',
-              'notes',
-              'companies',
-              'users',
-              'products',
-              'components',
-              'releases',
-              'release_groups',
-              'objectives',
-              'initiatives',
-              'key_results',
-              'custom_fields',
-              'webhooks',
-              'plugin_integrations',
-              'jira_integrations',
+            oneOf: [
+              {
+                type: 'string',
+                enum: [
+                  'features',
+                  'notes',
+                  'companies',
+                  'users',
+                  'products',
+                  'components',
+                  'releases',
+                  'release_groups',
+                  'objectives',
+                  'initiatives',
+                  'key_results',
+                  'custom_fields',
+                  'webhooks',
+                  'plugin_integrations',
+                  'jira_integrations',
+                ],
+                description: 'Single entity type to search',
+              },
+              {
+                type: 'array',
+                items: {
+                  type: 'string',
+                  enum: [
+                    'features',
+                    'notes',
+                    'companies',
+                    'users',
+                    'products',
+                    'components',
+                    'releases',
+                    'release_groups',
+                    'objectives',
+                    'initiatives',
+                    'key_results',
+                    'custom_fields',
+                    'webhooks',
+                    'plugin_integrations',
+                    'jira_integrations',
+                  ],
+                },
+                description: 'Multiple entity types to search simultaneously',
+              },
             ],
-            description: 'Type of entity to search',
+            description:
+              'Type(s) of entity to search - can be a single type or array of types',
           },
           filters: {
             type: 'object',
@@ -134,51 +164,73 @@ export async function handleSearchTool(name: string, args: SearchParams) {
     throw new Error(`Unknown search tool: ${name}`);
   }
 
-  console.error(
-    '[DEBUG handleSearchTool] Received args.output:',
-    args.output,
-    'type:',
-    typeof args.output,
-    'isArray:',
-    Array.isArray(args.output)
-  );
-
-  // Fix stringified array output parameter (MCP protocol issue workaround)
+  // Fix stringified array parameters (MCP protocol issue workaround)
   const fixedArgs = { ...args };
 
+  // Handle stringified entityType array
+  if (fixedArgs.entityType && typeof fixedArgs.entityType === 'string') {
+    // Try to parse as JSON if it looks like an array
+    if (
+      fixedArgs.entityType.startsWith('[') &&
+      fixedArgs.entityType.endsWith(']')
+    ) {
+      try {
+        const parsed = JSON.parse(fixedArgs.entityType);
+        if (Array.isArray(parsed)) {
+          fixedArgs.entityType = parsed;
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }
+
+  // Handle stringified output array
   if (fixedArgs.output && typeof fixedArgs.output === 'string') {
-    console.error(
-      '[DEBUG handleSearchTool] Attempting to parse stringified output:',
-      fixedArgs.output
-    );
     // Try to parse as JSON if it looks like an array
     if (fixedArgs.output.startsWith('[') && fixedArgs.output.endsWith(']')) {
       try {
         const parsed = JSON.parse(fixedArgs.output);
         if (Array.isArray(parsed)) {
           fixedArgs.output = parsed;
-          console.error(
-            '[DEBUG handleSearchTool] Successfully parsed output to array:',
-            parsed
-          );
         }
-      } catch (e) {
-        console.error(
-          '[DEBUG handleSearchTool] Failed to parse output:',
-          (e as Error).message
-        );
+      } catch {
+        // Ignore parse errors
       }
     }
   }
 
-  console.error(
-    '[DEBUG handleSearchTool] Final args.output:',
-    fixedArgs.output,
-    'type:',
-    typeof fixedArgs.output,
-    'isArray:',
-    Array.isArray(fixedArgs.output)
-  );
+  // Handle stringified filters object
+  if (fixedArgs.filters && typeof fixedArgs.filters === 'string') {
+    const filtersStr = fixedArgs.filters as string;
+    // Try to parse as JSON if it looks like an object
+    if (filtersStr.startsWith('{') && filtersStr.endsWith('}')) {
+      try {
+        const parsed = JSON.parse(filtersStr);
+        if (typeof parsed === 'object' && parsed !== null) {
+          fixedArgs.filters = parsed;
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }
+
+  // Handle stringified operators object
+  if (fixedArgs.operators && typeof fixedArgs.operators === 'string') {
+    const operatorsStr = fixedArgs.operators as string;
+    // Try to parse as JSON if it looks like an object
+    if (operatorsStr.startsWith('{') && operatorsStr.endsWith('}')) {
+      try {
+        const parsed = JSON.parse(operatorsStr);
+        if (typeof parsed === 'object' && parsed !== null) {
+          fixedArgs.operators = parsed;
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }
 
   try {
     return await performSearch(fixedArgs);
@@ -204,15 +256,6 @@ export async function handleSearchTool(name: string, args: SearchParams) {
  * Main search execution function
  */
 async function performSearch(params: SearchParams) {
-  console.error(
-    '[DEBUG performSearch] Received params.output:',
-    params.output,
-    'type:',
-    typeof params.output,
-    'isArray:',
-    Array.isArray(params.output)
-  );
-
   return await withContext(
     async context => {
       const searchEngine = new SearchEngine();
@@ -222,15 +265,6 @@ async function performSearch(params: SearchParams) {
       const normalizedParams =
         await searchEngine.validateAndNormalizeParams(params);
 
-      console.error(
-        '[DEBUG performSearch] After normalization, output:',
-        normalizedParams.output,
-        'type:',
-        typeof normalizedParams.output,
-        'isArray:',
-        Array.isArray(normalizedParams.output)
-      );
-
       // Execute search against appropriate entity endpoint
       const rawResults = await searchEngine.executeEntitySearch(
         context,
@@ -238,15 +272,6 @@ async function performSearch(params: SearchParams) {
       );
 
       // Apply filtering and output formatting
-      console.error(
-        '[DEBUG performSearch] Before processResults, normalizedParams.output:',
-        normalizedParams.output,
-        'type:',
-        typeof normalizedParams.output,
-        'isArray:',
-        Array.isArray(normalizedParams.output)
-      );
-
       const processedResults = await searchEngine.processResults(
         rawResults,
         normalizedParams

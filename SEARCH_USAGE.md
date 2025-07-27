@@ -13,6 +13,16 @@ search({
 
 // Response:
 // "Found 47 features. Filtered by: missing description"
+
+// NEW: Search multiple entity types in a single request
+search({
+  entityType: ['products', 'components', 'features'],
+  output: ['id', 'name'],
+});
+
+// Response:
+// "Found 125 items across products, components, features"
+// Data includes _entityType field to distinguish results
 ```
 
 ## Output Control Examples
@@ -75,6 +85,28 @@ search({
     'status.name': 'Active',
   },
 });
+```
+
+### Multi-Entity Search
+
+```javascript
+// Search across multiple entity types simultaneously
+search({
+  entityType: ['products', 'components', 'features'],
+  filters: { name: 'dashboard' },
+  operators: { name: 'contains' },
+  output: ['id', 'name', '_entityType'],
+});
+
+// Response data includes _entityType field:
+// [
+//   { id: "prod-1", name: "Admin Dashboard", _entityType: "products" },
+//   { id: "comp-5", name: "Dashboard UI", _entityType: "components" },
+//   { id: "feat-8", name: "Dashboard Analytics", _entityType: "features" }
+// ]
+
+// Note: Filters/output fields must be valid for at least one entity type
+// Fields only available in some types will show a warning but still work
 ```
 
 ### Complex Operators
@@ -195,6 +227,158 @@ search({
 3. **Use pagination** for results over 50 items
 4. **Prefer specific filters** over broad searches
 5. **Consider ids-only mode** for bulk operations
+
+## Hierarchical Relationships
+
+### Parent-Child Relationship Fields
+
+The search tool supports accessing parent relationships across the ProductBoard hierarchy:
+
+**Product → Component → Feature hierarchy:**
+
+- **Components**: Use `parent.product.id` to get the parent product ID
+- **Features**: Use `parent.component.id` to get the parent component ID
+- **Sub-features**: Use `parent.feature.id` to get the parent feature ID
+
+```javascript
+// Get components with their parent product IDs
+search({
+  entityType: 'components',
+  output: ['id', 'name', 'parent.product.id'],
+});
+
+// Response:
+// [
+//   {
+//     id: "comp-123",
+//     name: "Agent Intel",
+//     parent: { product: { id: "prod-456" } }
+//   }
+// ]
+```
+
+```javascript
+// Get features with their parent relationships
+search({
+  entityType: 'features',
+  output: ['id', 'name', 'parent.component.id', 'parent.feature.id'],
+});
+
+// Response shows either parent.component.id (for features under components)
+// or parent.feature.id (for sub-features under other features)
+```
+
+### Complete Hierarchy Mapping
+
+Get the complete product hierarchy in a single API call:
+
+```javascript
+// Get all entities with their hierarchical relationships
+search({
+  entityType: ['products', 'components', 'features'],
+  output: [
+    'id',
+    'name',
+    'parent.product.id', // For components
+    'parent.component.id', // For features under components
+    'parent.feature.id', // For sub-features under features
+    '_entityType', // To distinguish entity types
+  ],
+  limit: 2000,
+});
+
+// This gives you everything needed to build a complete UUID mapping:
+// - Products (no parent)
+// - Components (with parent.product.id)
+// - Features (with parent.component.id or parent.feature.id)
+// - Entity type distinction via _entityType field
+```
+
+### Building UUID Mappings
+
+Use hierarchical search to efficiently build UUID relationship mappings:
+
+```javascript
+// Single API call to get complete hierarchy
+const hierarchyData = await search({
+  entityType: ['products', 'components', 'features'],
+  output: [
+    'id',
+    'name',
+    'parent.product.id',
+    'parent.component.id',
+    'parent.feature.id',
+    '_entityType',
+  ],
+});
+
+// Process results to build relationships:
+const products = hierarchyData.data.filter(
+  item => item._entityType === 'products'
+);
+const components = hierarchyData.data.filter(
+  item => item._entityType === 'components'
+);
+const features = hierarchyData.data.filter(
+  item => item._entityType === 'features'
+);
+
+// Each component now has parent.product.id to map to its product
+// Each feature has either parent.component.id or parent.feature.id
+```
+
+## Multi-Entity Search Scenarios
+
+### Searching Product Hierarchy
+
+```javascript
+// Find all product-related items with a common name pattern
+search({
+  entityType: ['products', 'components', 'features'],
+  filters: { name: 'mobile' },
+  operators: { name: 'contains' },
+  output: [
+    'id',
+    'name',
+    'parent.product.id',
+    'parent.component.id',
+    '_entityType',
+  ],
+});
+
+// Response: "Found 32 items across products, components, features"
+// Results include parent relationships for building hierarchy
+```
+
+### Cross-Entity ID Collection
+
+```javascript
+// Collect IDs from multiple entity types for reporting
+const result = search({
+  entityType: ['features', 'objectives', 'initiatives'],
+  output: 'ids-only',
+  limit: 100,
+});
+
+// Response data: ["feat-1", "feat-2", "obj-1", "init-1", ...]
+// Note: With ids-only mode, entity type distinction is lost
+```
+
+### Entity Type Filtering Considerations
+
+```javascript
+// When using filters that don't exist in all types
+search({
+  entityType: ['features', 'notes', 'companies'],
+  filters: {
+    status: 'active', // Only exists in features
+  },
+});
+
+// Response includes warning:
+// "Field 'status' is only searchable in: features"
+// But search still executes, filtering features by status
+```
 
 ## Real-World Scenarios
 
