@@ -94,15 +94,25 @@ export class SearchMessageGenerator {
   private generateResultSummary(context: SearchContext): string {
     const { entityType, totalRecords, returnedRecords } = context;
 
+    // Handle multiple entity types
+    const entityTypeDisplay = Array.isArray(entityType)
+      ? entityType.join(', ')
+      : entityType;
+    const isMultipleTypes = Array.isArray(entityType);
+
     if (totalRecords === 0) {
-      return `No ${entityType} found matching the search criteria`;
+      return `No ${entityTypeDisplay} found matching the search criteria`;
     }
 
     let message: string;
     if (totalRecords === returnedRecords) {
-      message = `Found ${totalRecords} ${entityType}`;
+      message = isMultipleTypes
+        ? `Found ${totalRecords} items across ${entityTypeDisplay}`
+        : `Found ${totalRecords} ${entityType}`;
     } else {
-      message = `Found ${totalRecords} ${entityType}, returning first ${returnedRecords}`;
+      message = isMultipleTypes
+        ? `Found ${totalRecords} items across ${entityTypeDisplay}, returning first ${returnedRecords}`
+        : `Found ${totalRecords} ${entityType}, returning first ${returnedRecords}`;
     }
 
     return message;
@@ -131,9 +141,12 @@ export class SearchMessageGenerator {
   private describeFilter(
     field: string,
     value: any,
-    entityType: EntityType
+    entityType: EntityType | EntityType[]
   ): string {
-    const fieldDisplayName = this.getFieldDisplayName(field, entityType);
+    // For multiple entity types, use the field name directly
+    const fieldDisplayName = Array.isArray(entityType)
+      ? field
+      : this.getFieldDisplayName(field, entityType);
 
     // Handle empty/missing value searches
     if (value === '' || value === null || value === undefined) {
@@ -237,10 +250,9 @@ export class SearchMessageGenerator {
     // Check for common empty value patterns
     for (const [field, value] of Object.entries(context.filters)) {
       if (value === '' || value === null) {
-        const fieldDisplayName = this.getFieldDisplayName(
-          field,
-          context.entityType
-        );
+        const fieldDisplayName = Array.isArray(context.entityType)
+          ? field
+          : this.getFieldDisplayName(field, context.entityType);
         suggestions.push(
           `Remove the "${fieldDisplayName}" filter to see all ${context.entityType}, then filter client-side if needed`
         );
@@ -252,9 +264,10 @@ export class SearchMessageGenerator {
       suggestions.push(`Try removing some filters to broaden the search scope`);
     }
 
-    // Entity-specific suggestions
-    const entitySpecificSuggestions =
-      this.getEntitySpecificSuggestions(context);
+    // Entity-specific suggestions (only for single entity type)
+    const entitySpecificSuggestions = Array.isArray(context.entityType)
+      ? []
+      : this.getEntitySpecificSuggestions(context);
     suggestions.push(...entitySpecificSuggestions);
 
     if (suggestions.length === 0) {
@@ -335,7 +348,12 @@ export class SearchMessageGenerator {
     // Estimate based on entity type and output mode
     let baseUnitsPerRecord = 0;
 
-    switch (context.entityType) {
+    // For multi-entity search, use a default estimate
+    const entityTypeForEstimate = Array.isArray(context.entityType)
+      ? 'default'
+      : context.entityType;
+
+    switch (entityTypeForEstimate) {
       case 'features':
         baseUnitsPerRecord = context.output === 'full' ? 300 : 50;
         break;

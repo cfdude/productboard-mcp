@@ -14,7 +14,6 @@ import {
   parameterDocumentation,
   categoryDocumentation,
   ToolDocumentation,
-  getMergedDocumentation,
 } from './tool-documentation.js';
 
 export class DocumentationProvider {
@@ -23,13 +22,10 @@ export class DocumentationProvider {
 
   constructor(server: Server) {
     this.server = server;
-    this.initializeDocumentation();
+    // Initialize documentation synchronously since getMergedDocumentation just returns toolDocumentation
+    this.mergedDocumentation = toolDocumentation;
     this.setupPrompts();
     this.setupResources();
-  }
-
-  private async initializeDocumentation() {
-    this.mergedDocumentation = await getMergedDocumentation();
   }
 
   private setupPrompts() {
@@ -691,16 +687,22 @@ ${paramDoc.examples.map((ex: any) => `- **${ex.value}**: ${ex.useCase}`).join('\
   }
 
   private generateAllToolsDocumentation(): string {
+    const docs = this.mergedDocumentation || toolDocumentation;
+
+    // Debug what's actually available
+    const availableKeys = Object.keys(docs);
+
     let content = '# Productboard MCP Tools Documentation\n\n';
     content += 'Complete documentation for all available tools.\n\n';
+    content += `<!-- Found ${availableKeys.length} documented tools: ${availableKeys.join(', ')} -->\n\n`;
     content += '## Table of Contents\n\n';
 
-    Object.keys(toolDocumentation).forEach(tool => {
+    Object.keys(docs).forEach(tool => {
       content += `- [${tool}](#${tool.replace(/_/g, '-')})\n`;
     });
     content += '\n---\n\n';
 
-    Object.entries(toolDocumentation).forEach(([toolName, doc]) => {
+    Object.entries(docs).forEach(([toolName, doc]) => {
       content += this.formatToolDocumentation(toolName, doc);
       content += '\n---\n\n';
     });

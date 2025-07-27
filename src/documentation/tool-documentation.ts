@@ -265,6 +265,241 @@ Supports pagination for large result sets and multiple filter combinations.
     ],
   },
 
+  // Search Tool
+  search: {
+    description:
+      'Universal search tool providing powerful, flexible searching across all Productboard entities with intelligent output control',
+    detailedDescription: `
+The search tool is the most powerful and flexible way to find information across your entire Productboard workspace. It supports:
+
+**Multi-Entity Search**: Search across multiple entity types simultaneously (products, components, features, notes, companies, etc.)
+**Intelligent Output Control**: Choose exactly which fields to return for optimal performance
+**Advanced Filtering**: Complex filters with multiple operators and field combinations
+**Hierarchical Relationships**: Access parent-child relationships across the product hierarchy
+**Smart Validation**: Automatic validation with helpful warnings for cross-entity operations
+
+Key capabilities:
+- Search single or multiple entity types in one request
+- Filter by any searchable field with various operators (equals, contains, etc.)
+- Control output with field selection or preset modes (ids-only, summary, full)
+- Access hierarchical relationships (parent.product.id, parent.component.id, parent.feature.id)
+- Pagination support for large result sets
+- Performance optimization with server-side and client-side filtering
+- Intelligent messaging with suggestions and performance warnings
+    `,
+    examples: [
+      {
+        title: 'Basic single-entity search',
+        description: 'Find features missing descriptions',
+        input: {
+          entityType: 'features',
+          filters: { description: '' },
+        },
+        expectedOutput: {
+          message: 'Found 47 features. Filtered by: missing description',
+          data: '[array of feature objects]',
+          count: 47,
+        },
+      },
+      {
+        title: 'Multi-entity search with hierarchy',
+        description:
+          'Search across products, components, and features with parent relationships',
+        input: {
+          entityType: ['products', 'components', 'features'],
+          output: [
+            'id',
+            'name',
+            'parent.product.id',
+            'parent.component.id',
+            '_entityType',
+          ],
+          limit: 100,
+        },
+        expectedOutput: {
+          message: 'Found 125 items across products, components, features',
+          data: [
+            { id: 'prod-1', name: 'Mobile App', _entityType: 'products' },
+            {
+              id: 'comp-5',
+              name: 'User Auth',
+              parent: { product: { id: 'prod-1' } },
+              _entityType: 'components',
+            },
+            {
+              id: 'feat-8',
+              name: 'Login Screen',
+              parent: { component: { id: 'comp-5' } },
+              _entityType: 'features',
+            },
+          ],
+          count: 125,
+        },
+      },
+      {
+        title: 'Advanced filtering with operators',
+        description:
+          'Find notes with specific criteria using multiple filters and operators',
+        input: {
+          entityType: 'notes',
+          filters: {
+            title: 'urgent',
+            'company.domain': 'acme.com',
+          },
+          operators: {
+            title: 'contains',
+            'company.domain': 'equals',
+          },
+          output: ['id', 'title', 'company.name'],
+        },
+      },
+      {
+        title: 'Output control for performance',
+        description: 'Get only IDs for bulk operations',
+        input: {
+          entityType: 'features',
+          filters: { archived: false },
+          output: 'ids-only',
+        },
+        expectedOutput: {
+          message: 'Found 156 features. Filtered by: archived status = false',
+          data: ['feat-123', 'feat-456', 'feat-789'],
+          count: 156,
+        },
+      },
+      {
+        title: 'Parent relationship filtering - Features by Product',
+        description: 'Find all features belonging to a specific product',
+        input: {
+          entityType: 'features',
+          filters: {
+            'parent.product.id': 'd944061a-c996-4dd9-b58f-1514f94602dc',
+          },
+          output: [
+            'id',
+            'name',
+            'parent.component.name',
+            'parent.component.id',
+          ],
+          limit: 50,
+        },
+        expectedOutput: {
+          message: 'Found 23 features. Filtered by: parent product ID',
+          data: '[array of features from specified product]',
+          count: 23,
+        },
+        notes:
+          'Use parent.product.id to filter features by their parent product',
+      },
+      {
+        title: 'Parent relationship filtering - Features by Component',
+        description: 'Find all features belonging to a specific component',
+        input: {
+          entityType: 'features',
+          filters: {
+            'parent.component.id': 'e78bbb3e-ee8e-47eb-9fb9-da8ea34c27bd',
+          },
+          output: ['id', 'name', 'status.name'],
+          limit: 50,
+        },
+        notes:
+          'Use parent.component.id to filter features by their parent component',
+      },
+      {
+        title: 'Sub-feature filtering',
+        description: 'Find all sub-features of a specific feature',
+        input: {
+          entityType: 'features',
+          filters: {
+            'parent.feature.id': '9faa70ff-dcee-4686-9203-aa482a4c67ab',
+          },
+          output: ['id', 'name', 'type'],
+        },
+        notes: 'Use parent.feature.id to find sub-features of a parent feature',
+      },
+      {
+        title: 'Complete hierarchy mapping',
+        description: 'Get complete product hierarchy for UUID mapping',
+        input: {
+          entityType: ['products', 'components', 'features'],
+          output: [
+            'id',
+            'name',
+            'parent.product.id',
+            'parent.component.id',
+            'parent.feature.id',
+            '_entityType',
+          ],
+          limit: 2000,
+        },
+        notes:
+          'This gives you everything needed to build complete UUID relationship mappings',
+      },
+    ],
+    commonErrors: [
+      {
+        error: 'Unsupported entity type',
+        cause: 'entityType contains invalid entity type name',
+        solution:
+          'Use supported types: features, notes, companies, users, products, components, releases, etc.',
+      },
+      {
+        error: 'Invalid output fields',
+        cause: 'Output field is not available for the specified entity type',
+        solution:
+          'Check field mappings or use fields that exist across all entity types when using multi-entity search',
+      },
+      {
+        error: 'Field not searchable',
+        cause:
+          'Filter field is not in the searchable fields list for the entity type',
+        solution:
+          'Use only searchable fields for filters, or use client-side processing for non-searchable fields',
+      },
+      {
+        error: 'Limit exceeds maximum',
+        cause: 'Limit parameter exceeds the maximum allowed value',
+        solution:
+          'Use pagination with limit <= 100 and implement multiple requests for larger datasets',
+      },
+      {
+        error: 'Query parameter parent.product.id is unexpected',
+        cause:
+          'Using parent.product.id filter but API endpoint does not support it directly',
+        solution:
+          'Use the search tool with entityType: "features" and filters: {"parent.product.id": "your-product-id"} - the search tool handles the proper API routing',
+      },
+      {
+        error: 'Field product.id is not searchable',
+        cause:
+          'Trying to use product.id instead of parent.product.id for features',
+        solution:
+          'Use parent.product.id, parent.component.id, or parent.feature.id for hierarchical filtering of features',
+      },
+    ],
+    bestPractices: [
+      'Use multi-entity search to reduce API calls when working with hierarchical data',
+      'Select specific output fields instead of full objects for better performance',
+      'Use ids-only mode for bulk operations and reference lookups',
+      'Implement pagination for result sets over 50 items',
+      'Combine server-side filters with client-side processing for complex queries',
+      'Use hierarchical fields (parent.product.id) to build complete relationship mappings',
+      'Cache search results when performing multiple operations on the same dataset',
+      'Use _entityType field to distinguish results in multi-entity searches',
+      'Apply more specific filters before less specific ones for better performance',
+      'Consider using summary output mode for dashboard displays',
+    ],
+    relatedTools: [
+      'list_notes',
+      'list_features',
+      'list_companies',
+      'list_products',
+      'list_components',
+      'get_notes',
+      'get_features',
+    ],
+  },
+
   // Features Tools
   create_feature: {
     description: 'Create a new feature in your product roadmap',
@@ -369,6 +604,140 @@ so that I can quickly find specific items without scrolling through irrelevant r
       'update_feature',
       'link_feature_to_release',
       'link_feature_to_objective',
+    ],
+  },
+
+  update_feature: {
+    description:
+      'Update an existing feature with new information or move it to a different component/product',
+    detailedDescription: `
+The update_feature tool allows you to modify existing features and handle component reassignment. 
+This is essential for:
+- Updating feature details (name, description, status)
+- Moving features between components or products
+- Reassigning feature ownership
+- Changing feature timeframes
+- Converting features to sub-features or vice versa
+
+**Component Reassignment**: The tool now supports moving features across the product hierarchy:
+- Use \`componentId\` to move a feature to a different component
+- Use \`productId\` to move a feature directly under a product
+- Use \`parentId\` to make a feature a sub-feature of another feature
+
+When reassigning components, the feature will be moved from its current location to the new parent while preserving all other properties.
+    `,
+    examples: [
+      {
+        title: 'Basic feature update',
+        description: 'Update feature name and description',
+        input: {
+          id: 'feat-123',
+          name: 'Enhanced Dashboard Analytics',
+          description: 'Updated feature with advanced analytics capabilities',
+        },
+        notes: 'Only provided fields will be updated, others remain unchanged',
+      },
+      {
+        title: 'Move feature to different component',
+        description: 'Reassign feature from one component to another',
+        input: {
+          id: 'feat-123',
+          componentId: 'comp-456',
+        },
+        notes:
+          'Feature will be moved to the specified component while preserving all other properties',
+      },
+      {
+        title: 'Move feature to different product',
+        description:
+          'Move feature directly under a product (bypassing components)',
+        input: {
+          id: 'feat-123',
+          productId: 'prod-789',
+        },
+        notes:
+          'Feature becomes a top-level feature under the specified product',
+      },
+      {
+        title: 'Convert to sub-feature',
+        description: 'Make a feature a child of another feature',
+        input: {
+          id: 'feat-123',
+          parentId: 'feat-456',
+        },
+        notes: 'Feature becomes a sub-feature of the specified parent feature',
+      },
+      {
+        title: 'Update status and timeframe',
+        description: 'Change feature status and set development timeframe',
+        input: {
+          id: 'feat-123',
+          status: { name: 'In Development' },
+          timeframe: {
+            startDate: '2024-08-01',
+            endDate: '2024-10-31',
+          },
+        },
+      },
+      {
+        title: 'Complete feature update with reassignment',
+        description: 'Update multiple properties including component move',
+        input: {
+          id: 'feat-123',
+          name: 'Mobile App Analytics Dashboard',
+          description: 'Comprehensive analytics for mobile app usage',
+          componentId: 'comp-mobile-analytics',
+          status: { name: 'In Development' },
+          owner: { email: 'dev-lead@company.com' },
+        },
+        notes:
+          'Combines property updates with component reassignment in single call',
+      },
+    ],
+    commonErrors: [
+      {
+        error: 'Feature not found',
+        cause: 'Invalid feature ID provided',
+        solution: 'Verify feature ID exists using list_features or get_feature',
+      },
+      {
+        error: 'Component not found',
+        cause: 'Invalid componentId provided for reassignment',
+        solution: 'Use list_components to find valid component IDs',
+      },
+      {
+        error: 'Product not found',
+        cause: 'Invalid productId provided for reassignment',
+        solution: 'Use list_products to find valid product IDs',
+      },
+      {
+        error: 'Parent feature not found',
+        cause: 'Invalid parentId provided for sub-feature creation',
+        solution:
+          'Verify parent feature exists and is not the same as the feature being updated',
+      },
+      {
+        error: 'Invalid timeframe format',
+        cause: 'Timeframe object missing required startDate/endDate',
+        solution:
+          'Provide timeframe as object with startDate and endDate in YYYY-MM-DD format',
+      },
+    ],
+    bestPractices: [
+      'Always verify target component/product exists before reassignment',
+      'Use get_feature to check current state before making changes',
+      'When moving features, consider impact on dependent sub-features',
+      'Preserve feature relationships when possible during reassignment',
+      'Update feature descriptions to reflect new component context if needed',
+      'Test component reassignment in non-production environments first',
+      'Consider user permissions when reassigning features across products',
+    ],
+    relatedTools: [
+      'get_feature',
+      'list_features',
+      'list_components',
+      'list_products',
+      'create_feature',
     ],
   },
 

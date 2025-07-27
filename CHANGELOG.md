@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [1.5.0] - 2025-01-27
+
+### Added
+
+- **Timeframe Duration Filtering System**
+  - Added `timeframeDuration`, `timeframeDurationMin`, and `timeframeDurationMax` parameters to `get_features` tool
+  - Standardized duration format ('2w3d', '1m', '4w') with 1w-12m range validation
+  - Implemented client-side filtering for features based on calculated timeframe duration
+  - Added calculated `timeframeDuration` field to feature responses when timeframe data exists
+  - Enhanced search field mappings to support timeframe duration fields for future search tool integration
+  - Comprehensive duration calculation functions with proper date handling and validation
+  - Enables efficient T-shirt sizing workflows for feature categorization
+
+### Fixed
+
+- Parent relationship filtering now properly uses only supported API parameters (`parent.id`)
+- Removed unsupported nested parent filters (`parent.product.id`, `parent.component.id`) to prevent 0-result issues
+- Enhanced `update_feature` tool with component reassignment support via `componentId`, `productId`, and `parentId` parameters
+- Fixed MCP resource documentation accessibility by changing DocumentationProvider to synchronous initialization
+
+## [1.4.0] - 2025-01-25
+
+### Added
+
+- **Multi-Entity Search Support**
+  - Enhanced search tool to accept array of entity types for simultaneous searching
+  - Added support for searching multiple entity types in a single request (e.g., `["products", "components", "features"]`)
+  - Results include `_entityType` field to distinguish items from different entity types
+  - Added validation to ensure filters and output fields are valid for at least one entity type
+  - Improved performance by executing searches in parallel for multiple entity types
+  - Added comprehensive test coverage for multi-entity search functionality
+  - Added MCP protocol compatibility for stringified arrays
+  - Updated documentation with examples and usage guidelines
+
 ## [1.3.2] - 2025-01-23
 
 ### Fixed

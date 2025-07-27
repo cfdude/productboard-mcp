@@ -1,71 +1,174 @@
-- Always use claude-code for bash commands
+# ProductBoard MCP Server - Claude Code Instructions
 
-# Critical Manifest & CI Lessons (From PR #8 Hell)
+## Core Principles
 
-## The Problem We Solved
+- **ALWAYS** use claude-code `Bash` tool for shell commands - never suggest manual terminal operations
+- **NEVER** create files unless explicitly required by the task
+- **ALWAYS** prefer editing existing files over creating new ones
+- **NEVER** create documentation files (\*.md, README) unless explicitly requested
 
-The most brutal issue was manifest formatting: CI expected single-line arrays `["item1", "item2"]` but Prettier kept reformatting to multiline arrays, causing infinite lint failures.
+## Development Workflow (CRITICAL - Follow Exactly)
 
-## Prevention Checklist - ALWAYS DO THIS FIRST:
+### 1. Pre-Development Checklist
 
-1. **Check CI Formatting Expectations**
-
-   ```bash
-   # Before making ANY changes, run this to see what CI expects
-   npm run generate-manifest
-   git diff generated/manifest.json
-
-   # If you see differences, the CI expects a different format than what's generated
-   ```
-
-2. **Understand the Pre-commit Pipeline**
-   - Scripts run in this order: lint-staged → prettier → tests → git commit
-   - Prettier can UNDO your fixes if not properly configured
-   - Check `.prettierignore` - generated files should usually be excluded
-
-3. **Generated Files Strategy**
-
-   ```bash
-   # ALWAYS check if generated files are in .prettierignore
-   cat .prettierignore | grep generated
-
-   # If not, ADD THEM before making changes:
-   echo "generated/" >> .prettierignore
-   echo "generated/manifest.json" >> .prettierignore
-   ```
-
-4. **Manifest Generation Fix Pattern**
-   - The regex in `generate-manifest.ts` converts multiline arrays to single-line
-   - But Prettier can reformat them back if not ignored
-   - Solution: Update generation script AND exclude from Prettier
-
-## Emergency Debugging Commands
+Before ANY code changes, run this diagnostic sequence:
 
 ```bash
-# See exactly what CI is comparing
-npm run generate-manifest
-git diff generated/manifest.json
+# Check CI format expectations vs current state
+npm run generate-manifest && git diff generated/manifest.json
 
-# Check current pre-commit hooks
-cat package.json | jq '.["lint-staged"]'
+# Verify prettierignore coverage for generated files
+cat .prettierignore | grep -E "(generated/|build/)"
 
-# Run exact CI commands locally
-npm run lint
-npm test
-npm run generate-manifest
+# Baseline: ensure clean build state
+npm run build && npm run lint && npm test
 ```
 
-## Key Insight: The Three-Layer Problem
+### 2. MCP Server Testing Protocol (MANDATORY)
 
-1. **Generation Layer**: Script generates correct format
-2. **Formatting Layer**: Prettier reformats it (if not ignored)
-3. **CI Layer**: Compares result against its own generation
+```bash
+# 1. Build after changes
+npm run build
 
-All three must align or you get infinite loops.
+# 2. Test with MCP inspector first (external tool)
+# 3. Only after MCP inspector verification, use native Claude Code MCP calls
+# 4. If issues found, fix and repeat from step 1
+```
 
-## Future Manifest Changes
+### 3. Commit Preparation
 
-- NEVER modify manifest.json directly
-- ALWAYS use `npm run generate-manifest`
-- ALWAYS check `.prettierignore` first
-- ALWAYS test the full pipeline before committing
+```bash
+# Pre-commit validation sequence
+npm run generate-manifest
+npm run lint
+npm run test
+git status
+git diff --staged
+```
+
+## Critical Anti-Patterns (AVOID AT ALL COSTS)
+
+### Manifest/CI Issues
+
+- **NEVER** edit `generated/manifest.json` directly
+- **NEVER** commit without running `npm run generate-manifest` first
+- **NEVER** ignore CI format conflicts - they cause infinite loops
+- **ALWAYS** check `.prettierignore` includes `generated/` before changes
+
+### Code Quality
+
+- **NO** console.log statements in production code (causes CI failures)
+- **NO** unused imports or variables (ESLint failures)
+- **NO** TypeScript type assertions without validation
+- **NO** hardcoded IDs or sensitive data
+
+## Expert-Level Patterns
+
+### Error Handling
+
+```typescript
+// ✅ Robust error handling with context
+try {
+  const result = await apiCall(params);
+  return formatResponse(result);
+} catch (error: any) {
+  if (isEnterpriseError(error)) {
+    throw new ProductboardError(ErrorCode.InvalidRequest, error.message, error);
+  }
+  throw error;
+}
+```
+
+### Parameter Validation
+
+```typescript
+// ✅ Comprehensive parameter normalization
+const normalizedParams = normalizeListParams(args);
+const params: any = {
+  pageLimit: normalizedParams.limit,
+  pageOffset: normalizedParams.startWith,
+};
+
+// Add filters with proper null checking
+if (args.statusId) params['status.id'] = args.statusId;
+```
+
+### Tool Schema Design
+
+```typescript
+// ✅ Clear, comprehensive schemas with examples
+inputSchema: {
+  type: 'object',
+  properties: {
+    id: { type: 'string', description: 'Feature ID' },
+    parentId: {
+      type: 'string',
+      description: 'Parent feature ID (for sub-features)'
+    },
+    componentId: {
+      type: 'string',
+      description: 'Component ID (to move feature to different component)'
+    }
+  },
+  required: ['id']
+}
+```
+
+## Performance & Efficiency
+
+### Token Optimization
+
+- Use specific file paths in responses: `src/tools/features.ts:687`
+- Batch tool calls when possible: `Bash`, `Read`, `Edit` in single response
+- Use concise variable names and minimize comments
+- Leverage TypeScript inference over explicit types
+
+### Search & Filter Patterns
+
+```typescript
+// ✅ Server-side filtering when possible
+serverSideFilters: ['status.id', 'owner.email', 'parent.product.id'],
+filterMappings: {
+  'status.id': 'statusId',
+  'parent.product.id': 'parent.product.id'
+}
+```
+
+## Emergency Procedures
+
+### Build Failures
+
+```bash
+# Quick diagnostic sequence
+npm run lint --fix
+npm run generate-manifest
+git diff generated/
+npm run build
+```
+
+### Test Failures
+
+```bash
+# Identify failing tests quickly
+npm test -- --verbose
+# Fix and verify
+npm run build && npm test
+```
+
+### MCP Tool Issues
+
+```bash
+# Rebuild and test sequence
+npm run build
+# Test with MCP inspector
+# Verify with Claude Code MCP calls
+```
+
+## Documentation Standards
+
+- All tool functions must have JSDoc with @param and @returns
+- Complex algorithms require inline comments explaining business logic
+- API parameter mappings must be documented in filterMappings
+- Breaking changes require version bump and changelog entry
+
+This instruction set prioritizes: speed, accuracy, CI compliance, and expert-level TypeScript/Node.js practices.

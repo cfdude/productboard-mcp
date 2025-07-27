@@ -32,7 +32,7 @@ export type OutputMode = 'ids-only' | 'summary' | 'full';
 export type DetailLevel = 'basic' | 'standard' | 'full';
 
 export interface SearchParams {
-  entityType: EntityType;
+  entityType: EntityType | EntityType[];
   filters?: Record<string, any>;
   operators?: Record<string, SearchOperator>;
   output?: string[] | OutputMode;
@@ -48,10 +48,11 @@ export interface NormalizedSearchParams
   extends Required<Omit<SearchParams, 'instance' | 'workspaceId'>> {
   instance?: string;
   workspaceId?: string;
+  entityTypes: EntityType[]; // Always normalized to array
 }
 
 export interface SearchContext {
-  entityType: EntityType;
+  entityType: EntityType | EntityType[];
   totalRecords: number;
   returnedRecords: number;
   filters: Record<string, any>;
@@ -78,7 +79,7 @@ export interface SearchResponse {
     totalRecords: number;
     returnedRecords: number;
     searchCriteria: {
-      entityType: EntityType;
+      entityType: EntityType | EntityType[];
       filters: Record<string, any>;
       output?: string[] | OutputMode;
       detail: DetailLevel;

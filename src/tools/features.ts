@@ -17,6 +17,61 @@ import { ProductboardError } from '../errors/index.js';
 import { ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 
 /**
+ * Calculate timeframe duration in standardized format (e.g., '2w3d', '1m', '4w')
+ */
+function calculateTimeframeDuration(
+  startDate: string,
+  endDate: string
+): string {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const diffMs = end.getTime() - start.getTime();
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays <= 0) return '0d';
+
+  const months = Math.floor(diffDays / 30);
+  const remainingAfterMonths = diffDays % 30;
+  const weeks = Math.floor(remainingAfterMonths / 7);
+  const days = remainingAfterMonths % 7;
+
+  let result = '';
+  if (months > 0) result += `${months}m`;
+  if (weeks > 0) result += `${weeks}w`;
+  if (days > 0) result += `${days}d`;
+
+  return result || '0d';
+}
+
+/**
+ * Parse duration string (e.g., '2w', '1m3d') to days
+ */
+function parseDurationToDays(duration: string): number {
+  const regex = /(\d+)([mwd])/g;
+  let totalDays = 0;
+  let match;
+
+  while ((match = regex.exec(duration)) !== null) {
+    const value = parseInt(match[1]);
+    const unit = match[2];
+
+    switch (unit) {
+      case 'm':
+        totalDays += value * 30;
+        break;
+      case 'w':
+        totalDays += value * 7;
+        break;
+      case 'd':
+        totalDays += value;
+        break;
+    }
+  }
+
+  return totalDays;
+}
+
+/**
  * Features Tools
  */
 export function setupFeaturesTools() {
@@ -126,6 +181,21 @@ export function setupFeaturesTools() {
             type: 'string',
             description: 'Filter by status name',
           },
+          timeframeDuration: {
+            type: 'string',
+            description:
+              'Filter by exact timeframe duration (e.g., "2w", "1m", "3w2d"). Range: 1w-12m',
+          },
+          timeframeDurationMin: {
+            type: 'string',
+            description:
+              'Filter by minimum timeframe duration (e.g., "1w", "2m"). Range: 1w-12m',
+          },
+          timeframeDurationMax: {
+            type: 'string',
+            description:
+              'Filter by maximum timeframe duration (e.g., "4w", "6m"). Range: 1w-12m',
+          },
           instance: {
             type: 'string',
             description: 'Productboard instance name (optional)',
@@ -217,6 +287,19 @@ export function setupFeaturesTools() {
                 description: 'Timeframe granularity (optional)',
               },
             },
+          },
+          parentId: {
+            type: 'string',
+            description: 'Parent feature ID (for sub-features)',
+          },
+          componentId: {
+            type: 'string',
+            description:
+              'Component ID (to move feature to a different component)',
+          },
+          productId: {
+            type: 'string',
+            description: 'Product ID (to move feature to a different product)',
           },
           instance: {
             type: 'string',
@@ -678,6 +761,62 @@ async function listFeatures(args: StandardListParams & any) {
 
       const result = response.data;
 
+      // Apply timeframe duration filtering and calculate duration field
+      if (result.data && Array.isArray(result.data)) {
+        // Calculate timeframeDuration for each feature
+        result.data = result.data.map((feature: any) => {
+          if (feature.timeframe?.startDate && feature.timeframe?.endDate) {
+            feature.timeframeDuration = calculateTimeframeDuration(
+              feature.timeframe.startDate,
+              feature.timeframe.endDate
+            );
+          }
+          return feature;
+        });
+
+        // Apply timeframe duration filters
+        if (
+          args.timeframeDuration ||
+          args.timeframeDurationMin ||
+          args.timeframeDurationMax
+        ) {
+          result.data = result.data.filter((feature: any) => {
+            if (!feature.timeframeDuration) return false;
+
+            const featureDurationDays = parseDurationToDays(
+              feature.timeframeDuration
+            );
+
+            // Exact duration match
+            if (args.timeframeDuration) {
+              const targetDurationDays = parseDurationToDays(
+                args.timeframeDuration
+              );
+              return featureDurationDays === targetDurationDays;
+            }
+
+            // Min/Max duration range
+            let withinRange = true;
+            if (args.timeframeDurationMin) {
+              const minDurationDays = parseDurationToDays(
+                args.timeframeDurationMin
+              );
+              withinRange =
+                withinRange && featureDurationDays >= minDurationDays;
+            }
+            if (args.timeframeDurationMax) {
+              const maxDurationDays = parseDurationToDays(
+                args.timeframeDurationMax
+              );
+              withinRange =
+                withinRange && featureDurationDays <= maxDurationDays;
+            }
+
+            return withinRange;
+          });
+        }
+      }
+
       // Apply detail level filtering
       if (!normalizedParams.includeSubData && result.data) {
         result.data = filterArrayByDetailLevel(
@@ -761,6 +900,26 @@ async function updateFeature(args: any) {
           }
         } else {
           body.timeframe = args.timeframe;
+        }
+      }
+
+      // Handle parent reassignment (component/product changes)
+      if (args.parentId || args.componentId || args.productId) {
+        let parent = null;
+
+        if (args.parentId) {
+          // Sub-feature: parent is another feature
+          parent = { feature: { id: args.parentId } };
+        } else if (args.componentId) {
+          // Top-level feature: parent is a component
+          parent = { component: { id: args.componentId } };
+        } else if (args.productId) {
+          // Top-level feature: parent is a product
+          parent = { product: { id: args.productId } };
+        }
+
+        if (parent) {
+          body.parent = parent;
         }
       }
 
