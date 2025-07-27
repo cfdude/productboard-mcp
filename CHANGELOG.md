@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2025-01-27
+
+### Added
+
+- **Timeframe Duration Filtering System**
+  - Added `timeframeDuration`, `timeframeDurationMin`, and `timeframeDurationMax` parameters to `get_features` tool
+  - Standardized duration format ('2w3d', '1m', '4w') with 1w-12m range validation
+  - Implemented client-side filtering for features based on calculated timeframe duration
+  - Added calculated `timeframeDuration` field to feature responses when timeframe data exists
+  - Enhanced search field mappings to support timeframe duration fields for future search tool integration
+  - Comprehensive duration calculation functions with proper date handling and validation
+  - Enables efficient T-shirt sizing workflows for feature categorization
+
+### Fixed
+
+- Parent relationship filtering now properly uses only supported API parameters (`parent.id`)
+- Removed unsupported nested parent filters (`parent.product.id`, `parent.component.id`) to prevent 0-result issues
+- Enhanced `update_feature` tool with component reassignment support via `componentId`, `productId`, and `parentId` parameters
+- Fixed MCP resource documentation accessibility by changing DocumentationProvider to synchronous initialization
+
 ## [1.4.0] - 2025-01-25
 
 ### Added

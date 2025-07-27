@@ -368,6 +368,56 @@ Key capabilities:
         },
       },
       {
+        title: 'Parent relationship filtering - Features by Product',
+        description: 'Find all features belonging to a specific product',
+        input: {
+          entityType: 'features',
+          filters: {
+            'parent.product.id': 'd944061a-c996-4dd9-b58f-1514f94602dc',
+          },
+          output: [
+            'id',
+            'name',
+            'parent.component.name',
+            'parent.component.id',
+          ],
+          limit: 50,
+        },
+        expectedOutput: {
+          message: 'Found 23 features. Filtered by: parent product ID',
+          data: '[array of features from specified product]',
+          count: 23,
+        },
+        notes:
+          'Use parent.product.id to filter features by their parent product',
+      },
+      {
+        title: 'Parent relationship filtering - Features by Component',
+        description: 'Find all features belonging to a specific component',
+        input: {
+          entityType: 'features',
+          filters: {
+            'parent.component.id': 'e78bbb3e-ee8e-47eb-9fb9-da8ea34c27bd',
+          },
+          output: ['id', 'name', 'status.name'],
+          limit: 50,
+        },
+        notes:
+          'Use parent.component.id to filter features by their parent component',
+      },
+      {
+        title: 'Sub-feature filtering',
+        description: 'Find all sub-features of a specific feature',
+        input: {
+          entityType: 'features',
+          filters: {
+            'parent.feature.id': '9faa70ff-dcee-4686-9203-aa482a4c67ab',
+          },
+          output: ['id', 'name', 'type'],
+        },
+        notes: 'Use parent.feature.id to find sub-features of a parent feature',
+      },
+      {
         title: 'Complete hierarchy mapping',
         description: 'Get complete product hierarchy for UUID mapping',
         input: {
@@ -411,6 +461,20 @@ Key capabilities:
         cause: 'Limit parameter exceeds the maximum allowed value',
         solution:
           'Use pagination with limit <= 100 and implement multiple requests for larger datasets',
+      },
+      {
+        error: 'Query parameter parent.product.id is unexpected',
+        cause:
+          'Using parent.product.id filter but API endpoint does not support it directly',
+        solution:
+          'Use the search tool with entityType: "features" and filters: {"parent.product.id": "your-product-id"} - the search tool handles the proper API routing',
+      },
+      {
+        error: 'Field product.id is not searchable',
+        cause:
+          'Trying to use product.id instead of parent.product.id for features',
+        solution:
+          'Use parent.product.id, parent.component.id, or parent.feature.id for hierarchical filtering of features',
       },
     ],
     bestPractices: [

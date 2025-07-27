@@ -200,6 +200,38 @@ export async function handleSearchTool(name: string, args: SearchParams) {
     }
   }
 
+  // Handle stringified filters object
+  if (fixedArgs.filters && typeof fixedArgs.filters === 'string') {
+    const filtersStr = fixedArgs.filters as string;
+    // Try to parse as JSON if it looks like an object
+    if (filtersStr.startsWith('{') && filtersStr.endsWith('}')) {
+      try {
+        const parsed = JSON.parse(filtersStr);
+        if (typeof parsed === 'object' && parsed !== null) {
+          fixedArgs.filters = parsed;
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }
+
+  // Handle stringified operators object
+  if (fixedArgs.operators && typeof fixedArgs.operators === 'string') {
+    const operatorsStr = fixedArgs.operators as string;
+    // Try to parse as JSON if it looks like an object
+    if (operatorsStr.startsWith('{') && operatorsStr.endsWith('}')) {
+      try {
+        const parsed = JSON.parse(operatorsStr);
+        if (typeof parsed === 'object' && parsed !== null) {
+          fixedArgs.operators = parsed;
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }
+
   try {
     return await performSearch(fixedArgs);
   } catch (error: any) {
