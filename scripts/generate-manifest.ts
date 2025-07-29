@@ -244,9 +244,20 @@ async function loadMcpTools(): Promise<{
   registerTool(
     'update_feature',
     'features',
-    'Update a feature',
+    'Update a feature. Supports both standard fields and custom fields - pass custom field names as additional parameters (e.g., "T-Shirt Sizing": "large").',
     ['id'],
-    ['name', 'description', 'status', 'owner', 'archived', 'timeframe']
+    [
+      'name',
+      'description',
+      'status',
+      'owner',
+      'archived',
+      'timeframe',
+      'parentId',
+      'componentId',
+      'productId',
+      '...customFields',
+    ]
   );
   registerTool('delete_feature', 'features', 'Delete a feature', ['id'], []);
   registerTool(

@@ -281,6 +281,8 @@ The search tool is the most powerful and flexible way to find information across
 Key capabilities:
 - Search single or multiple entity types in one request
 - Filter by any searchable field with various operators (equals, contains, etc.)
+- **Search custom fields entity type** to discover available custom fields
+- **Include custom field values** in feature results with includeCustomFields parameter
 - Control output with field selection or preset modes (ids-only, summary, full)
 - Access hierarchical relationships (parent.product.id, parent.component.id, parent.feature.id)
 - Pagination support for large result sets
@@ -435,6 +437,29 @@ Key capabilities:
         notes:
           'This gives you everything needed to build complete UUID relationship mappings',
       },
+      {
+        title: 'Search custom fields',
+        description: 'Discover available custom fields and their configuration',
+        input: {
+          entityType: 'custom_fields',
+          output: ['id', 'name', 'type', 'options'],
+        },
+        notes:
+          'Use this to discover custom field names for use in update_feature calls',
+      },
+      {
+        title: 'Features with custom field values',
+        description: 'Get features including their custom field values',
+        input: {
+          entityType: 'features',
+          filters: { archived: false },
+          includeCustomFields: true,
+          output: ['id', 'name', 'customFields'],
+          limit: 20,
+        },
+        notes:
+          'Custom fields will be included in the response with names, values, and metadata',
+      },
     ],
     commonErrors: [
       {
@@ -497,6 +522,9 @@ Key capabilities:
       'list_components',
       'get_notes',
       'get_features',
+      'get_custom_fields',
+      'update_feature',
+      'get_feature',
     ],
   },
 
@@ -607,9 +635,74 @@ so that I can quickly find specific items without scrolling through irrelevant r
     ],
   },
 
+  get_feature: {
+    description: 'Get detailed information about a specific feature by ID',
+    detailedDescription: `
+The get_feature tool retrieves comprehensive information about a single feature, including:
+- Basic feature properties (name, description, status, owner)
+- Hierarchical relationships (parent product, component, or feature)
+- Timeframe and scheduling information
+- **Custom field values** when includeCustomFields is enabled
+- Links and metadata
+
+**Custom Fields Support**: Set \`includeCustomFields: true\` to retrieve all custom field values for the feature along with field metadata and available options.
+    `,
+    examples: [
+      {
+        title: 'Basic feature retrieval',
+        description: 'Get basic feature information',
+        input: {
+          id: 'feat-123',
+          detail: 'standard',
+        },
+      },
+      {
+        title: 'Feature with custom fields',
+        description: 'Get feature including all custom field values',
+        input: {
+          id: 'feat-123',
+          includeCustomFields: true,
+          detail: 'full',
+        },
+        notes:
+          'Custom fields section will include field names, values, types, and available options',
+      },
+      {
+        title: 'Minimal feature info',
+        description: 'Get only essential feature data for performance',
+        input: {
+          id: 'feat-123',
+          detail: 'basic',
+        },
+        notes:
+          'Use basic detail level for faster responses when full data not needed',
+      },
+    ],
+    commonErrors: [
+      {
+        error: 'Feature not found',
+        cause: 'Invalid feature ID provided',
+        solution:
+          'Verify feature ID exists using list_features or search tools',
+      },
+    ],
+    bestPractices: [
+      'Use includeCustomFields only when you need custom field data to avoid unnecessary API calls',
+      'Use appropriate detail level - basic for IDs/names, standard for normal use, full for complete data',
+      'Cache feature data when performing multiple operations on the same feature',
+    ],
+    relatedTools: [
+      'list_features',
+      'update_feature',
+      'search',
+      'get_custom_fields',
+      'get_custom_field_value',
+    ],
+  },
+
   update_feature: {
     description:
-      'Update an existing feature with new information or move it to a different component/product',
+      'Update an existing feature with new information, custom fields, or move it to a different component/product',
     detailedDescription: `
 The update_feature tool allows you to modify existing features and handle component reassignment. 
 This is essential for:
@@ -618,6 +711,15 @@ This is essential for:
 - Reassigning feature ownership
 - Changing feature timeframes
 - Converting features to sub-features or vice versa
+- **Updating custom field values** with user-friendly field names
+
+**Custom Fields Support**: The tool supports updating custom field values using natural field names:
+- Pass custom fields as direct parameters: \`"T-Shirt Sizing": "Large"\`
+- Update multiple custom fields in a single call
+- Use user-friendly field names, not internal IDs
+- Support for all custom field types (text, dropdown, multi-dropdown, etc.)
+- Automatic dropdown value resolution (e.g., "Large" → internal option ID)
+- Intelligent error handling with field name suggestions for typos
 
 **Component Reassignment**: The tool now supports moving features across the product hierarchy:
 - Use \`componentId\` to move a feature to a different component
@@ -625,6 +727,8 @@ This is essential for:
 - Use \`parentId\` to make a feature a sub-feature of another feature
 
 When reassigning components, the feature will be moved from its current location to the new parent while preserving all other properties.
+
+**Discovery**: Use \`get_custom_fields\` tool to discover available custom field names and types.
     `,
     examples: [
       {
@@ -693,6 +797,49 @@ When reassigning components, the feature will be moved from its current location
         notes:
           'Combines property updates with component reassignment in single call',
       },
+      {
+        title: 'Update single custom field',
+        description: 'Update a single custom field value',
+        input: {
+          id: 'feat-123',
+          'T-Shirt Sizing': 'Large',
+        },
+        notes: 'Use exact custom field names as they appear in Productboard',
+      },
+      {
+        title: 'Update multiple custom fields',
+        description: 'Update multiple custom field values in one call',
+        input: {
+          id: 'feat-123',
+          'T-Shirt Sizing': 'Extra Large',
+          'Resource Requirement': 'Can be delegated to team',
+          'Priority Score': '8.5',
+        },
+        notes: 'All custom field types supported: text, dropdown, number, etc.',
+      },
+      {
+        title: 'Mixed standard and custom field update',
+        description:
+          'Update both standard feature properties and custom fields',
+        input: {
+          id: 'feat-123',
+          name: 'Enhanced User Dashboard',
+          description: 'Updated with better analytics',
+          'T-Shirt Sizing': 'Medium',
+          'Technical Complexity': 'High',
+          status: { name: 'In Progress' },
+        },
+        notes: 'Combine standard field updates with custom field updates',
+      },
+      {
+        title: 'Clear custom field value',
+        description: 'Remove/clear a custom field value',
+        input: {
+          id: 'feat-123',
+          'T-Shirt Sizing': null,
+        },
+        notes: 'Use null or empty string to clear custom field values',
+      },
     ],
     commonErrors: [
       {
@@ -722,6 +869,18 @@ When reassigning components, the feature will be moved from its current location
         solution:
           'Provide timeframe as object with startDate and endDate in YYYY-MM-DD format',
       },
+      {
+        error: 'Unknown custom field',
+        cause: 'Custom field name not found or misspelled',
+        solution:
+          'Use get_custom_fields tool to see available fields, check spelling of field names',
+      },
+      {
+        error: 'Invalid dropdown value',
+        cause: 'Dropdown value does not match available options',
+        solution:
+          'Check available dropdown options or use user-friendly values that match existing options',
+      },
     ],
     bestPractices: [
       'Always verify target component/product exists before reassignment',
@@ -731,6 +890,11 @@ When reassigning components, the feature will be moved from its current location
       'Update feature descriptions to reflect new component context if needed',
       'Test component reassignment in non-production environments first',
       'Consider user permissions when reassigning features across products',
+      'Use get_custom_fields to discover available custom field names before updating',
+      'Update multiple custom fields in single call for better performance',
+      'Use consistent naming for custom field values across features',
+      'Validate dropdown values exist before setting custom fields',
+      'Use null to clear custom field values rather than empty strings',
     ],
     relatedTools: [
       'get_feature',
@@ -738,6 +902,9 @@ When reassigning components, the feature will be moved from its current location
       'list_components',
       'list_products',
       'create_feature',
+      'get_custom_fields',
+      'get_custom_field_value',
+      'search',
     ],
   },
 

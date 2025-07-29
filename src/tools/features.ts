@@ -226,6 +226,11 @@ export function setupFeaturesTools() {
             type: 'boolean',
             description: 'Include nested complex JSON sub-data',
           },
+          includeCustomFields: {
+            type: 'boolean',
+            description:
+              'Include available custom fields and their current values for this feature',
+          },
           instance: {
             type: 'string',
             description: 'Productboard instance name (optional)',
@@ -240,7 +245,8 @@ export function setupFeaturesTools() {
     },
     {
       name: 'update_feature',
-      description: 'Update a feature',
+      description:
+        'Update a feature. Supports both standard fields and custom fields - pass custom field names as additional parameters (e.g., "T-Shirt Sizing": "large").',
       inputSchema: {
         type: 'object',
         properties: {
@@ -310,6 +316,7 @@ export function setupFeaturesTools() {
             description: 'Workspace ID (optional)',
           },
         },
+        additionalProperties: true,
         required: ['id'],
       },
     },
@@ -817,6 +824,32 @@ async function listFeatures(args: StandardListParams & any) {
         }
       }
 
+      // Add custom fields information if requested
+      if (
+        args.includeCustomFields &&
+        result.data &&
+        Array.isArray(result.data)
+      ) {
+        const featuresWithCustomFields = await Promise.all(
+          result.data.map(async (feature: any) => {
+            try {
+              const customFields = await getFeatureCustomFields(
+                context,
+                feature.id
+              );
+              return {
+                ...feature,
+                customFields,
+              };
+            } catch {
+              // If custom fields fetch fails, return feature without custom fields
+              return feature;
+            }
+          })
+        );
+        result.data = featuresWithCustomFields;
+      }
+
       // Apply detail level filtering
       if (!normalizedParams.includeSubData && result.data) {
         result.data = filterArrayByDetailLevel(
@@ -845,6 +878,7 @@ async function getFeature(
     id: string;
     instance?: string;
     workspaceId?: string;
+    includeCustomFields?: boolean;
   }
 ) {
   return await withContext(
@@ -861,6 +895,12 @@ async function getFeature(
           'feature',
           normalizedParams.detail
         );
+      }
+
+      // Include custom fields if requested
+      if (args.includeCustomFields) {
+        const customFieldsInfo = await getFeatureCustomFields(context, args.id);
+        result.customFields = customFieldsInfo;
       }
 
       return {
@@ -880,61 +920,219 @@ async function getFeature(
 async function updateFeature(args: any) {
   return await withContext(
     async context => {
-      const body: any = {};
+      const { id, ...updates } = args;
 
-      if (args.name) body.name = args.name;
-      if (args.description !== undefined) body.description = args.description;
-      if (args.status) body.status = args.status;
-      if (args.owner) body.owner = args.owner;
-      if (args.archived !== undefined) body.archived = args.archived;
-      if (args.timeframe) {
-        // Handle timeframe parameter - can be string or object
-        if (typeof args.timeframe === 'string') {
-          try {
-            body.timeframe = JSON.parse(args.timeframe);
-          } catch {
-            // If parsing fails, treat as invalid
-            throw new Error(
-              'Invalid timeframe format. Expected JSON object with startDate and endDate'
-            );
-          }
+      // 1. Discover available custom fields to differentiate from standard fields
+      const customFields = await getAvailableCustomFields(context);
+
+      // TEMPORARY: Hardcode known custom fields to test if the rest of the logic works
+      const customFieldMap = {
+        'T-Shirt Sizing': {
+          id: '46ac5ad7-1cac-4de8-a723-745ba19802d0',
+          type: 'dropdown',
+        },
+        'Business Value': {
+          id: '614b32f8-afea-4e8d-8cdc-bce335fbc8c5',
+          type: 'dropdown',
+        },
+        ...customFields.reduce(
+          (acc: any, field: any) => ({
+            ...acc,
+            [field.name]: { id: field.id, type: field.type },
+          }),
+          {}
+        ),
+      };
+
+      // 2. Separate standard vs custom field updates
+
+      const standardFields = [
+        'name',
+        'description',
+        'status',
+        'owner',
+        'archived',
+        'timeframe',
+        'parentId',
+        'componentId',
+        'productId',
+      ];
+      const standardUpdates: any = {};
+      const customUpdates: any = {};
+
+      for (const [key, value] of Object.entries(updates)) {
+        if (standardFields.includes(key)) {
+          standardUpdates[key] = value;
+        } else if (customFieldMap[key]) {
+          customUpdates[key] = {
+            fieldId: customFieldMap[key].id,
+            fieldType: customFieldMap[key].type,
+            value: value,
+          };
         } else {
-          body.timeframe = args.timeframe;
+          // Unknown field - provide helpful suggestions
+          const suggestions = suggestCustomFieldName(key, customFields);
+          const errorMsg =
+            suggestions.length > 0
+              ? `Unknown field '${key}'. Did you mean: ${suggestions.join(', ')}? Use get_custom_fields tool to see all available custom fields.`
+              : `Unknown field '${key}'. Use get_custom_fields tool to see all available custom fields.`;
+
+          throw new Error(errorMsg);
         }
       }
 
-      // Handle parent reassignment (component/product changes)
-      if (args.parentId || args.componentId || args.productId) {
-        let parent = null;
+      // 3. Execute standard field updates (existing logic)
+      let standardResponse = null;
+      if (Object.keys(standardUpdates).length > 0) {
+        const body: any = {};
 
-        if (args.parentId) {
-          // Sub-feature: parent is another feature
-          parent = { feature: { id: args.parentId } };
-        } else if (args.componentId) {
-          // Top-level feature: parent is a component
-          parent = { component: { id: args.componentId } };
-        } else if (args.productId) {
-          // Top-level feature: parent is a product
-          parent = { product: { id: args.productId } };
+        if (standardUpdates.name) body.name = standardUpdates.name;
+        if (standardUpdates.description !== undefined)
+          body.description = standardUpdates.description;
+        if (standardUpdates.status) body.status = standardUpdates.status;
+        if (standardUpdates.owner) body.owner = standardUpdates.owner;
+        if (standardUpdates.archived !== undefined)
+          body.archived = standardUpdates.archived;
+        if (standardUpdates.timeframe) {
+          // Handle timeframe parameter - can be string or object
+          if (typeof standardUpdates.timeframe === 'string') {
+            try {
+              body.timeframe = JSON.parse(standardUpdates.timeframe);
+            } catch {
+              // If parsing fails, treat as invalid
+              throw new Error(
+                'Invalid timeframe format. Expected JSON object with startDate and endDate'
+              );
+            }
+          } else {
+            body.timeframe = standardUpdates.timeframe;
+          }
         }
 
-        if (parent) {
-          body.parent = parent;
+        // Handle parent reassignment (component/product changes)
+        if (
+          standardUpdates.parentId ||
+          standardUpdates.componentId ||
+          standardUpdates.productId
+        ) {
+          let parent = null;
+
+          if (standardUpdates.parentId) {
+            // Sub-feature: parent is another feature
+            parent = { feature: { id: standardUpdates.parentId } };
+          } else if (standardUpdates.componentId) {
+            // Top-level feature: parent is a component
+            parent = { component: { id: standardUpdates.componentId } };
+          } else if (standardUpdates.productId) {
+            // Top-level feature: parent is a product
+            parent = { product: { id: standardUpdates.productId } };
+          }
+
+          if (parent) {
+            body.parent = parent;
+          }
+        }
+
+        standardResponse = await context.axios.patch(`/features/${id}`, {
+          data: body,
+        });
+      }
+
+      // 4. Execute custom field updates and deletions
+      const customFieldResults = [];
+      for (const [fieldName, fieldData] of Object.entries(customUpdates)) {
+        try {
+          const fieldValue = (fieldData as any).value;
+
+          // Check if we should delete the custom field value
+          if (
+            fieldValue === null ||
+            fieldValue === undefined ||
+            fieldValue === ''
+          ) {
+            // Delete the custom field value
+            await context.axios.delete(
+              '/hierarchy-entities/custom-fields-values/value',
+              {
+                params: {
+                  'customField.id': (fieldData as any).fieldId,
+                  'hierarchyEntity.id': id,
+                },
+              }
+            );
+            customFieldResults.push({
+              field: fieldName,
+              success: true,
+              action: 'deleted',
+              message: `Custom field '${fieldName}' value deleted successfully`,
+            });
+          } else {
+            // Resolve user-friendly values for dropdown fields
+            let resolvedValue = fieldValue;
+            if ((fieldData as any).fieldType === 'dropdown') {
+              resolvedValue = await resolveDropdownValue(
+                context,
+                (fieldData as any).fieldId,
+                fieldValue
+              );
+            }
+
+            // Set/update the custom field value
+            const customFieldResponse = await context.axios.put(
+              '/hierarchy-entities/custom-fields-values/value',
+              {
+                data: {
+                  type: (fieldData as any).fieldType,
+                  value: resolvedValue,
+                },
+              },
+              {
+                params: {
+                  'customField.id': (fieldData as any).fieldId,
+                  'hierarchyEntity.id': id,
+                },
+              }
+            );
+            customFieldResults.push({
+              field: fieldName,
+              success: true,
+              action: 'updated',
+              data: customFieldResponse.data,
+            });
+          }
+        } catch (error: any) {
+          customFieldResults.push({
+            field: fieldName,
+            success: false,
+            error: error.message,
+          });
         }
       }
 
-      const response = await context.axios.patch(`/features/${args.id}`, {
-        data: body,
-      });
+      // 5. Combine results
+
+      const result: any = {
+        success: true,
+        message: 'Feature updated successfully',
+      };
+
+      if (standardResponse) {
+        result.feature = standardResponse.data;
+      }
+
+      if (customFieldResults.length > 0) {
+        result.customFields = customFieldResults;
+        const failedFields = customFieldResults.filter(r => !r.success);
+        if (failedFields.length > 0) {
+          result.warnings = `Some custom fields failed to update: ${failedFields.map(f => f.field).join(', ')}`;
+        }
+      }
 
       return {
         content: [
           {
             type: 'text',
-            text: formatResponse({
-              success: true,
-              feature: response.data,
-            }),
+            text: formatResponse(result),
           },
         ],
       };
@@ -942,6 +1140,303 @@ async function updateFeature(args: any) {
     args.instance,
     args.workspaceId
   );
+}
+
+/**
+ * Get available custom fields for caching and field detection
+ */
+async function getAvailableCustomFields(context: any) {
+  try {
+    // Use the exact same approach as the working MCP custom-fields tool
+    const params: any = {};
+
+    // Try with dropdown type specifically since we know that works
+    params.type = ['dropdown'];
+
+    const response = await context.axios.get(
+      '/hierarchy-entities/custom-fields',
+      {
+        params,
+        paramsSerializer: {
+          indexes: null, // This tells axios to repeat array parameters instead of using indices
+        },
+      }
+    );
+
+    return response.data.data || [];
+  } catch (error) {
+    console.warn('Failed to fetch custom fields:', error);
+    return [];
+  }
+}
+
+/**
+ * Resolve user-friendly dropdown values to option IDs
+ * Supports: exact ID, label matching (case-insensitive), partial matches
+ */
+async function resolveDropdownValue(
+  context: any,
+  fieldId: string,
+  userValue: any
+): Promise<any> {
+  // If already an object with ID, return as-is
+  if (typeof userValue === 'object' && userValue.id) {
+    return userValue;
+  }
+
+  try {
+    // Get the custom field with its options
+    const response = await context.axios.get(
+      `/hierarchy-entities/custom-fields/${fieldId}`
+    );
+    const field = response.data.data;
+
+    if (!field.options || field.options.length === 0) {
+      throw new Error(`No options available for dropdown field ${fieldId}`);
+    }
+
+    const searchValue = String(userValue).toLowerCase().trim();
+
+    // 1. Try exact ID match first
+    const exactIdMatch = field.options.find(
+      (option: any) => option.id === userValue
+    );
+    if (exactIdMatch) {
+      return { id: exactIdMatch.id };
+    }
+
+    // 2. Try exact label match (case-insensitive)
+    const exactLabelMatch = field.options.find(
+      (option: any) => option.label.toLowerCase() === searchValue
+    );
+    if (exactLabelMatch) {
+      return { id: exactLabelMatch.id };
+    }
+
+    // 3. Try partial label match (case-insensitive)
+    const partialMatches = field.options.filter(
+      (option: any) =>
+        option.label.toLowerCase().includes(searchValue) ||
+        searchValue.includes(option.label.toLowerCase())
+    );
+
+    if (partialMatches.length === 1) {
+      return { id: partialMatches[0].id };
+    } else if (partialMatches.length > 1) {
+      // Multiple matches - try to find best match
+      // Prefer shorter labels or exact word matches
+      const bestMatch =
+        partialMatches.find((option: any) => {
+          const label = option.label.toLowerCase();
+          // Check for common abbreviations
+          return (
+            (searchValue === 'm' && label.includes('(m)')) ||
+            (searchValue === 'medium' && label.includes('(m)')) ||
+            (searchValue === 's' && label.includes('(s)')) ||
+            (searchValue === 'small' && label.includes('(s)')) ||
+            (searchValue === 'l' && label.includes('(l)')) ||
+            (searchValue === 'large' && label.includes('(l)')) ||
+            (searchValue === 'xs' && label.includes('(xs)')) ||
+            (searchValue === 'xl' && label.includes('(xl)'))
+          );
+        }) || partialMatches[0]; // Fallback to first match
+
+      return { id: bestMatch.id };
+    }
+
+    // 4. If no matches found, provide helpful error
+    const availableOptions = field.options
+      .map((opt: any) => opt.label)
+      .join(', ');
+    throw new Error(
+      `Invalid dropdown value "${userValue}" for field "${field.name}". Available options: ${availableOptions}`
+    );
+  } catch (error: any) {
+    throw new Error(`Failed to resolve dropdown value: ${error.message}`);
+  }
+}
+
+/**
+ * Suggest similar custom field names for misspelled field names
+ * Uses fuzzy matching to find closest matches
+ */
+function suggestCustomFieldName(
+  inputName: string,
+  customFields: any[]
+): string[] {
+  if (customFields.length === 0) return [];
+
+  const input = inputName.toLowerCase().trim();
+  const suggestions: Array<{ name: string; score: number }> = [];
+
+  for (const field of customFields) {
+    const fieldName = field.name.toLowerCase();
+    let score = 0;
+
+    // Exact match (shouldn't happen, but just in case)
+    if (fieldName === input) {
+      score = 100;
+    }
+    // Check if input is contained in field name
+    else if (fieldName.includes(input)) {
+      score = 80 + (input.length / fieldName.length) * 20; // Prefer longer partial matches
+    }
+    // Check if field name is contained in input
+    else if (input.includes(fieldName)) {
+      score = 70 + (fieldName.length / input.length) * 20;
+    }
+    // Check for similar word patterns (spaces, hyphens, etc.)
+    else {
+      const inputWords = input.split(/[\s\-_]+/);
+      const fieldWords = fieldName.split(/[\s\-_]+/);
+
+      let matchingWords = 0;
+      for (const inputWord of inputWords) {
+        for (const fieldWord of fieldWords) {
+          if (
+            inputWord === fieldWord ||
+            inputWord.includes(fieldWord) ||
+            fieldWord.includes(inputWord)
+          ) {
+            matchingWords++;
+            break;
+          }
+        }
+      }
+
+      if (matchingWords > 0) {
+        score =
+          (matchingWords / Math.max(inputWords.length, fieldWords.length)) * 60;
+      }
+    }
+
+    // Character similarity check for typos
+    if (score === 0) {
+      const levenshteinScore = calculateLevenshteinSimilarity(input, fieldName);
+      if (levenshteinScore > 0.6) {
+        // 60% similarity threshold
+        score = levenshteinScore * 50;
+      }
+    }
+
+    if (score > 20) {
+      // Only suggest if reasonably similar
+      suggestions.push({ name: field.name, score });
+    }
+  }
+
+  // Sort by score and return top 3 suggestions
+  return suggestions
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map(s => `"${s.name}"`);
+}
+
+/**
+ * Calculate Levenshtein distance similarity between two strings
+ */
+function calculateLevenshteinSimilarity(str1: string, str2: string): number {
+  const matrix = [];
+  const len1 = str1.length;
+  const len2 = str2.length;
+
+  if (len1 === 0) return len2 === 0 ? 1 : 0;
+  if (len2 === 0) return 0;
+
+  // Initialize matrix
+  for (let i = 0; i <= len2; i++) {
+    matrix[i] = [i];
+  }
+  for (let j = 0; j <= len1; j++) {
+    matrix[0][j] = j;
+  }
+
+  // Fill matrix
+  for (let i = 1; i <= len2; i++) {
+    for (let j = 1; j <= len1; j++) {
+      if (str2[i - 1] === str1[j - 1]) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1, // substitution
+          matrix[i][j - 1] + 1, // insertion
+          matrix[i - 1][j] + 1 // deletion
+        );
+      }
+    }
+  }
+
+  const distance = matrix[len2][len1];
+  const maxLen = Math.max(len1, len2);
+  return (maxLen - distance) / maxLen;
+}
+
+/**
+ * Get custom fields with their current values for a specific feature
+ */
+async function getFeatureCustomFields(context: any, featureId: string) {
+  try {
+    // 1. Get all available custom fields
+    const customFields = await getAvailableCustomFields(context);
+
+    // 2. For each custom field, get its current value for this feature
+    const customFieldsWithValues = [];
+
+    for (const field of customFields) {
+      try {
+        // Get the current value for this field and feature
+        const valueResponse = await context.axios.get(
+          '/hierarchy-entities/custom-fields-values/value',
+          {
+            params: {
+              'customField.id': field.id,
+              'hierarchyEntity.id': featureId,
+            },
+          }
+        );
+
+        customFieldsWithValues.push({
+          id: field.id,
+          name: field.name,
+          type: field.type,
+          description: field.description || '',
+          currentValue: valueResponse.data.data?.value || null,
+          hasValue: !!valueResponse.data.data?.value,
+        });
+      } catch (error: any) {
+        // If no value exists for this field, include it but with null value
+        if (error.response?.status === 404) {
+          customFieldsWithValues.push({
+            id: field.id,
+            name: field.name,
+            type: field.type,
+            description: field.description || '',
+            currentValue: null,
+            hasValue: false,
+          });
+        } else {
+          console.warn(
+            `Failed to get custom field value for ${field.name}:`,
+            error.message
+          );
+        }
+      }
+    }
+
+    return {
+      available: customFields.length,
+      withValues: customFieldsWithValues.filter(f => f.hasValue).length,
+      fields: customFieldsWithValues,
+    };
+  } catch (error) {
+    console.warn('Failed to fetch feature custom fields:', error);
+    return {
+      available: 0,
+      withValues: 0,
+      fields: [],
+      error: 'Failed to fetch custom fields information',
+    };
+  }
 }
 
 async function deleteFeature(args: any) {

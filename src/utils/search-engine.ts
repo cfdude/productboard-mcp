@@ -63,6 +63,7 @@ export class SearchEngine {
       startWith: Math.max(params.startWith || 0, 0),
       detail: params.detail || 'standard',
       includeSubData: params.includeSubData || false,
+      includeCustomFields: params.includeCustomFields || false,
       ...(params.instance && { instance: params.instance }),
       ...(params.workspaceId && { workspaceId: params.workspaceId }),
     };
@@ -474,6 +475,7 @@ export class SearchEngine {
       startWith: params.startWith,
       detail: params.detail,
       includeSubData: params.includeSubData,
+      includeCustomFields: params.includeCustomFields,
       instance: params.instance,
       workspaceId: params.workspaceId,
     };
