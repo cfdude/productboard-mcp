@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.1] - 2025-07-29
+
 ### Added
 
 - **Custom Fields Support for Features**
@@ -23,55 +25,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Resolved issue where custom fields documentation was not accessible through MCP resources
   - Enhanced documentation system for AI model discoverability
 
-## [1.5.0] - 2025-01-27
+## [1.5.0] - 2025-07-27
 
 ### Added
 
 - **Timeframe Duration Filtering System**
-  - Added `timeframeDuration`, `timeframeDurationMin`, and `timeframeDurationMax` parameters to `get_features` tool
-  - Standardized duration format ('2w3d', '1m', '4w') with 1w-12m range validation
-  - Implemented client-side filtering for features based on calculated timeframe duration
-  - Added calculated `timeframeDuration` field to feature responses when timeframe data exists
-  - Enhanced search field mappings to support timeframe duration fields for future search tool integration
-  - Comprehensive duration calculation functions with proper date handling and validation
-  - Enables efficient T-shirt sizing workflows for feature categorization
+  - Added standardized duration format support ('2w3d', '1m', '4w') for T-shirt sizing workflows
+  - Implemented `timeframeDuration`, `timeframeDurationMin`, and `timeframeDurationMax` parameters in `get_features` tool
+  - Added client-side filtering logic with automatic duration calculation for features with timeframes
+  - Supports range validation (1w-12m) for enterprise planning workflows
+  - Enhanced search field mappings to include timeframe duration fields
+
+- **Component Reassignment Support**
+  - Added `componentId` and `productId` parameters to `update_feature` tool for moving features between components/products
+  - Implemented proper parent relationship handling for feature hierarchy changes
+  - Enhanced feature update functionality with complete parent structure support
 
 ### Fixed
 
-- Parent relationship filtering now properly uses only supported API parameters (`parent.id`)
-- Removed unsupported nested parent filters (`parent.product.id`, `parent.component.id`) to prevent 0-result issues
-- Enhanced `update_feature` tool with component reassignment support via `componentId`, `productId`, and `parentId` parameters
-- Fixed MCP resource documentation accessibility by changing DocumentationProvider to synchronous initialization
+- **MCP Resource Documentation**
+  - Resolved accessibility issues with generated tool documentation
+  - Fixed resource documentation build process and dependency management
+  - Enhanced documentation generation for better MCP inspector compatibility
 
-## [1.4.0] - 2025-01-25
+- **Code Quality Improvements**
+  - Removed debug console.log statements to pass CI quality checks
+  - Fixed ESLint violations and TypeScript type safety issues
+  - Improved error handling in feature update operations
 
-### Added
+### Changed
 
-- **Multi-Entity Search Support**
-  - Enhanced search tool to accept array of entity types for simultaneous searching
-  - Added support for searching multiple entity types in a single request (e.g., `["products", "components", "features"]`)
-  - Results include `_entityType` field to distinguish items from different entity types
-  - Added validation to ensure filters and output fields are valid for at least one entity type
-  - Improved performance by executing searches in parallel for multiple entity types
-  - Added comprehensive test coverage for multi-entity search functionality
-  - Added MCP protocol compatibility for stringified arrays
-  - Updated documentation with examples and usage guidelines
+- **Search Engine Enhancements**
+  - Updated search field mappings to support timeframe duration filtering
+  - Enhanced client-side filtering capabilities for complex duration queries
+  - Improved parameter validation and error handling
 
-## [1.3.2] - 2025-01-23
+## [1.3.2] - 2025-01-22
 
 ### Fixed
 
-- **Feature Timeframe Bug**
-  - Fixed `update_feature` tool not properly handling timeframe (startDate/endDate) updates
-  - Added comprehensive timeframe parameter parsing for both JSON strings and objects
-  - Added validation and error handling for invalid timeframe data
-  - Added test coverage for timeframe functionality (3 new tests)
-
-- **Build System Improvements**
-  - Removed all OpenAPI dependencies from build process
-  - Fixed manifest generation to use only MCP server code
-  - Eliminated recurring build failures from missing OpenAPI files
-  - Updated documentation generation to be self-contained
+- **Post-Merge Documentation Updates**
+  - Updated generated documentation files post-merge
+  - Regenerated tool documentation with latest changes
+  - Synchronized CHANGELOG.md with release notes
 
 ## [1.3.1] - 2025-01-22
 
