@@ -40,6 +40,7 @@ export interface SearchParams {
   startWith?: number;
   detail?: DetailLevel;
   includeSubData?: boolean;
+  includeCustomFields?: boolean;
   instance?: string;
   workspaceId?: string;
 }

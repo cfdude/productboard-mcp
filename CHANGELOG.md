@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Custom Fields Support for Features**
+  - Added comprehensive custom fields functionality to `update_feature` tool
+  - Supports updating multiple custom fields in single operation using natural field names
+  - Automatic dropdown value resolution (e.g., "Large" → internal option ID)
+  - Intelligent error handling with field name suggestions for typos
+  - Field categorization and validation for different custom field types
+
+### Fixed
+
+- **MCP Documentation Generation**
+  - Fixed documentation provider to properly merge manual and generated documentation
+  - Resolved issue where custom fields documentation was not accessible through MCP resources
+  - Enhanced documentation system for AI model discoverability
+
 ## [1.5.0] - 2025-01-27
 
 ### Added

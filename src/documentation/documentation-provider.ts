@@ -15,6 +15,10 @@ import {
   categoryDocumentation,
   ToolDocumentation,
 } from './tool-documentation.js';
+import {
+  generatedToolDocumentation,
+  mergeDocumentation,
+} from '../../generated/tool-documentation.js';
 
 export class DocumentationProvider {
   private server: Server;
@@ -22,8 +26,11 @@ export class DocumentationProvider {
 
   constructor(server: Server) {
     this.server = server;
-    // Initialize documentation synchronously since getMergedDocumentation just returns toolDocumentation
-    this.mergedDocumentation = toolDocumentation;
+    // Merge manual and generated documentation
+    this.mergedDocumentation = mergeDocumentation(
+      toolDocumentation,
+      generatedToolDocumentation
+    );
     this.setupPrompts();
     this.setupResources();
   }
