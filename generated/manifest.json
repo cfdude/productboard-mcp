@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated": "2025-07-27T00:16:00.215Z",
+  "generated": "2025-07-29T02:36:32.697Z",
   "categories": {
     "notes": {
       "displayName": "Notes",
@@ -201,9 +201,9 @@
     "update_feature": {
       "category": "features",
       "operation": "UPDATE_FEATURE",
-      "description": "Update a feature",
+      "description": "Update a feature. Supports both standard fields and custom fields - pass custom field names as additional parameters (e.g., \"T-Shirt Sizing\": \"large\").",
       "requiredParams": ["id"],
-      "optionalParams": ["name", "description", "status", "owner", "archived", "timeframe"],
+      "optionalParams": ["name", "description", "status", "owner", "archived", "timeframe", "parentId", "componentId", "productId", "...customFields"],
       "implementation": "mcp"
     },
     "delete_feature": {

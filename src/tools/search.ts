@@ -141,6 +141,12 @@ export function setupSearchTools() {
             description: 'Include nested relationship data (default: false)',
             default: false,
           },
+          includeCustomFields: {
+            type: 'boolean',
+            description:
+              'Include custom fields information for features (default: false)',
+            default: false,
+          },
           instance: {
             type: 'string',
             description: 'Productboard instance name (optional)',
