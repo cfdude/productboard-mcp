@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Search Efficiency Improvement**
+  - Moved `description` field from server-side to client-side filtering for precise emoji/unicode matching
+  - Eliminates false positives when searching for specific text content like "📊 T-Shirt Sizing"
+  - AI search workflows now return accurate results without requiring manual validation
+
 ## [1.5.1] - 2025-07-29
 
 ### Added
@@ -18,7 +25,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Intelligent error handling with field name suggestions for typos
   - Field categorization and validation for different custom field types
 
+- **Enhanced Search Field Coverage**
+  - Added comprehensive owner field support (`owner.id`, `owner.name`, `owner.email`)
+  - Enhanced parent relationship filtering (`parent.type`, `parent.product.*`, `parent.component.*`)
+  - Added server-side filtering for `name`, `owner.id`, `parent.product.id`, `parent.component.id`
+  - Improved search field mappings to support all core feature update fields
+
+- **Web Fetch Pagination Support**
+  - MCP fetch tool (`mcp__fetch__fetch`) already supports pagination with `start_index` parameter
+  - Allows continuation of data retrieval from specific character positions
+  - Supports `max_length` parameter to control response size
+
 ### Fixed
+
+- **Search Results Messaging**
+  - Fixed totalRecords bug where search showed API response count instead of filtered results
+  - Search messages now accurately reflect actual filtered result counts
+  - Eliminated confusing "Found X records, returning first 0" messages
 
 - **MCP Documentation Generation**
   - Fixed documentation provider to properly merge manual and generated documentation

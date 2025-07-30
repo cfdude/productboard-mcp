@@ -284,9 +284,11 @@ async function performSearch(params: SearchParams) {
       );
 
       // Build search context for messaging
+      // Use actual filtered count as totalRecords when client-side filtering was applied
+      const actualTotalRecords = processedResults.data.length;
       const searchContext: SearchContext = {
         entityType: normalizedParams.entityType,
-        totalRecords: processedResults.totalRecords,
+        totalRecords: actualTotalRecords,
         returnedRecords: processedResults.data.length,
         filters: normalizedParams.filters,
         output: normalizedParams.output,
@@ -305,7 +307,7 @@ async function performSearch(params: SearchParams) {
         success: true,
         data: processedResults.data,
         metadata: {
-          totalRecords: processedResults.totalRecords,
+          totalRecords: actualTotalRecords,
           returnedRecords: processedResults.data.length,
           searchCriteria: {
             entityType: normalizedParams.entityType,
@@ -330,7 +332,7 @@ async function performSearch(params: SearchParams) {
               (normalizedParams.startWith || 0) +
               (normalizedParams.limit || 50),
             totalPages: Math.ceil(
-              processedResults.totalRecords / (normalizedParams.limit || 50)
+              actualTotalRecords / (normalizedParams.limit || 50)
             ),
           },
         }),
