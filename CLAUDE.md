@@ -172,3 +172,20 @@ npm run build
 - Breaking changes require version bump and changelog entry
 
 This instruction set prioritizes: speed, accuracy, CI compliance, and expert-level TypeScript/Node.js practices.
+
+## Feature Development Process
+
+- Productboard mcp server feature development / bug fix / feature enhancement process:
+  1. Record the process to Serena memory & Claude.md (if not already written)
+  2. Analyze user feedback/bug reports/suggestions and create individual memories for each improvement
+  3. Use sequential-thinking, ask_perplexity and/or chat_opena and research tools to develop detailed plans
+  4. Update memories with validated plans
+  5. Implement features sequentially starting with highest priority
+  6. For each implementation:
+  - Rebuild server
+  - Run/fix tests
+  - Handle linting/formatting
+  - Test with MCP inspector
+  - Commit using ~/.claude/commands/commit.md
+  - Monitor with 'gh' CLI - ensure all tests pass, all claude code or security comments are addressed and fixed
+  7. Continue until all features are built, tested, and committed (In progress)

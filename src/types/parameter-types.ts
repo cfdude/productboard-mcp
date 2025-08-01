@@ -6,7 +6,63 @@ export type DetailLevel = 'basic' | 'standard' | 'full';
 
 export type OutputFormat = 'json' | 'markdown' | 'csv' | 'summary';
 
-export interface StandardListParams {
+export type CustomFieldInclusion = 'all' | 'onlyWithValues' | 'none';
+
+export interface ResponseOptimizationParams {
+  /**
+   * Maximum character length for entire response (truncates long fields)
+   * @minimum 100
+   * @maximum 50000
+   */
+  maxLength?: number;
+
+  /**
+   * Fields to truncate if they exceed length limits
+   * @example ["description", "notes", "content"]
+   */
+  truncateFields?: string[];
+
+  /**
+   * Indicator to show when fields are truncated
+   * @default "..."
+   */
+  truncateIndicator?: string;
+
+  /**
+   * Include description field (can be large)
+   * @default true
+   */
+  includeDescription?: boolean;
+
+  /**
+   * Custom field inclusion strategy
+   * - all: Include all custom fields
+   * - onlyWithValues: Only include custom fields with non-empty values
+   * - none: Exclude all custom fields
+   * @default 'all'
+   */
+  includeCustomFieldsStrategy?: CustomFieldInclusion;
+
+  /**
+   * Include relationship/link data (can be extensive)
+   * @default true
+   */
+  includeLinks?: boolean;
+
+  /**
+   * Include fields with null or empty values
+   * @default true
+   */
+  includeEmpty?: boolean;
+
+  /**
+   * Include metadata fields (timestamps, versions, etc.)
+   * @default true
+   */
+  includeMetadata?: boolean;
+}
+
+export interface StandardListParams extends ResponseOptimizationParams {
   /**
    * Maximum number of records to return
    * @default 100
@@ -68,7 +124,7 @@ export interface StandardListParams {
   outputFormat?: OutputFormat;
 }
 
-export interface StandardGetParams {
+export interface StandardGetParams extends ResponseOptimizationParams {
   /**
    * Level of detail to return in response
    * - basic: Essential fields only (id, name, etc.)

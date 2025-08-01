@@ -230,6 +230,47 @@ export function setupFeaturesTools() {
             type: 'string',
             description: 'Workspace ID (optional)',
           },
+          // Response Optimization Parameters
+          maxLength: {
+            type: 'number',
+            description:
+              'Maximum response length in characters (100-50000). Enables smart truncation of long fields.',
+          },
+          truncateFields: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Fields to truncate if response is too long (e.g., ["description", "notes"])',
+          },
+          truncateIndicator: {
+            type: 'string',
+            description:
+              'Indicator to append to truncated fields (default: "...")',
+          },
+          includeDescription: {
+            type: 'boolean',
+            description:
+              'Include description fields in response (default: true)',
+          },
+          includeCustomFieldsStrategy: {
+            type: 'string',
+            enum: ['all', 'onlyWithValues', 'none'],
+            description: 'Custom field inclusion strategy (default: "all")',
+          },
+          includeLinks: {
+            type: 'boolean',
+            description:
+              'Include links and relationships in response (default: true)',
+          },
+          includeEmpty: {
+            type: 'boolean',
+            description: 'Include fields with empty values (default: true)',
+          },
+          includeMetadata: {
+            type: 'boolean',
+            description:
+              'Include metadata fields like createdAt, updatedAt (default: true)',
+          },
         },
       },
     },
@@ -288,6 +329,48 @@ export function setupFeaturesTools() {
           workspaceId: {
             type: 'string',
             description: 'Workspace ID (optional)',
+          },
+          // Response Optimization Parameters
+          maxLength: {
+            type: 'number',
+            description:
+              'Maximum response length in characters (100-50000). Enables smart truncation of long fields.',
+          },
+          truncateFields: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Fields to truncate if response is too long (e.g., ["description", "notes"])',
+          },
+          truncateIndicator: {
+            type: 'string',
+            description:
+              'Indicator to append to truncated fields (default: "...")',
+          },
+          includeDescription: {
+            type: 'boolean',
+            description:
+              'Include description fields in response (default: true)',
+          },
+          includeCustomFieldsStrategy: {
+            type: 'string',
+            enum: ['all', 'onlyWithValues', 'none'],
+            description:
+              'Custom field inclusion strategy for optimization (default: "all")',
+          },
+          includeLinks: {
+            type: 'boolean',
+            description:
+              'Include links and relationships in response (default: true)',
+          },
+          includeEmpty: {
+            type: 'boolean',
+            description: 'Include fields with empty values (default: true)',
+          },
+          includeMetadata: {
+            type: 'boolean',
+            description:
+              'Include metadata fields like createdAt, updatedAt (default: true)',
           },
         },
         required: ['id'],
@@ -1006,7 +1089,9 @@ async function listFeatures(args: StandardListParams & any) {
           'feature',
           normalizedParams.detail,
           normalizedParams.fields,
-          normalizedParams.exclude
+          normalizedParams.exclude,
+          normalizedParams.outputFormat,
+          normalizedParams
         );
       }
 
@@ -1094,7 +1179,8 @@ async function getFeature(
           normalizedParams.detail,
           normalizedParams.fields,
           normalizedParams.exclude,
-          args.outputFormat
+          args.outputFormat,
+          normalizedParams
         );
       } else if (args.outputFormat && args.outputFormat !== 'json') {
         result = formatResponseUtil(result, args.outputFormat, 'feature');
