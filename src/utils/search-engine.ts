@@ -651,12 +651,8 @@ export class SearchEngine {
             caseSensitive: params.caseSensitive,
           });
           compiledPatterns.set(field, pattern);
-        } catch (error) {
-          console.warn(
-            `Failed to compile pattern for field "${field}":`,
-            error
-          );
-          // Fallback to exact pattern
+        } catch {
+          // Failed to compile pattern, fallback to exact pattern (removed console.warn for production)
           const exactPattern = compilePattern(String(value), 'exact');
           compiledPatterns.set(field, exactPattern);
         }
@@ -695,11 +691,8 @@ export class SearchEngine {
           pattern,
           'contains'
         );
-      } catch (error) {
-        console.warn(
-          `Pattern matching failed for ${field} with pattern ${value}:`,
-          error
-        );
+      } catch {
+        // Pattern matching failed (removed console.warn for production)
         return false;
       }
     }
@@ -864,8 +857,8 @@ export class SearchEngine {
       }
 
       return suggestions;
-    } catch (error) {
-      console.warn('Failed to generate smart suggestions:', error);
+    } catch {
+      // Failed to generate smart suggestions (removed console.warn for production)
       return [];
     }
   }

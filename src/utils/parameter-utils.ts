@@ -225,10 +225,8 @@ export function filterByDetailLevel<T extends Record<string, any>>(
     // Validate fields if requested
     const validation = fieldSelector.validateFields(String(entityType), fields);
     if (!validation.valid && validation.suggestions) {
-      console.warn(
-        `Invalid fields for ${entityType}: ${validation.invalidFields?.join(', ')}`
-      );
-      console.warn('Suggestions:', validation.suggestions.join(', '));
+      // Log field validation issues for development (removed console.warn for production)
+      // Invalid fields will be handled by the field selector internally
     }
 
     filteredData = fieldSelector.selectFields(data, {
@@ -519,11 +517,8 @@ export function formatResponse<T>(
     };
 
     return formatters[format](data, entityType);
-  } catch (error) {
-    console.warn(
-      `Format conversion failed for ${format}, falling back to JSON:`,
-      error
-    );
+  } catch {
+    // Format conversion failed, fallback to JSON (removed console.warn for production)
     return data; // Fallback to JSON
   }
 }
