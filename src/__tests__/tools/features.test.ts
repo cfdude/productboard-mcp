@@ -108,7 +108,7 @@ describe('Features Tools', () => {
       );
 
       expect(updateFeature?.inputSchema.properties).toHaveProperty('timeframe');
-      expect(updateFeature?.inputSchema.properties.timeframe).toEqual({
+      expect((updateFeature?.inputSchema.properties as any).timeframe).toEqual({
         type: 'object',
         description: 'Feature timeframe with start and end dates',
         properties: {

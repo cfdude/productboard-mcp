@@ -1,6 +1,8 @@
 /**
  * Standard parameter types for all Productboard tools
  */
+// Constants are referenced in JSDoc comments
+// import { RESPONSE_LIMITS, API_LIMITS } from '../constants.js';
 
 export type DetailLevel = 'basic' | 'standard' | 'full';
 
@@ -88,8 +90,8 @@ export interface UpdateFeatureParams extends StandardGetParams {
 export interface ResponseOptimizationParams {
   /**
    * Maximum character length for entire response (truncates long fields)
-   * @minimum 100
-   * @maximum 50000
+   * @minimum ${RESPONSE_LIMITS.MIN_RESPONSE_LENGTH}
+   * @maximum ${RESPONSE_LIMITS.MAX_RESPONSE_LENGTH}
    */
   maxLength?: number;
 
@@ -142,16 +144,16 @@ export interface ResponseOptimizationParams {
 export interface StandardListParams extends ResponseOptimizationParams {
   /**
    * Maximum number of records to return
-   * @default 100
-   * @minimum 1
-   * @maximum 100
+   * @default ${API_LIMITS.DEFAULT_PAGE_SIZE}
+   * @minimum ${API_LIMITS.MIN_PAGE_SIZE}
+   * @maximum ${API_LIMITS.MAX_PAGE_SIZE}
    */
   limit?: number;
 
   /**
    * Number of records to skip before returning results
-   * @default 0
-   * @minimum 0
+   * @default ${API_LIMITS.DEFAULT_OFFSET}
+   * @minimum ${API_LIMITS.MIN_OFFSET}
    */
   startWith?: number;
 

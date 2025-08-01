@@ -77,7 +77,15 @@ function parseDurationToDays(duration: string): number {
  */
 export function setupFeaturesTools() {
   return [
-    // Features
+    ...getFeatureToolSchemas(),
+    ...getComponentToolSchemas(),
+    ...getProductToolSchemas(),
+    ...getUtilityToolSchemas(),
+  ];
+}
+
+function getFeatureToolSchemas() {
+  return [
     {
       name: 'create_feature',
       description: 'Create a new feature in Productboard',
@@ -140,48 +148,7 @@ export function setupFeaturesTools() {
       inputSchema: {
         type: 'object',
         properties: {
-          limit: {
-            type: 'number',
-            description:
-              'Maximum number of features to return (1-100, default: 100)',
-          },
-          startWith: {
-            type: 'number',
-            description: 'Offset for pagination (default: 0)',
-          },
-          detail: {
-            type: 'string',
-            enum: ['basic', 'standard', 'full'],
-            description:
-              'Level of detail (default: basic). DEPRECATED: Use fields parameter for precise selection.',
-          },
-          fields: {
-            type: 'array',
-            items: { type: 'string' },
-            description:
-              'Specific fields to include in response. Supports dot notation for nested fields. Example: ["id", "name", "status.name"]',
-          },
-          exclude: {
-            type: 'array',
-            items: { type: 'string' },
-            description:
-              'Fields to exclude from response. Cannot be used with fields parameter.',
-          },
-          validateFields: {
-            type: 'boolean',
-            description:
-              'Validate field names and return suggestions for invalid fields (default: true)',
-          },
-          outputFormat: {
-            type: 'string',
-            enum: ['json', 'markdown', 'csv', 'summary'],
-            description:
-              'Output format for response data. JSON (default), Markdown (human-readable), CSV (tabular), Summary (condensed)',
-          },
-          includeSubData: {
-            type: 'boolean',
-            description: 'Include nested complex JSON sub-data',
-          },
+          ...getStandardListProperties(),
           archived: {
             type: 'boolean',
             description: 'Filter by archived status',
@@ -221,55 +188,7 @@ export function setupFeaturesTools() {
             description:
               'Filter by maximum timeframe duration (e.g., "4w", "6m"). Range: 1w-12m',
           },
-          instance: {
-            type: 'string',
-            description: 'Productboard instance name (optional)',
-          },
-          workspaceId: {
-            type: 'string',
-            description: 'Workspace ID (optional)',
-          },
-          // Response Optimization Parameters
-          maxLength: {
-            type: 'number',
-            description:
-              'Maximum response length in characters (100-50000). Enables smart truncation of long fields.',
-          },
-          truncateFields: {
-            type: 'array',
-            items: { type: 'string' },
-            description:
-              'Fields to truncate if response is too long (e.g., ["description", "notes"])',
-          },
-          truncateIndicator: {
-            type: 'string',
-            description:
-              'Indicator to append to truncated fields (default: "...")',
-          },
-          includeDescription: {
-            type: 'boolean',
-            description:
-              'Include description fields in response (default: true)',
-          },
-          includeCustomFieldsStrategy: {
-            type: 'string',
-            enum: ['all', 'onlyWithValues', 'none'],
-            description: 'Custom field inclusion strategy (default: "all")',
-          },
-          includeLinks: {
-            type: 'boolean',
-            description:
-              'Include links and relationships in response (default: true)',
-          },
-          includeEmpty: {
-            type: 'boolean',
-            description: 'Include fields with empty values (default: true)',
-          },
-          includeMetadata: {
-            type: 'boolean',
-            description:
-              'Include metadata fields like createdAt, updatedAt (default: true)',
-          },
+          ...getResponseOptimizationProperties(),
         },
       },
     },
@@ -283,94 +202,13 @@ export function setupFeaturesTools() {
             type: 'string',
             description: 'Feature ID',
           },
-          detail: {
-            type: 'string',
-            enum: ['basic', 'standard', 'full'],
-            description:
-              'Level of detail (default: standard). DEPRECATED: Use fields parameter for precise selection.',
-          },
-          fields: {
-            type: 'array',
-            items: { type: 'string' },
-            description:
-              'Specific fields to include in response. Supports dot notation for nested fields (e.g., "timeframe.startDate"). Example: ["id", "name", "status.name", "owner.email"]',
-          },
-          exclude: {
-            type: 'array',
-            items: { type: 'string' },
-            description:
-              'Fields to exclude from response. Cannot be used with fields parameter.',
-          },
-          validateFields: {
-            type: 'boolean',
-            description:
-              'Validate field names and return suggestions for invalid fields (default: true)',
-          },
-          outputFormat: {
-            type: 'string',
-            enum: ['json', 'markdown', 'csv', 'summary'],
-            description:
-              'Output format for response data. JSON (default), Markdown (human-readable), CSV (tabular), Summary (condensed)',
-          },
-          includeSubData: {
-            type: 'boolean',
-            description: 'Include nested complex JSON sub-data',
-          },
+          ...getStandardGetProperties(),
           includeCustomFields: {
             type: 'boolean',
             description:
               'Include available custom fields and their current values for this feature',
           },
-          instance: {
-            type: 'string',
-            description: 'Productboard instance name (optional)',
-          },
-          workspaceId: {
-            type: 'string',
-            description: 'Workspace ID (optional)',
-          },
-          // Response Optimization Parameters
-          maxLength: {
-            type: 'number',
-            description:
-              'Maximum response length in characters (100-50000). Enables smart truncation of long fields.',
-          },
-          truncateFields: {
-            type: 'array',
-            items: { type: 'string' },
-            description:
-              'Fields to truncate if response is too long (e.g., ["description", "notes"])',
-          },
-          truncateIndicator: {
-            type: 'string',
-            description:
-              'Indicator to append to truncated fields (default: "...")',
-          },
-          includeDescription: {
-            type: 'boolean',
-            description:
-              'Include description fields in response (default: true)',
-          },
-          includeCustomFieldsStrategy: {
-            type: 'string',
-            enum: ['all', 'onlyWithValues', 'none'],
-            description:
-              'Custom field inclusion strategy for optimization (default: "all")',
-          },
-          includeLinks: {
-            type: 'boolean',
-            description:
-              'Include links and relationships in response (default: true)',
-          },
-          includeEmpty: {
-            type: 'boolean',
-            description: 'Include fields with empty values (default: true)',
-          },
-          includeMetadata: {
-            type: 'boolean',
-            description:
-              'Include metadata fields like createdAt, updatedAt (default: true)',
-          },
+          ...getResponseOptimizationProperties(),
         },
         required: ['id'],
       },
@@ -474,8 +312,11 @@ export function setupFeaturesTools() {
         required: ['id'],
       },
     },
+  ];
+}
 
-    // Components
+function getComponentToolSchemas() {
+  return [
     {
       name: 'create_component',
       description: 'Create a new component in Productboard',
@@ -512,41 +353,10 @@ export function setupFeaturesTools() {
       inputSchema: {
         type: 'object',
         properties: {
-          limit: {
-            type: 'number',
-            description:
-              'Maximum number of components to return (1-100, default: 100)',
-          },
-          startWith: {
-            type: 'number',
-            description: 'Offset for pagination (default: 0)',
-          },
-          detail: {
-            type: 'string',
-            enum: ['basic', 'standard', 'full'],
-            description: 'Level of detail (default: basic)',
-          },
-          outputFormat: {
-            type: 'string',
-            enum: ['json', 'markdown', 'csv', 'summary'],
-            description:
-              'Output format for response data. JSON (default), Markdown (human-readable), CSV (tabular), Summary (condensed)',
-          },
-          includeSubData: {
-            type: 'boolean',
-            description: 'Include nested complex JSON sub-data',
-          },
+          ...getStandardListProperties(),
           productId: {
             type: 'string',
             description: 'Filter by product ID',
-          },
-          instance: {
-            type: 'string',
-            description: 'Productboard instance name (optional)',
-          },
-          workspaceId: {
-            type: 'string',
-            description: 'Workspace ID (optional)',
           },
         },
       },
@@ -561,47 +371,7 @@ export function setupFeaturesTools() {
             type: 'string',
             description: 'Component ID',
           },
-          detail: {
-            type: 'string',
-            enum: ['basic', 'standard', 'full'],
-            description:
-              'Level of detail (default: standard). DEPRECATED: Use fields parameter for precise selection.',
-          },
-          fields: {
-            type: 'array',
-            items: { type: 'string' },
-            description:
-              'Specific fields to include in response. Example: ["id", "name", "description"]',
-          },
-          exclude: {
-            type: 'array',
-            items: { type: 'string' },
-            description:
-              'Fields to exclude from response. Cannot be used with fields parameter.',
-          },
-          validateFields: {
-            type: 'boolean',
-            description:
-              'Validate field names and return suggestions for invalid fields (default: true)',
-          },
-          outputFormat: {
-            type: 'string',
-            enum: ['json', 'markdown', 'csv', 'summary'],
-            description:
-              'Output format for response data. JSON (default), Markdown (human-readable), CSV (tabular), Summary (condensed)',
-          },
-          includeSubData: {
-            type: 'boolean',
-            description: 'Include nested complex JSON sub-data',
-          },
-          instance: {
-            type: 'string',
-            description: 'Productboard instance name (optional)',
-          },
-          workspaceId: {
-            type: 'string',
-            description: 'Workspace ID (optional)',
-          },
+          ...getStandardGetProperties(),
         },
         required: ['id'],
       },
@@ -636,62 +406,19 @@ export function setupFeaturesTools() {
         required: ['id'],
       },
     },
+  ];
+}
 
-    // Products
+function getProductToolSchemas() {
+  return [
     {
       name: 'get_products',
       description: 'List all products in Productboard',
       inputSchema: {
         type: 'object',
         properties: {
-          limit: {
-            type: 'number',
-            description:
-              'Maximum number of products to return (1-100, default: 100)',
-          },
-          startWith: {
-            type: 'number',
-            description: 'Offset for pagination (default: 0)',
-          },
-          detail: {
-            type: 'string',
-            enum: ['basic', 'standard', 'full'],
-            description: 'Level of detail (default: basic)',
-          },
-          fields: {
-            type: 'array',
-            items: { type: 'string' },
-            description:
-              'Specific fields to include (dot notation supported for nested fields, e.g., "owner.email")',
-          },
-          exclude: {
-            type: 'array',
-            items: { type: 'string' },
-            description: 'Fields to exclude from response',
-          },
-          validateFields: {
-            type: 'boolean',
-            description:
-              'Validate field names and return suggestions for invalid fields',
-          },
-          outputFormat: {
-            type: 'string',
-            enum: ['json', 'markdown', 'csv', 'summary'],
-            description:
-              'Output format for response data. JSON (default), Markdown (human-readable), CSV (tabular), Summary (condensed)',
-          },
-          includeSubData: {
-            type: 'boolean',
-            description: 'Include nested complex JSON sub-data',
-          },
-          instance: {
-            type: 'string',
-            description: 'Productboard instance name (optional)',
-          },
-          workspaceId: {
-            type: 'string',
-            description: 'Workspace ID (optional)',
-          },
+          ...getStandardListProperties(),
+          ...getFieldSelectionProperties(),
         },
       },
     },
@@ -705,45 +432,8 @@ export function setupFeaturesTools() {
             type: 'string',
             description: 'Product ID',
           },
-          detail: {
-            type: 'string',
-            enum: ['basic', 'standard', 'full'],
-            description: 'Level of detail (default: standard)',
-          },
-          fields: {
-            type: 'array',
-            items: { type: 'string' },
-            description:
-              'Specific fields to include (dot notation supported for nested fields, e.g., "owner.email")',
-          },
-          exclude: {
-            type: 'array',
-            items: { type: 'string' },
-            description: 'Fields to exclude from response',
-          },
-          validateFields: {
-            type: 'boolean',
-            description:
-              'Validate field names and return suggestions for invalid fields',
-          },
-          outputFormat: {
-            type: 'string',
-            enum: ['json', 'markdown', 'csv', 'summary'],
-            description:
-              'Output format for response data. JSON (default), Markdown (human-readable), CSV (tabular), Summary (condensed)',
-          },
-          includeSubData: {
-            type: 'boolean',
-            description: 'Include nested complex JSON sub-data',
-          },
-          instance: {
-            type: 'string',
-            description: 'Productboard instance name (optional)',
-          },
-          workspaceId: {
-            type: 'string',
-            description: 'Workspace ID (optional)',
-          },
+          ...getStandardGetProperties(),
+          ...getFieldSelectionProperties(),
         },
         required: ['id'],
       },
@@ -778,6 +468,11 @@ export function setupFeaturesTools() {
         required: ['id'],
       },
     },
+  ];
+}
+
+function getUtilityToolSchemas() {
+  return [
     {
       name: 'get_available_fields',
       description:
@@ -815,6 +510,136 @@ export function setupFeaturesTools() {
       },
     },
   ];
+}
+
+function getStandardListProperties() {
+  return {
+    limit: {
+      type: 'number',
+      description: 'Maximum number of items to return (1-100, default: 100)',
+    },
+    startWith: {
+      type: 'number',
+      description: 'Offset for pagination (default: 0)',
+    },
+    detail: {
+      type: 'string',
+      enum: ['basic', 'standard', 'full'],
+      description:
+        'Level of detail (default: basic). DEPRECATED: Use fields parameter for precise selection.',
+    },
+    outputFormat: {
+      type: 'string',
+      enum: ['json', 'markdown', 'csv', 'summary'],
+      description:
+        'Output format for response data. JSON (default), Markdown (human-readable), CSV (tabular), Summary (condensed)',
+    },
+    includeSubData: {
+      type: 'boolean',
+      description: 'Include nested complex JSON sub-data',
+    },
+    instance: {
+      type: 'string',
+      description: 'Productboard instance name (optional)',
+    },
+    workspaceId: {
+      type: 'string',
+      description: 'Workspace ID (optional)',
+    },
+  };
+}
+
+function getStandardGetProperties() {
+  return {
+    detail: {
+      type: 'string',
+      enum: ['basic', 'standard', 'full'],
+      description:
+        'Level of detail (default: standard). DEPRECATED: Use fields parameter for precise selection.',
+    },
+    outputFormat: {
+      type: 'string',
+      enum: ['json', 'markdown', 'csv', 'summary'],
+      description:
+        'Output format for response data. JSON (default), Markdown (human-readable), CSV (tabular), Summary (condensed)',
+    },
+    includeSubData: {
+      type: 'boolean',
+      description: 'Include nested complex JSON sub-data',
+    },
+    instance: {
+      type: 'string',
+      description: 'Productboard instance name (optional)',
+    },
+    workspaceId: {
+      type: 'string',
+      description: 'Workspace ID (optional)',
+    },
+  };
+}
+
+function getFieldSelectionProperties() {
+  return {
+    fields: {
+      type: 'array',
+      items: { type: 'string' },
+      description:
+        'Specific fields to include (dot notation supported for nested fields, e.g., "owner.email")',
+    },
+    exclude: {
+      type: 'array',
+      items: { type: 'string' },
+      description: 'Fields to exclude from response',
+    },
+    validateFields: {
+      type: 'boolean',
+      description:
+        'Validate field names and return suggestions for invalid fields',
+    },
+  };
+}
+
+function getResponseOptimizationProperties() {
+  return {
+    maxLength: {
+      type: 'number',
+      description:
+        'Maximum response length in characters (100-50000). Enables smart truncation of long fields.',
+    },
+    truncateFields: {
+      type: 'array',
+      items: { type: 'string' },
+      description:
+        'Fields to truncate if response is too long (e.g., ["description", "notes"])',
+    },
+    truncateIndicator: {
+      type: 'string',
+      description: 'Indicator to append to truncated fields (default: "...")',
+    },
+    includeDescription: {
+      type: 'boolean',
+      description: 'Include description fields in response (default: true)',
+    },
+    includeCustomFieldsStrategy: {
+      type: 'string',
+      enum: ['all', 'onlyWithValues', 'none'],
+      description: 'Custom field inclusion strategy (default: "all")',
+    },
+    includeLinks: {
+      type: 'boolean',
+      description:
+        'Include links and relationships in response (default: true)',
+    },
+    includeEmpty: {
+      type: 'boolean',
+      description: 'Include fields with empty values (default: true)',
+    },
+    includeMetadata: {
+      type: 'boolean',
+      description:
+        'Include metadata fields like createdAt, updatedAt (default: true)',
+    },
+  };
 }
 
 export async function handleFeaturesTool(name: string, args: any) {

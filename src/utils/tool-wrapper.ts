@@ -264,7 +264,10 @@ export async function withContext<T>(
 /**
  * Helper to format API responses consistently
  */
-export function formatResponse(data: any, includeRaw?: boolean) {
+export function formatResponse(
+  data: any,
+  includeRaw?: boolean
+): string | { formatted: string; raw: any } {
   if (includeRaw) {
     return {
       formatted: JSON.stringify(data, null, 2),

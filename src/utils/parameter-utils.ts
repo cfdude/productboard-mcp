@@ -12,6 +12,7 @@ import {
   ResponseOptimizationParams,
   CustomFieldInclusion,
 } from '../types/parameter-types.js';
+import { API_LIMITS } from '../constants.js';
 import { ValidationError } from '../errors/index.js';
 import { fieldSelector } from './field-selection.js';
 
@@ -39,8 +40,8 @@ export function normalizeListParams(
   includeMetadata: boolean;
 } {
   const normalized = {
-    limit: params.limit ?? 100,
-    startWith: params.startWith ?? 0,
+    limit: params.limit ?? API_LIMITS.DEFAULT_PAGE_SIZE,
+    startWith: params.startWith ?? API_LIMITS.DEFAULT_OFFSET,
     detail: params.detail ?? 'basic',
     includeSubData: params.includeSubData ?? false,
     fields: params.fields ?? [],
@@ -217,7 +218,6 @@ export function filterByDetailLevel<T extends Record<string, any>>(
   outputFormat?: OutputFormat,
   optimization?: ResponseOptimizationParams
 ): Partial<T> | string {
-
   let filteredData: Partial<T>;
 
   // If explicit fields are specified, use dynamic field selection
@@ -245,7 +245,7 @@ export function filterByDetailLevel<T extends Record<string, any>>(
   // Fall back to detail level filtering with essential fields
   else {
     let fieldsToUse: string[];
-    
+
     const predefinedFields = DetailFieldMappings[entityType]?.[detailLevel];
     if (predefinedFields) {
       fieldsToUse = [...predefinedFields];
