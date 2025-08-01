@@ -25,6 +25,7 @@ import { setupDocumentationTools } from './documentation.js';
 import { setupSearchTools } from './search.js';
 import { setupPerformanceTools } from './performance.js';
 import { setupBulkOperationsTools } from './bulk-operations.js';
+import { setupContextAwareTools } from './context-aware.js';
 import { ToolDefinition } from '../types/tool-types.js';
 import { SearchParams } from '../types/search-types.js';
 
@@ -39,6 +40,7 @@ export function setupToolHandlers(server: Server): void {
   tools.push(...setupSearchTools());
   tools.push(...setupPerformanceTools());
   tools.push(...setupBulkOperationsTools());
+  tools.push(...setupContextAwareTools());
   tools.push(...setupNotesTools());
   tools.push(...setupFeaturesTools());
   tools.push(...setupCompaniesTools());
@@ -194,6 +196,16 @@ export function setupToolHandlers(server: Server): void {
           './bulk-operations.js'
         );
         return await handleBulkOperationsTool(name, args || {});
+      } else if (
+        name === 'set_user_context' ||
+        name === 'get_user_context' ||
+        name === 'adapt_response' ||
+        name === 'add_adaptation_rule' ||
+        name === 'clear_user_context' ||
+        name === 'get_context_stats'
+      ) {
+        const { handleContextAwareTool } = await import('./context-aware.js');
+        return await handleContextAwareTool(name, args || {});
       } else {
         throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
       }

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated": "2025-08-01T16:49:24.240Z",
+  "generated": "2025-08-01T17:24:34.701Z",
   "categories": {
     "notes": {
       "displayName": "Notes",
@@ -61,6 +61,11 @@
       "displayName": "Bulk Operations",
       "description": "Efficient bulk update operations with change tracking and diff analysis",
       "tools": ["perform_bulk_update", "compare_entities", "validate_bulk_update"]
+    },
+    "context-aware": {
+      "displayName": "Context-Aware Features",
+      "description": "Intelligent response adaptation and user context management with personalization",
+      "tools": ["set_user_context", "get_user_context", "adapt_response", "add_adaptation_rule", "clear_user_context", "get_context_stats"]
     }
   },
   "tools": {
@@ -1030,6 +1035,54 @@
       "description": "Validate bulk update request without executing. Checks for errors and potential issues.",
       "requiredParams": ["entityType", "updates"],
       "optionalParams": ["checkExistence", "validateFields", "instance", "workspaceId"],
+      "implementation": "mcp"
+    },
+    "set_user_context": {
+      "category": "context-aware",
+      "operation": "SET_USER_CONTEXT",
+      "description": "Set user context for intelligent response adaptation and personalization.",
+      "requiredParams": ["sessionId"],
+      "optionalParams": ["userPreferences", "workspaceContext", "instanceContext"],
+      "implementation": "mcp"
+    },
+    "get_user_context": {
+      "category": "context-aware",
+      "operation": "GET_USER_CONTEXT",
+      "description": "Retrieve current user context and preferences.",
+      "requiredParams": ["sessionId"],
+      "optionalParams": [],
+      "implementation": "mcp"
+    },
+    "adapt_response": {
+      "category": "context-aware",
+      "operation": "ADAPT_RESPONSE",
+      "description": "Adapt a response based on user context and preferences. Provides intelligent formatting and guidance.",
+      "requiredParams": ["sessionId", "query", "originalResponse"],
+      "optionalParams": ["includeGuidance", "includeSuggestions"],
+      "implementation": "mcp"
+    },
+    "add_adaptation_rule": {
+      "category": "context-aware",
+      "operation": "ADD_ADAPTATION_RULE",
+      "description": "Add custom adaptation rule for response processing. Allows personalized response handling.",
+      "requiredParams": ["name", "description", "priority", "condition", "adaptation"],
+      "optionalParams": ["sessionId"],
+      "implementation": "mcp"
+    },
+    "clear_user_context": {
+      "category": "context-aware",
+      "operation": "CLEAR_USER_CONTEXT",
+      "description": "Clear all context data for a session. Useful for privacy or starting fresh.",
+      "requiredParams": ["sessionId"],
+      "optionalParams": [],
+      "implementation": "mcp"
+    },
+    "get_context_stats": {
+      "category": "context-aware",
+      "operation": "GET_CONTEXT_STATS",
+      "description": "Get system statistics about context-aware features usage and performance.",
+      "requiredParams": [],
+      "optionalParams": [],
       "implementation": "mcp"
     }
   }

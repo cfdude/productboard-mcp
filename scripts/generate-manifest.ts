@@ -1056,6 +1056,55 @@ async function loadMcpTools(): Promise<{
     ['checkExistence', 'validateFields', 'instance', 'workspaceId']
   );
 
+  // Context-aware tools
+  registerCategory(
+    'context-aware',
+    'Context-Aware Features',
+    'Intelligent response adaptation and user context management with personalization'
+  );
+  registerTool(
+    'set_user_context',
+    'context-aware',
+    'Set user context for intelligent response adaptation and personalization.',
+    ['sessionId'],
+    ['userPreferences', 'workspaceContext', 'instanceContext']
+  );
+  registerTool(
+    'get_user_context',
+    'context-aware',
+    'Retrieve current user context and preferences.',
+    ['sessionId'],
+    []
+  );
+  registerTool(
+    'adapt_response',
+    'context-aware',
+    'Adapt a response based on user context and preferences. Provides intelligent formatting and guidance.',
+    ['sessionId', 'query', 'originalResponse'],
+    ['includeGuidance', 'includeSuggestions']
+  );
+  registerTool(
+    'add_adaptation_rule',
+    'context-aware',
+    'Add custom adaptation rule for response processing. Allows personalized response handling.',
+    ['name', 'description', 'priority', 'condition', 'adaptation'],
+    ['sessionId']
+  );
+  registerTool(
+    'clear_user_context',
+    'context-aware',
+    'Clear all context data for a session. Useful for privacy or starting fresh.',
+    ['sessionId'],
+    []
+  );
+  registerTool(
+    'get_context_stats',
+    'context-aware',
+    'Get system statistics about context-aware features usage and performance.',
+    [],
+    []
+  );
+
   return { tools, categories };
 }
 
