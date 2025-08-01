@@ -4,6 +4,8 @@
 
 export type DetailLevel = 'basic' | 'standard' | 'full';
 
+export type OutputFormat = 'json' | 'markdown' | 'csv' | 'summary';
+
 export interface StandardListParams {
   /**
    * Maximum number of records to return
@@ -54,6 +56,16 @@ export interface StandardListParams {
    * @default true
    */
   validateFields?: boolean;
+
+  /**
+   * Output format for response data
+   * - json: Standard JSON response (default)
+   * - markdown: Human-readable markdown format
+   * - csv: Comma-separated values for tabular data
+   * - summary: Condensed overview format
+   * @default 'json'
+   */
+  outputFormat?: OutputFormat;
 }
 
 export interface StandardGetParams {
@@ -91,6 +103,16 @@ export interface StandardGetParams {
    * @default true
    */
   validateFields?: boolean;
+
+  /**
+   * Output format for response data
+   * - json: Standard JSON response (default)
+   * - markdown: Human-readable markdown format
+   * - csv: Comma-separated values for tabular data
+   * - summary: Condensed overview format
+   * @default 'json'
+   */
+  outputFormat?: OutputFormat;
 }
 
 export interface EnterpriseErrorInfo {

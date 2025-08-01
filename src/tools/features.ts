@@ -9,6 +9,7 @@ import {
   filterArrayByDetailLevel,
   validateFieldNames,
   isEnterpriseError,
+  formatResponse as formatResponseUtil,
 } from '../utils/parameter-utils.js';
 import {
   StandardListParams,
@@ -172,6 +173,12 @@ export function setupFeaturesTools() {
             description:
               'Validate field names and return suggestions for invalid fields (default: true)',
           },
+          outputFormat: {
+            type: 'string',
+            enum: ['json', 'markdown', 'csv', 'summary'],
+            description:
+              'Output format for response data. JSON (default), Markdown (human-readable), CSV (tabular), Summary (condensed)',
+          },
           includeSubData: {
             type: 'boolean',
             description: 'Include nested complex JSON sub-data',
@@ -258,6 +265,12 @@ export function setupFeaturesTools() {
             type: 'boolean',
             description:
               'Validate field names and return suggestions for invalid fields (default: true)',
+          },
+          outputFormat: {
+            type: 'string',
+            enum: ['json', 'markdown', 'csv', 'summary'],
+            description:
+              'Output format for response data. JSON (default), Markdown (human-readable), CSV (tabular), Summary (condensed)',
           },
           includeSubData: {
             type: 'boolean',
@@ -431,6 +444,12 @@ export function setupFeaturesTools() {
             enum: ['basic', 'standard', 'full'],
             description: 'Level of detail (default: basic)',
           },
+          outputFormat: {
+            type: 'string',
+            enum: ['json', 'markdown', 'csv', 'summary'],
+            description:
+              'Output format for response data. JSON (default), Markdown (human-readable), CSV (tabular), Summary (condensed)',
+          },
           includeSubData: {
             type: 'boolean',
             description: 'Include nested complex JSON sub-data',
@@ -482,6 +501,12 @@ export function setupFeaturesTools() {
             type: 'boolean',
             description:
               'Validate field names and return suggestions for invalid fields (default: true)',
+          },
+          outputFormat: {
+            type: 'string',
+            enum: ['json', 'markdown', 'csv', 'summary'],
+            description:
+              'Output format for response data. JSON (default), Markdown (human-readable), CSV (tabular), Summary (condensed)',
           },
           includeSubData: {
             type: 'boolean',
@@ -567,6 +592,12 @@ export function setupFeaturesTools() {
             description:
               'Validate field names and return suggestions for invalid fields',
           },
+          outputFormat: {
+            type: 'string',
+            enum: ['json', 'markdown', 'csv', 'summary'],
+            description:
+              'Output format for response data. JSON (default), Markdown (human-readable), CSV (tabular), Summary (condensed)',
+          },
           includeSubData: {
             type: 'boolean',
             description: 'Include nested complex JSON sub-data',
@@ -612,6 +643,12 @@ export function setupFeaturesTools() {
             type: 'boolean',
             description:
               'Validate field names and return suggestions for invalid fields',
+          },
+          outputFormat: {
+            type: 'string',
+            enum: ['json', 'markdown', 'csv', 'summary'],
+            description:
+              'Output format for response data. JSON (default), Markdown (human-readable), CSV (tabular), Summary (condensed)',
           },
           includeSubData: {
             type: 'boolean',
@@ -962,7 +999,7 @@ async function listFeatures(args: StandardListParams & any) {
         result.data = featuresWithCustomFields;
       }
 
-      // Apply field filtering (prioritizes fields over detail level)
+      // Apply field filtering and output formatting
       if (!normalizedParams.includeSubData && result.data) {
         result.data = filterArrayByDetailLevel(
           result.data,
@@ -973,11 +1010,27 @@ async function listFeatures(args: StandardListParams & any) {
         );
       }
 
+      // Apply output formatting to the data if requested
+      let finalResult = result;
+      if (args.outputFormat && args.outputFormat !== 'json' && result.data) {
+        const formattedData = formatResponseUtil(
+          result.data,
+          args.outputFormat,
+          'feature'
+        );
+        if (typeof formattedData === 'string') {
+          finalResult = formattedData;
+        }
+      }
+
       return {
         content: [
           {
             type: 'text',
-            text: formatResponse(result),
+            text:
+              typeof finalResult === 'string'
+                ? finalResult
+                : formatResponse(finalResult),
           },
         ],
       };
@@ -1027,28 +1080,31 @@ async function getFeature(
         }
       }
 
-      // Apply field filtering (prioritizes fields over detail level)
-      if (!normalizedParams.includeSubData) {
-        result = filterByDetailLevel(
-          result,
-          'feature',
-          normalizedParams.detail,
-          normalizedParams.fields,
-          normalizedParams.exclude
-        );
-      }
-
       // Include custom fields if requested
       if (args.includeCustomFields) {
         const customFieldsInfo = await getFeatureCustomFields(context, args.id);
         result.customFields = customFieldsInfo;
       }
 
+      // Apply field filtering and output formatting
+      if (!normalizedParams.includeSubData) {
+        result = filterByDetailLevel(
+          result,
+          'feature',
+          normalizedParams.detail,
+          normalizedParams.fields,
+          normalizedParams.exclude,
+          args.outputFormat
+        );
+      } else if (args.outputFormat && args.outputFormat !== 'json') {
+        result = formatResponseUtil(result, args.outputFormat, 'feature');
+      }
+
       return {
         content: [
           {
             type: 'text',
-            text: formatResponse(result),
+            text: typeof result === 'string' ? result : formatResponse(result),
           },
         ],
       };

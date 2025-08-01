@@ -8,6 +8,7 @@ import {
   DetailLevel,
   DetailFieldMappings,
   EnterpriseErrorInfo,
+  OutputFormat,
 } from '../types/parameter-types.js';
 import { ValidationError } from '../errors/index.js';
 
@@ -25,6 +26,7 @@ export function normalizeListParams(
     fields: params.fields ?? [],
     exclude: params.exclude ?? [],
     validateFields: params.validateFields ?? true,
+    outputFormat: params.outputFormat ?? 'json',
   };
 
   // Validate limit
@@ -42,6 +44,16 @@ export function normalizeListParams(
     throw new ValidationError(
       'Detail must be one of: basic, standard, full',
       'detail'
+    );
+  }
+
+  // Validate output format
+  if (
+    !['json', 'markdown', 'csv', 'summary'].includes(normalized.outputFormat)
+  ) {
+    throw new ValidationError(
+      'Output format must be one of: json, markdown, csv, summary',
+      'outputFormat'
     );
   }
 
@@ -68,6 +80,7 @@ export function normalizeGetParams(
     fields: params.fields ?? [],
     exclude: params.exclude ?? [],
     validateFields: params.validateFields ?? true,
+    outputFormat: params.outputFormat ?? 'json',
   };
 
   // Validate detail level
@@ -75,6 +88,16 @@ export function normalizeGetParams(
     throw new ValidationError(
       'Detail must be one of: basic, standard, full',
       'detail'
+    );
+  }
+
+  // Validate output format
+  if (
+    !['json', 'markdown', 'csv', 'summary'].includes(normalized.outputFormat)
+  ) {
+    throw new ValidationError(
+      'Output format must be one of: json, markdown, csv, summary',
+      'outputFormat'
     );
   }
 
@@ -97,26 +120,37 @@ export function filterByDetailLevel<T extends Record<string, any>>(
   entityType: keyof typeof DetailFieldMappings,
   detailLevel: DetailLevel,
   fields?: string[],
-  exclude?: string[]
-): Partial<T> {
+  exclude?: string[],
+  outputFormat?: OutputFormat
+): Partial<T> | string {
+  // Apply field filtering first
+  let filteredData: Partial<T>;
+
   // If explicit fields are specified, use dynamic field selection
   if (fields && fields.length > 0) {
-    return filterByFields(data, fields);
+    filteredData = filterByFields(data, fields);
   }
-
   // If exclude fields are specified, apply exclusion
-  if (exclude && exclude.length > 0) {
-    return filterByExclusion(data, exclude);
+  else if (exclude && exclude.length > 0) {
+    filteredData = filterByExclusion(data, exclude);
   }
-
   // Fall back to detail level filtering
-  const fieldsForLevel = DetailFieldMappings[entityType]?.[detailLevel];
-  if (!fieldsForLevel) {
-    // If no mapping exists, return full data
-    return data;
+  else {
+    const fieldsForLevel = DetailFieldMappings[entityType]?.[detailLevel];
+    if (!fieldsForLevel) {
+      // If no mapping exists, return full data
+      filteredData = data;
+    } else {
+      filteredData = filterByFields(data, [...fieldsForLevel]);
+    }
   }
 
-  return filterByFields(data, [...fieldsForLevel]);
+  // Apply output formatting if specified
+  if (outputFormat && outputFormat !== 'json') {
+    return formatResponse(filteredData, outputFormat, String(entityType));
+  }
+
+  return filteredData;
 }
 
 /**
@@ -333,10 +367,18 @@ export function filterArrayByDetailLevel<T extends Record<string, any>>(
   entityType: keyof typeof DetailFieldMappings,
   detailLevel: DetailLevel,
   fields?: string[],
-  exclude?: string[]
-): Partial<T>[] {
+  exclude?: string[],
+  outputFormat?: OutputFormat
+): (Partial<T> | string)[] {
   return data.map(item =>
-    filterByDetailLevel(item, entityType, detailLevel, fields, exclude)
+    filterByDetailLevel(
+      item,
+      entityType,
+      detailLevel,
+      fields,
+      exclude,
+      outputFormat
+    )
   );
 }
 
@@ -402,4 +444,247 @@ export function convertPaginationParams(params: any): {
   }
 
   return result;
+}
+
+/**
+ * Format response data according to the specified output format
+ */
+export function formatResponse<T>(
+  data: T,
+  format: OutputFormat = 'json',
+  entityType: string
+): string | T {
+  if (format === 'json') return data;
+
+  try {
+    const formatters = {
+      markdown: formatAsMarkdown,
+      csv: formatAsCSV,
+      summary: formatAsSummary,
+    };
+
+    return formatters[format](data, entityType);
+  } catch (error) {
+    console.warn(
+      `Format conversion failed for ${format}, falling back to JSON:`,
+      error
+    );
+    return data; // Fallback to JSON
+  }
+}
+
+/**
+ * Format data as Markdown
+ */
+function formatAsMarkdown(data: any, entityType: string): string {
+  if (Array.isArray(data)) {
+    return data
+      .map(item => formatSingleItemMarkdown(item, entityType))
+      .join('\n---\n');
+  }
+  return formatSingleItemMarkdown(data, entityType);
+}
+
+/**
+ * Format single item as Markdown
+ */
+function formatSingleItemMarkdown(item: any, entityType: string): string {
+  const templates: Record<string, (item: any) => string> = {
+    feature: item =>
+      `## ${item.name || item.id}\n**Status:** ${
+        item.status?.name || 'N/A'
+      }\n**Owner:** ${
+        item.owner?.email || 'Unassigned'
+      }\n**Description:** ${truncate(item.description, 100)}`,
+    component: item =>
+      `## ${item.name || item.id}\n**Product:** ${
+        item.productId || 'N/A'
+      }\n**Description:** ${item.description || 'No description'}`,
+    note: item =>
+      `## ${item.title || item.id}\n**Source:** ${
+        item.source || 'Unknown'
+      }\n**Content:** ${truncate(item.content, 150)}`,
+    product: item =>
+      `## ${item.name || item.id}\n**Description:** ${
+        item.description || 'No description'
+      }`,
+    company: item =>
+      `## ${item.name || item.id}\n**Domain:** ${
+        item.domain || 'N/A'
+      }\n**Description:** ${item.description || 'No description'}`,
+    user: item =>
+      `## ${item.name || item.email || item.id}\n**Email:** ${
+        item.email || 'N/A'
+      }\n**Company:** ${item.companyId || 'N/A'}`,
+  };
+
+  const formatter = templates[entityType];
+  if (formatter) {
+    return formatter(item);
+  }
+
+  // Generic markdown format for unknown entity types
+  const title = item.name || item.title || item.id || 'Unknown';
+  const fields = Object.entries(item)
+    .filter(([key, value]) => key !== 'name' && key !== 'title' && value)
+    .slice(0, 5) // Limit to first 5 fields
+    .map(([key, value]) => `**${key}:** ${truncate(String(value), 50)}`)
+    .join('\n');
+
+  return `## ${title}\n${fields}`;
+}
+
+/**
+ * Format data as CSV
+ */
+function formatAsCSV(data: any): string {
+  if (!Array.isArray(data) || data.length === 0) return '';
+
+  // Flatten nested objects using dot notation
+  const flattened = data.map(item => flattenObject(item));
+  const headers = Object.keys(flattened[0]);
+
+  const csvContent = [
+    headers.join(','),
+    ...flattened.map(row =>
+      headers.map(header => escapeCsvValue(row[header])).join(',')
+    ),
+  ].join('\n');
+
+  return csvContent;
+}
+
+/**
+ * Flatten nested object using dot notation
+ */
+function flattenObject(obj: any, prefix = ''): any {
+  const flattened: any = {};
+  for (const key in obj) {
+    if (obj[key] === null || obj[key] === undefined) {
+      continue;
+    }
+
+    const newKey = prefix ? `${prefix}.${key}` : key;
+    if (
+      typeof obj[key] === 'object' &&
+      obj[key] !== null &&
+      !Array.isArray(obj[key])
+    ) {
+      Object.assign(flattened, flattenObject(obj[key], newKey));
+    } else {
+      flattened[newKey] = Array.isArray(obj[key])
+        ? obj[key].join('|')
+        : obj[key];
+    }
+  }
+  return flattened;
+}
+
+/**
+ * Escape CSV values
+ */
+function escapeCsvValue(value: any): string {
+  if (value === null || value === undefined) return '';
+  const str = String(value);
+  if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
+
+/**
+ * Format data as Summary
+ */
+function formatAsSummary(data: any, entityType: string): string {
+  if (Array.isArray(data)) {
+    const count = data.length;
+    const summaryStats = generateSummaryStats(data, entityType);
+    return `📋 ${count} ${entityType}s found\n${summaryStats}\n\nItems:\n${data
+      .map(item => `• ${item.name || item.title || item.id}`)
+      .join('\n')}`;
+  }
+
+  // Single item summary
+  const essential = extractEssentialFields(data, entityType);
+  return Object.entries(essential)
+    .map(([key, value]) => `${key}: ${value}`)
+    .join(' | ');
+}
+
+/**
+ * Generate summary statistics for array data
+ */
+function generateSummaryStats(data: any[], entityType: string): string {
+  const stats: string[] = [];
+
+  if (entityType === 'feature') {
+    const statusCounts = countBy(data, 'status.name');
+    if (statusCounts && Object.keys(statusCounts).length > 0) {
+      stats.push(
+        `Status: ${Object.entries(statusCounts)
+          .map(([status, count]) => `${status}(${count})`)
+          .join(', ')}`
+      );
+    }
+  }
+
+  if (entityType === 'note') {
+    const sourceCounts = countBy(data, 'source');
+    if (sourceCounts && Object.keys(sourceCounts).length > 0) {
+      stats.push(
+        `Sources: ${Object.entries(sourceCounts)
+          .map(([source, count]) => `${source}(${count})`)
+          .join(', ')}`
+      );
+    }
+  }
+
+  return stats.join('\n');
+}
+
+/**
+ * Extract essential fields for summary view
+ */
+function extractEssentialFields(data: any, entityType: string): any {
+  const fieldMaps: Record<string, string[]> = {
+    feature: ['name', 'status.name', 'owner.email'],
+    component: ['name', 'productId'],
+    note: ['title', 'source'],
+    product: ['name'],
+    company: ['name', 'domain'],
+    user: ['name', 'email'],
+  };
+
+  const essentialFields = fieldMaps[entityType] || ['name', 'id'];
+  const result: any = {};
+
+  essentialFields.forEach(field => {
+    const value = getNestedValue(data, field.split('.'));
+    if (value) {
+      result[field] = value;
+    }
+  });
+
+  return result;
+}
+
+/**
+ * Count items by field value
+ */
+function countBy(data: any[], field: string): Record<string, number> {
+  const counts: Record<string, number> = {};
+  data.forEach(item => {
+    const value = getNestedValue(item, field.split('.')) || 'Unknown';
+    counts[value] = (counts[value] || 0) + 1;
+  });
+  return counts;
+}
+
+/**
+ * Truncate text to specified length
+ */
+function truncate(text: string | null | undefined, length: number): string {
+  if (!text) return 'N/A';
+  if (text.length <= length) return text;
+  return text.substring(0, length) + '...';
 }
