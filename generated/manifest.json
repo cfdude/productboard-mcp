@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated": "2025-08-01T16:39:21.092Z",
+  "generated": "2025-08-01T16:49:24.240Z",
   "categories": {
     "notes": {
       "displayName": "Notes",
@@ -56,6 +56,11 @@
       "displayName": "Performance Tools",
       "description": "High-performance lightweight tools for status checking, validation, and monitoring",
       "tools": ["check_entity_status", "validate_entity_existence", "track_batch_progress", "get_entity_counts", "perform_health_check", "get_performance_stats", "perform_cleanup"]
+    },
+    "bulk-operations": {
+      "displayName": "Bulk Operations",
+      "description": "Efficient bulk update operations with change tracking and diff analysis",
+      "tools": ["perform_bulk_update", "compare_entities", "validate_bulk_update"]
     }
   },
   "tools": {
@@ -1001,6 +1006,30 @@
       "description": "Clear caches and perform system cleanup. Useful for memory management and troubleshooting.",
       "requiredParams": [],
       "optionalParams": ["clearCache", "clearMetrics", "forceGC", "instance", "workspaceId"],
+      "implementation": "mcp"
+    },
+    "perform_bulk_update": {
+      "category": "bulk-operations",
+      "operation": "PERFORM_BULK_UPDATE",
+      "description": "Perform batch updates with diff tracking and change analysis. Supports features, notes, companies, users, and objectives.",
+      "requiredParams": ["entityType", "updates"],
+      "optionalParams": ["batchSize", "concurrency", "continueOnError", "validateBeforeUpdate", "trackChanges", "diffFormat", "includeUnchanged", "instance", "workspaceId"],
+      "implementation": "mcp"
+    },
+    "compare_entities": {
+      "category": "bulk-operations",
+      "operation": "COMPARE_ENTITIES",
+      "description": "Compare current entity state with proposed changes without making updates. Shows what would change.",
+      "requiredParams": ["entityType", "comparisons"],
+      "optionalParams": ["diffFormat", "highlightSignificant", "includeUnchanged", "instance", "workspaceId"],
+      "implementation": "mcp"
+    },
+    "validate_bulk_update": {
+      "category": "bulk-operations",
+      "operation": "VALIDATE_BULK_UPDATE",
+      "description": "Validate bulk update request without executing. Checks for errors and potential issues.",
+      "requiredParams": ["entityType", "updates"],
+      "optionalParams": ["checkExistence", "validateFields", "instance", "workspaceId"],
       "implementation": "mcp"
     }
   }

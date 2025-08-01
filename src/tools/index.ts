@@ -24,6 +24,7 @@ import { setupJiraIntegrationsTools } from './jira-integrations.js';
 import { setupDocumentationTools } from './documentation.js';
 import { setupSearchTools } from './search.js';
 import { setupPerformanceTools } from './performance.js';
+import { setupBulkOperationsTools } from './bulk-operations.js';
 import { ToolDefinition } from '../types/tool-types.js';
 import { SearchParams } from '../types/search-types.js';
 
@@ -37,6 +38,7 @@ export function setupToolHandlers(server: Server): void {
   // Register tool categories
   tools.push(...setupSearchTools());
   tools.push(...setupPerformanceTools());
+  tools.push(...setupBulkOperationsTools());
   tools.push(...setupNotesTools());
   tools.push(...setupFeaturesTools());
   tools.push(...setupCompaniesTools());
@@ -183,6 +185,15 @@ export function setupToolHandlers(server: Server): void {
       ) {
         const { handlePerformanceTool } = await import('./performance.js');
         return await handlePerformanceTool(name, args || {});
+      } else if (
+        name === 'perform_bulk_update' ||
+        name === 'compare_entities' ||
+        name === 'validate_bulk_update'
+      ) {
+        const { handleBulkOperationsTool } = await import(
+          './bulk-operations.js'
+        );
+        return await handleBulkOperationsTool(name, args || {});
       } else {
         throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
       }

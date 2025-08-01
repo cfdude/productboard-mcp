@@ -1012,6 +1012,50 @@ async function loadMcpTools(): Promise<{
     ['clearCache', 'clearMetrics', 'forceGC', 'instance', 'workspaceId']
   );
 
+  // Bulk operations tools
+  registerCategory(
+    'bulk-operations',
+    'Bulk Operations',
+    'Efficient bulk update operations with change tracking and diff analysis'
+  );
+  registerTool(
+    'perform_bulk_update',
+    'bulk-operations',
+    'Perform batch updates with diff tracking and change analysis. Supports features, notes, companies, users, and objectives.',
+    ['entityType', 'updates'],
+    [
+      'batchSize',
+      'concurrency',
+      'continueOnError',
+      'validateBeforeUpdate',
+      'trackChanges',
+      'diffFormat',
+      'includeUnchanged',
+      'instance',
+      'workspaceId',
+    ]
+  );
+  registerTool(
+    'compare_entities',
+    'bulk-operations',
+    'Compare current entity state with proposed changes without making updates. Shows what would change.',
+    ['entityType', 'comparisons'],
+    [
+      'diffFormat',
+      'highlightSignificant',
+      'includeUnchanged',
+      'instance',
+      'workspaceId',
+    ]
+  );
+  registerTool(
+    'validate_bulk_update',
+    'bulk-operations',
+    'Validate bulk update request without executing. Checks for errors and potential issues.',
+    ['entityType', 'updates'],
+    ['checkExistence', 'validateFields', 'instance', 'workspaceId']
+  );
+
   return { tools, categories };
 }
 
