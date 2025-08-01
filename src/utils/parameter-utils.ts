@@ -246,15 +246,18 @@ export function filterByDetailLevel<T extends Record<string, any>>(
   }
   // Fall back to detail level filtering with essential fields
   else {
-    let fieldsForLevel = DetailFieldMappings[entityType]?.[detailLevel];
-
-    // If no mapping exists for detail level, use essential fields as fallback
-    if (!fieldsForLevel) {
-      fieldsForLevel = fieldSelector.getEssentialFields(String(entityType));
+    let fieldsToUse: string[];
+    
+    const predefinedFields = DetailFieldMappings[entityType]?.[detailLevel];
+    if (predefinedFields) {
+      fieldsToUse = [...predefinedFields];
+    } else {
+      // Use essential fields as fallback when no predefined mapping exists
+      fieldsToUse = fieldSelector.getEssentialFields(String(entityType));
     }
 
     filteredData = fieldSelector.selectFields(data, {
-      fields: [...fieldsForLevel],
+      fields: fieldsToUse,
       exclude,
       validateFields: false, // Skip validation for predefined fields
     }) as Partial<T>;
@@ -318,35 +321,7 @@ function getNestedValue(obj: any, path: string[]): any {
   return current;
 }
 
-/**
- * Set nested value in object using field path
- */
-function setNestedValue(obj: any, path: string[], value: any): void {
-  let current = obj;
-  for (let i = 0; i < path.length - 1; i++) {
-    const key = path[i];
-    if (!current[key] || typeof current[key] !== 'object') {
-      current[key] = {};
-    }
-    current = current[key];
-  }
-  current[path[path.length - 1]] = value;
-}
-
-/**
- * Delete nested value from object using field path
- */
-function deleteNestedValue(obj: any, path: string[]): void {
-  let current = obj;
-  for (let i = 0; i < path.length - 1; i++) {
-    const key = path[i];
-    if (!current[key] || typeof current[key] !== 'object') {
-      return; // Path doesn't exist
-    }
-    current = current[key];
-  }
-  delete current[path[path.length - 1]];
-}
+// Removed unused helper functions - functionality moved to field-selection.ts
 
 /**
  * Validate field names against entity schema and return suggestions

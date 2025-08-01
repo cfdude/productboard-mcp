@@ -43,9 +43,9 @@ The get_features tool now supports advanced field selection for significant toke
                 description: 'Get just the critical information',
                 input: {
                     fields: ['id', 'name', 'status.name', 'owner.email'],
-                    limit: 20
+                    limit: 20,
                 },
-                notes: 'Use fieldSelector.getEssentialFields() for predefined essential field sets'
+                notes: 'Use fieldSelector.getEssentialFields() for predefined essential field sets',
             },
             {
                 title: 'Optimized Response with Truncation',
@@ -54,9 +54,9 @@ The get_features tool now supports advanced field selection for significant toke
                     maxLength: 5000,
                     truncateFields: ['description', 'customFields'],
                     includeEmpty: false,
-                    outputFormat: 'summary'
+                    outputFormat: 'summary',
                 },
-                notes: 'Automatically truncates long fields while preserving readability'
+                notes: 'Automatically truncates long fields while preserving readability',
             },
             {
                 title: 'Advanced Search with Wildcards',
@@ -65,10 +65,10 @@ The get_features tool now supports advanced field selection for significant toke
                     statusName: 'In*',
                     ownerEmail: '*@company.com',
                     patternMatchMode: 'wildcard',
-                    caseSensitive: false
+                    caseSensitive: false,
                 },
-                notes: 'Uses ReDoS-safe wildcard patterns with complexity validation'
-            }
+                notes: 'Uses ReDoS-safe wildcard patterns with complexity validation',
+            },
         ],
         bestPractices: [
             '🎯 Always use "fields" parameter for production - can reduce tokens by 60-80%',
@@ -76,21 +76,21 @@ The get_features tool now supports advanced field selection for significant toke
             '🔧 Set "maxLength" with "truncateFields" for consistent response sizes',
             '🔍 Use wildcard patterns (*,?) for flexible filtering without regex complexity',
             '✅ Enable "validateFields: true" to get suggestions for field name typos',
-            '🚫 Set "includeEmpty: false" to remove null/empty fields from responses'
+            '🚫 Set "includeEmpty: false" to remove null/empty fields from responses',
         ],
         commonErrors: [
             {
                 error: 'Invalid field names',
                 cause: 'Typo in field specification or unsupported field',
-                solution: 'Use validateFields: true for suggestions, or call get_available_fields'
+                solution: 'Use validateFields: true for suggestions, or call get_available_fields',
             },
             {
                 error: 'Response too large',
                 cause: 'Fetching full objects without field selection',
-                solution: 'Use fields parameter or set maxLength with truncateFields'
-            }
+                solution: 'Use fields parameter or set maxLength with truncateFields',
+            },
         ],
-        relatedTools: ['get_available_fields', 'search']
+        relatedTools: ['get_available_fields', 'search'],
     },
     // Performance Tools
     get_performance_metrics: {
@@ -121,16 +121,16 @@ Advanced performance tools for production MCP server deployments:
                 description: 'Get comprehensive performance overview',
                 input: {
                     includeBreakdown: true,
-                    timeRange: '24h'
-                }
-            }
+                    timeRange: '24h',
+                },
+            },
         ],
         bestPractices: [
             '📊 Monitor regularly in production environments',
             '⚡ Use caching for frequently accessed data',
             '🔄 Set appropriate TTL values for different data types',
-            '🚦 Implement rate limiting for external API calls'
-        ]
+            '🚦 Implement rate limiting for external API calls',
+        ],
     },
     // Bulk Operations
     bulk_update_features: {
@@ -159,19 +159,19 @@ Efficiently update multiple entities with smart diff detection:
                 input: {
                     updates: [
                         { id: 'feat-1', status: { name: 'In Progress' } },
-                        { id: 'feat-2', status: { name: 'Done' } }
+                        { id: 'feat-2', status: { name: 'Done' } },
                     ],
                     diffOnly: true,
-                    validateFirst: true
-                }
-            }
+                    validateFirst: true,
+                },
+            },
         ],
         bestPractices: [
             '🔄 Always use diffOnly: true for efficiency',
             '✅ Enable validateFirst for safety',
             '📦 Batch updates in groups of 50-100 items',
-            '🔒 Use transaction mode for critical updates'
-        ]
+            '🔒 Use transaction mode for critical updates',
+        ],
     },
     // Context-Aware Features
     set_user_context: {
@@ -203,21 +203,21 @@ Intelligent response personalization based on user context:
                     userPreferences: {
                         dataFormat: 'basic',
                         maxResults: 25,
-                        timezone: 'America/New_York'
+                        timezone: 'America/New_York',
                     },
                     workspaceContext: {
                         id: 'workspace-456',
-                        permissions: ['read', 'write']
-                    }
-                }
-            }
+                        permissions: ['read', 'write'],
+                    },
+                },
+            },
         ],
         bestPractices: [
             '🎯 Set context at session start for personalized responses',
             '📊 Use dataFormat preference to control response size',
             '🔐 Configure workspace permissions for data filtering',
-            '⚡ Enable adaptation rules for improved UX'
-        ]
+            '⚡ Enable adaptation rules for improved UX',
+        ],
     },
     // Notes Tools
     create_note: {
