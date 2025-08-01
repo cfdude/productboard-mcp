@@ -13,6 +13,7 @@ import {
   CustomFieldInclusion,
 } from '../types/parameter-types.js';
 import { ValidationError } from '../errors/index.js';
+import { fieldSelector } from './field-selection.js';
 
 /**
  * Apply default values and validate list parameters
@@ -216,26 +217,47 @@ export function filterByDetailLevel<T extends Record<string, any>>(
   outputFormat?: OutputFormat,
   optimization?: ResponseOptimizationParams
 ): Partial<T> | string {
-  // Apply field filtering first
+
   let filteredData: Partial<T>;
 
   // If explicit fields are specified, use dynamic field selection
   if (fields && fields.length > 0) {
-    filteredData = filterByFields(data, fields);
+    // Validate fields if requested
+    const validation = fieldSelector.validateFields(String(entityType), fields);
+    if (!validation.valid && validation.suggestions) {
+      console.warn(
+        `Invalid fields for ${entityType}: ${validation.invalidFields?.join(', ')}`
+      );
+      console.warn('Suggestions:', validation.suggestions.join(', '));
+    }
+
+    filteredData = fieldSelector.selectFields(data, {
+      fields,
+      exclude,
+      validateFields: true,
+    }) as Partial<T>;
   }
   // If exclude fields are specified, apply exclusion
   else if (exclude && exclude.length > 0) {
-    filteredData = filterByExclusion(data, exclude);
+    filteredData = fieldSelector.selectFields(data, {
+      exclude,
+      validateFields: true,
+    }) as Partial<T>;
   }
-  // Fall back to detail level filtering
+  // Fall back to detail level filtering with essential fields
   else {
-    const fieldsForLevel = DetailFieldMappings[entityType]?.[detailLevel];
+    let fieldsForLevel = DetailFieldMappings[entityType]?.[detailLevel];
+
+    // If no mapping exists for detail level, use essential fields as fallback
     if (!fieldsForLevel) {
-      // If no mapping exists, return full data
-      filteredData = data;
-    } else {
-      filteredData = filterByFields(data, [...fieldsForLevel]);
+      fieldsForLevel = fieldSelector.getEssentialFields(String(entityType));
     }
+
+    filteredData = fieldSelector.selectFields(data, {
+      fields: [...fieldsForLevel],
+      exclude,
+      validateFields: false, // Skip validation for predefined fields
+    }) as Partial<T>;
   }
 
   // Apply response optimization if specified
@@ -254,73 +276,31 @@ export function filterByDetailLevel<T extends Record<string, any>>(
 /**
  * Filter object by specific fields, supporting dot notation for nested fields
  */
+/**
+ * @deprecated Use fieldSelector.selectFields() from field-selection.ts instead
+ * Legacy field filtering function - kept for backward compatibility
+ */
 export function filterByFields<T extends Record<string, any>>(
   data: T,
   fields: string[]
 ): Partial<T> {
-  const result: any = {};
-
-  for (const field of fields) {
-    if (field.includes('.')) {
-      // Handle nested field selection (e.g., "timeframe.startDate")
-      const fieldPath = field.split('.');
-      const topLevelField = fieldPath[0];
-
-      if (data[topLevelField] && typeof data[topLevelField] === 'object') {
-        if (!result[topLevelField]) {
-          result[topLevelField] = {};
-        }
-
-        // Extract nested value
-        const nestedValue = getNestedValue(
-          data[topLevelField],
-          fieldPath.slice(1)
-        );
-        if (nestedValue !== undefined) {
-          setNestedValue(
-            result[topLevelField],
-            fieldPath.slice(1),
-            nestedValue
-          );
-        }
-      }
-    } else {
-      // Handle direct field selection
-      if (data[field] !== undefined) {
-        result[field] = data[field];
-      }
-    }
-  }
-
-  return result;
+  return fieldSelector.selectFields(data, { fields }) as Partial<T>;
 }
 
 /**
  * Filter object by excluding specific fields
  */
+/**
+ * @deprecated Use fieldSelector.selectFields() with exclude option from field-selection.ts instead
+ * Legacy field exclusion function - kept for backward compatibility
+ */
 export function filterByExclusion<T extends Record<string, any>>(
   data: T,
   excludeFields: string[]
 ): Partial<T> {
-  const result = { ...data };
-
-  for (const field of excludeFields) {
-    if (field.includes('.')) {
-      // Handle nested field exclusion
-      const fieldPath = field.split('.');
-      const topLevelField = fieldPath[0];
-
-      if (result[topLevelField] && typeof result[topLevelField] === 'object') {
-        (result as any)[topLevelField] = { ...result[topLevelField] };
-        deleteNestedValue(result[topLevelField], fieldPath.slice(1));
-      }
-    } else {
-      // Handle direct field exclusion
-      delete result[field];
-    }
-  }
-
-  return result;
+  return fieldSelector.selectFields(data, {
+    exclude: excludeFields,
+  }) as Partial<T>;
 }
 
 /**

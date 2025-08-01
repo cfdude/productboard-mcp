@@ -57,28 +57,53 @@ export class ConfigurationError extends ProductboardError {
 
 /**
  * Sanitize error messages to prevent information leakage
+ * Enhanced with contextual documentation hints
  */
-export function sanitizeErrorMessage(error: unknown): string {
+export function sanitizeErrorMessage(
+  error: unknown,
+  toolName?: string
+): string {
+  const docHint = toolName
+    ? ` Use 'get_${getEntityTypeFromTool(toolName)}_docs()' for complete API documentation.`
+    : '';
+
   if (error instanceof ValidationError) {
-    return error.field ? `Invalid ${error.field}` : 'Invalid input';
+    const message = error.field ? `Invalid ${error.field}` : 'Invalid input';
+    return `${message}.${docHint}`;
   }
 
   if (error instanceof AuthenticationError) {
-    return 'Authentication failed';
+    return `Authentication failed.${docHint}`;
   }
 
   if (error instanceof RateLimitError) {
-    return error.message;
+    return `${error.message}.${docHint}`;
   }
 
   if (error instanceof NetworkError) {
-    return 'Network error occurred';
+    return `Network error occurred.${docHint}`;
   }
 
   if (error instanceof ConfigurationError) {
-    return 'Configuration error';
+    return `Configuration error.${docHint}`;
   }
 
   // Generic error - don't expose details
-  return 'An error occurred processing your request';
+  return `An error occurred processing your request.${docHint}`;
+}
+
+/**
+ * Extract entity type from tool name for contextual documentation
+ */
+function getEntityTypeFromTool(toolName: string): string {
+  if (toolName.includes('feature')) return 'feature';
+  if (toolName.includes('note')) return 'note';
+  if (toolName.includes('component')) return 'component';
+  if (toolName.includes('product')) return 'product';
+  if (toolName.includes('company')) return 'company';
+  if (toolName.includes('user')) return 'user';
+  if (toolName.includes('objective')) return 'objective';
+  if (toolName.includes('initiative')) return 'initiative';
+  if (toolName.includes('release')) return 'release';
+  return 'general';
 }

@@ -103,43 +103,43 @@ describe('Error Types', () => {
 describe('sanitizeErrorMessage', () => {
   it('should sanitize validation errors', () => {
     const error = new ValidationError('Invalid format', 'email');
-    expect(sanitizeErrorMessage(error)).toBe('Invalid email');
+    expect(sanitizeErrorMessage(error)).toBe('Invalid email.');
 
     const errorNoField = new ValidationError('Bad input');
-    expect(sanitizeErrorMessage(errorNoField)).toBe('Invalid input');
+    expect(sanitizeErrorMessage(errorNoField)).toBe('Invalid input.');
   });
 
   it('should sanitize authentication errors', () => {
     const error = new AuthenticationError('Token invalid: xyz123');
-    expect(sanitizeErrorMessage(error)).toBe('Authentication failed');
+    expect(sanitizeErrorMessage(error)).toBe('Authentication failed.');
   });
 
   it('should preserve rate limit messages', () => {
     const error = new RateLimitError(60);
     expect(sanitizeErrorMessage(error)).toBe(
-      'Rate limit exceeded. Retry after 60s'
+      'Rate limit exceeded. Retry after 60s.'
     );
   });
 
   it('should sanitize network errors', () => {
     const error = new NetworkError('ECONNREFUSED to 192.168.1.1');
-    expect(sanitizeErrorMessage(error)).toBe('Network error occurred');
+    expect(sanitizeErrorMessage(error)).toBe('Network error occurred.');
   });
 
   it('should sanitize configuration errors', () => {
     const error = new ConfigurationError('Token pb_123 is invalid');
-    expect(sanitizeErrorMessage(error)).toBe('Configuration error');
+    expect(sanitizeErrorMessage(error)).toBe('Configuration error.');
   });
 
   it('should sanitize unknown errors', () => {
     expect(sanitizeErrorMessage(new Error('Sensitive data'))).toBe(
-      'An error occurred processing your request'
+      'An error occurred processing your request.'
     );
     expect(sanitizeErrorMessage('String error')).toBe(
-      'An error occurred processing your request'
+      'An error occurred processing your request.'
     );
     expect(sanitizeErrorMessage(null)).toBe(
-      'An error occurred processing your request'
+      'An error occurred processing your request.'
     );
   });
 });

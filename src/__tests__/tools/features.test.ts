@@ -71,7 +71,7 @@ describe('Features Tools', () => {
   describe('Tool Handler', () => {
     it('should handle unknown tool error', async () => {
       await expect(handleFeaturesTool('unknown_tool', {})).rejects.toThrow(
-        'Unknown features tool: unknown_tool'
+        'Unknown tool: unknown_tool'
       );
     });
 

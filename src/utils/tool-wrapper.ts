@@ -16,6 +16,13 @@ import {
   sanitizeErrorMessage,
 } from '../errors/index.js';
 
+// Extend axios config to include toolName for error handling
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    toolName?: string;
+  }
+}
+
 export interface ToolContext {
   config: MultiInstanceProductboardConfig;
   instance: ProductboardInstanceConfig;
@@ -194,7 +201,7 @@ export function createToolContext(
           };
           throw new McpError(
             ErrorCode.InvalidRequest,
-            sanitizeErrorMessage(error),
+            sanitizeErrorMessage(error, error.config?.toolName),
             details
           );
         }
@@ -237,9 +244,20 @@ export function createToolContext(
 export async function withContext<T>(
   handler: (context: ToolContext) => Promise<T>,
   instanceName?: string,
-  workspaceId?: string
+  workspaceId?: string,
+  toolName?: string
 ): Promise<T> {
   const context = createToolContext(instanceName, workspaceId);
+
+  // Add tool name to axios config for enhanced error messaging
+  if (toolName) {
+    // Store toolName in interceptor closure instead of axios config
+    context.axios.interceptors.request.use(config => {
+      config.toolName = toolName;
+      return config;
+    });
+  }
+
   return await handler(context);
 }
 
