@@ -7,6 +7,7 @@ import {
   normalizeGetParams,
   filterByDetailLevel,
   filterArrayByDetailLevel,
+  validateFieldNames,
   isEnterpriseError,
 } from '../utils/parameter-utils.js';
 import {
@@ -151,7 +152,25 @@ export function setupFeaturesTools() {
           detail: {
             type: 'string',
             enum: ['basic', 'standard', 'full'],
-            description: 'Level of detail (default: basic)',
+            description:
+              'Level of detail (default: basic). DEPRECATED: Use fields parameter for precise selection.',
+          },
+          fields: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Specific fields to include in response. Supports dot notation for nested fields. Example: ["id", "name", "status.name"]',
+          },
+          exclude: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Fields to exclude from response. Cannot be used with fields parameter.',
+          },
+          validateFields: {
+            type: 'boolean',
+            description:
+              'Validate field names and return suggestions for invalid fields (default: true)',
           },
           includeSubData: {
             type: 'boolean',
@@ -220,7 +239,25 @@ export function setupFeaturesTools() {
           detail: {
             type: 'string',
             enum: ['basic', 'standard', 'full'],
-            description: 'Level of detail (default: standard)',
+            description:
+              'Level of detail (default: standard). DEPRECATED: Use fields parameter for precise selection.',
+          },
+          fields: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Specific fields to include in response. Supports dot notation for nested fields (e.g., "timeframe.startDate"). Example: ["id", "name", "status.name", "owner.email"]',
+          },
+          exclude: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Fields to exclude from response. Cannot be used with fields parameter.',
+          },
+          validateFields: {
+            type: 'boolean',
+            description:
+              'Validate field names and return suggestions for invalid fields (default: true)',
           },
           includeSubData: {
             type: 'boolean',
@@ -426,7 +463,25 @@ export function setupFeaturesTools() {
           detail: {
             type: 'string',
             enum: ['basic', 'standard', 'full'],
-            description: 'Level of detail (default: standard)',
+            description:
+              'Level of detail (default: standard). DEPRECATED: Use fields parameter for precise selection.',
+          },
+          fields: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Specific fields to include in response. Example: ["id", "name", "description"]',
+          },
+          exclude: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Fields to exclude from response. Cannot be used with fields parameter.',
+          },
+          validateFields: {
+            type: 'boolean',
+            description:
+              'Validate field names and return suggestions for invalid fields (default: true)',
           },
           includeSubData: {
             type: 'boolean',
@@ -496,6 +551,22 @@ export function setupFeaturesTools() {
             enum: ['basic', 'standard', 'full'],
             description: 'Level of detail (default: basic)',
           },
+          fields: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Specific fields to include (dot notation supported for nested fields, e.g., "owner.email")',
+          },
+          exclude: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Fields to exclude from response',
+          },
+          validateFields: {
+            type: 'boolean',
+            description:
+              'Validate field names and return suggestions for invalid fields',
+          },
           includeSubData: {
             type: 'boolean',
             description: 'Include nested complex JSON sub-data',
@@ -525,6 +596,22 @@ export function setupFeaturesTools() {
             type: 'string',
             enum: ['basic', 'standard', 'full'],
             description: 'Level of detail (default: standard)',
+          },
+          fields: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+              'Specific fields to include (dot notation supported for nested fields, e.g., "owner.email")',
+          },
+          exclude: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'Fields to exclude from response',
+          },
+          validateFields: {
+            type: 'boolean',
+            description:
+              'Validate field names and return suggestions for invalid fields',
           },
           includeSubData: {
             type: 'boolean',
@@ -768,6 +855,31 @@ async function listFeatures(args: StandardListParams & any) {
 
       const result = response.data;
 
+      // Field validation if requested
+      if (
+        normalizedParams.validateFields &&
+        (normalizedParams.fields.length > 0 ||
+          normalizedParams.exclude.length > 0)
+      ) {
+        const validation = validateFieldNames(
+          'feature',
+          normalizedParams.fields
+        );
+        if (validation.invalid.length > 0) {
+          console.warn(
+            `Invalid fields for feature: ${validation.invalid.join(', ')}`
+          );
+          if (validation.suggestions.length > 0) {
+            console.warn(
+              'Suggestions:',
+              validation.suggestions
+                .map(s => `${s.field} -> ${s.suggestion}`)
+                .join(', ')
+            );
+          }
+        }
+      }
+
       // Apply timeframe duration filtering and calculate duration field
       if (result.data && Array.isArray(result.data)) {
         // Calculate timeframeDuration for each feature
@@ -850,12 +962,14 @@ async function listFeatures(args: StandardListParams & any) {
         result.data = featuresWithCustomFields;
       }
 
-      // Apply detail level filtering
+      // Apply field filtering (prioritizes fields over detail level)
       if (!normalizedParams.includeSubData && result.data) {
         result.data = filterArrayByDetailLevel(
           result.data,
           'feature',
-          normalizedParams.detail
+          normalizedParams.detail,
+          normalizedParams.fields,
+          normalizedParams.exclude
         );
       }
 
@@ -888,12 +1002,39 @@ async function getFeature(
 
       let result = response.data;
 
-      // Apply detail level filtering
+      // Field validation if requested
+      if (
+        normalizedParams.validateFields &&
+        (normalizedParams.fields.length > 0 ||
+          normalizedParams.exclude.length > 0)
+      ) {
+        const validation = validateFieldNames(
+          'feature',
+          normalizedParams.fields
+        );
+        if (validation.invalid.length > 0) {
+          console.warn(
+            `Invalid fields for feature: ${validation.invalid.join(', ')}`
+          );
+          if (validation.suggestions.length > 0) {
+            console.warn(
+              'Suggestions:',
+              validation.suggestions
+                .map(s => `${s.field} -> ${s.suggestion}`)
+                .join(', ')
+            );
+          }
+        }
+      }
+
+      // Apply field filtering (prioritizes fields over detail level)
       if (!normalizedParams.includeSubData) {
         result = filterByDetailLevel(
           result,
           'feature',
-          normalizedParams.detail
+          normalizedParams.detail,
+          normalizedParams.fields,
+          normalizedParams.exclude
         );
       }
 
@@ -1506,12 +1647,39 @@ async function listComponents(args: StandardListParams & any) {
 
       const result = response.data;
 
-      // Apply detail level filtering
+      // Field validation if requested
+      if (
+        normalizedParams.validateFields &&
+        (normalizedParams.fields.length > 0 ||
+          normalizedParams.exclude.length > 0)
+      ) {
+        const validation = validateFieldNames(
+          'component',
+          normalizedParams.fields
+        );
+        if (validation.invalid.length > 0) {
+          console.warn(
+            `Invalid fields for component: ${validation.invalid.join(', ')}`
+          );
+          if (validation.suggestions.length > 0) {
+            console.warn(
+              'Suggestions:',
+              validation.suggestions
+                .map(s => `${s.field} -> ${s.suggestion}`)
+                .join(', ')
+            );
+          }
+        }
+      }
+
+      // Apply field filtering (prioritizes fields over detail level)
       if (!normalizedParams.includeSubData && result.data) {
         result.data = filterArrayByDetailLevel(
           result.data,
           'component',
-          normalizedParams.detail
+          normalizedParams.detail,
+          normalizedParams.fields,
+          normalizedParams.exclude
         );
       }
 
@@ -1543,12 +1711,39 @@ async function getComponent(
 
       let result = response.data;
 
-      // Apply detail level filtering
+      // Field validation if requested
+      if (
+        normalizedParams.validateFields &&
+        (normalizedParams.fields.length > 0 ||
+          normalizedParams.exclude.length > 0)
+      ) {
+        const validation = validateFieldNames(
+          'component',
+          normalizedParams.fields
+        );
+        if (validation.invalid.length > 0) {
+          console.warn(
+            `Invalid fields for component: ${validation.invalid.join(', ')}`
+          );
+          if (validation.suggestions.length > 0) {
+            console.warn(
+              'Suggestions:',
+              validation.suggestions
+                .map(s => `${s.field} -> ${s.suggestion}`)
+                .join(', ')
+            );
+          }
+        }
+      }
+
+      // Apply field filtering (prioritizes fields over detail level)
       if (!normalizedParams.includeSubData) {
         result = filterByDetailLevel(
           result,
           'component',
-          normalizedParams.detail
+          normalizedParams.detail,
+          normalizedParams.fields,
+          normalizedParams.exclude
         );
       }
 
@@ -1600,6 +1795,30 @@ async function listProducts(args: StandardListParams & any) {
   return await withContext(
     async context => {
       const normalizedParams = normalizeListParams(args);
+
+      // Field validation if requested
+      if (
+        normalizedParams.validateFields &&
+        (normalizedParams.fields.length > 0 ||
+          normalizedParams.exclude.length > 0)
+      ) {
+        const validation = validateFieldNames(
+          'product',
+          normalizedParams.fields
+        );
+        if (validation.invalid.length > 0) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `Warning: Invalid field names detected: ${validation.invalid.join(', ')}
+Suggestions: ${validation.suggestions.map(s => s.suggestion).join(', ')}`,
+              },
+            ],
+          };
+        }
+      }
+
       const params: any = {
         pageLimit: normalizedParams.limit,
         pageOffset: normalizedParams.startWith,
@@ -1609,12 +1828,14 @@ async function listProducts(args: StandardListParams & any) {
 
       const result = response.data;
 
-      // Apply detail level filtering
+      // Apply detail level filtering with field selection
       if (!normalizedParams.includeSubData && result.data) {
         result.data = filterArrayByDetailLevel(
           result.data,
           'product',
-          normalizedParams.detail
+          normalizedParams.detail,
+          normalizedParams.fields,
+          normalizedParams.exclude
         );
       }
 
@@ -1642,16 +1863,42 @@ async function getProduct(
   return await withContext(
     async context => {
       const normalizedParams = normalizeGetParams(args);
+
+      // Field validation if requested
+      if (
+        normalizedParams.validateFields &&
+        (normalizedParams.fields.length > 0 ||
+          normalizedParams.exclude.length > 0)
+      ) {
+        const validation = validateFieldNames(
+          'product',
+          normalizedParams.fields
+        );
+        if (validation.invalid.length > 0) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: `Warning: Invalid field names detected: ${validation.invalid.join(', ')}
+Suggestions: ${validation.suggestions.map(s => s.suggestion).join(', ')}`,
+              },
+            ],
+          };
+        }
+      }
+
       const response = await context.axios.get(`/products/${args.id}`);
 
       let result = response.data;
 
-      // Apply detail level filtering
+      // Apply detail level filtering with field selection
       if (!normalizedParams.includeSubData) {
         result = filterByDetailLevel(
           result,
           'product',
-          normalizedParams.detail
+          normalizedParams.detail,
+          normalizedParams.fields,
+          normalizedParams.exclude
         );
       }
 

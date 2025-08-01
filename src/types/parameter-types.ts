@@ -26,6 +26,7 @@ export interface StandardListParams {
    * - standard: Common fields including relationships
    * - full: All available fields
    * @default 'basic'
+   * @deprecated Use 'fields' parameter for precise field selection
    */
   detail?: DetailLevel;
 
@@ -34,6 +35,25 @@ export interface StandardListParams {
    * @default false
    */
   includeSubData?: boolean;
+
+  /**
+   * Specific fields to include in response (overrides detail level)
+   * Supports dot notation for nested fields (e.g., "timeframe.startDate")
+   * @example ["id", "name", "status.name", "owner.email"]
+   */
+  fields?: string[];
+
+  /**
+   * Fields to exclude from response
+   * @example ["description", "links", "createdAt"]
+   */
+  exclude?: string[];
+
+  /**
+   * Validate field names and return suggestions for invalid fields
+   * @default true
+   */
+  validateFields?: boolean;
 }
 
 export interface StandardGetParams {
@@ -43,6 +63,7 @@ export interface StandardGetParams {
    * - standard: Common fields including relationships
    * - full: All available fields
    * @default 'standard'
+   * @deprecated Use 'fields' parameter for precise field selection
    */
   detail?: DetailLevel;
 
@@ -51,6 +72,25 @@ export interface StandardGetParams {
    * @default false
    */
   includeSubData?: boolean;
+
+  /**
+   * Specific fields to include in response (overrides detail level)
+   * Supports dot notation for nested fields (e.g., "timeframe.startDate")
+   * @example ["id", "name", "status.name", "owner.email"]
+   */
+  fields?: string[];
+
+  /**
+   * Fields to exclude from response
+   * @example ["description", "links", "createdAt"]
+   */
+  exclude?: string[];
+
+  /**
+   * Validate field names and return suggestions for invalid fields
+   * @default true
+   */
+  validateFields?: boolean;
 }
 
 export interface EnterpriseErrorInfo {

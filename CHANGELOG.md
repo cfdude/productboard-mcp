@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Dynamic Field Selection System**
+  - Added GraphQL-style field filtering for REST APIs with 60-80% token reduction capability
+  - Supports dot notation for nested fields (e.g., `parent.product.name`, `owner.email`)
+  - Backward compatible with existing detail levels (basic/standard/full)
+  - Field validation with intelligent suggestions for invalid field names
+  - Exclusion support for removing unwanted fields from responses
+  - Implemented in `get_feature`, `get_features`, `get_component`, and `list_components` tools
+  - Enhanced parameter types (`StandardGetParams`, `StandardListParams`) with comprehensive field selection
+  - Added field filtering utilities in `parameter-utils.ts` for consistent field handling across tools
+
 ### Fixed
 
 - **Search Efficiency Improvement**
