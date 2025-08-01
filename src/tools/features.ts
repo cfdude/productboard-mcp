@@ -9,6 +9,7 @@ import {
   filterByDetailLevel,
   isEnterpriseError,
 } from '../utils/parameter-utils.js';
+import { UpdateFeatureParams } from '../types/parameter-types.js';
 import { fieldSelector } from '../utils/field-selection.js';
 import { withContext } from '../utils/tool-wrapper.js';
 import { ProductboardError, ValidationError } from '../errors/index.js';
@@ -1070,7 +1071,7 @@ async function getFeature(args: any) {
 /**
  * Update an existing feature
  */
-async function updateFeature(args: any) {
+async function updateFeature(args: UpdateFeatureParams) {
   return await withContext(
     async context => {
       const { id, ...updateData } = args;

@@ -8,6 +8,83 @@ export type OutputFormat = 'json' | 'markdown' | 'csv' | 'summary';
 
 export type CustomFieldInclusion = 'all' | 'onlyWithValues' | 'none';
 
+export interface UpdateFeatureParams extends StandardGetParams {
+  /**
+   * Feature ID to update
+   */
+  id: string;
+
+  /**
+   * Updated feature name
+   */
+  name?: string;
+
+  /**
+   * Updated feature description
+   */
+  description?: string;
+
+  /**
+   * Archive status
+   */
+  archived?: boolean;
+
+  /**
+   * Component ID (to move feature to a different component)
+   */
+  componentId?: string;
+
+  /**
+   * Product ID (to move feature to a different product)
+   */
+  productId?: string;
+
+  /**
+   * Parent feature ID (for sub-features)
+   */
+  parentId?: string;
+
+  /**
+   * Feature status update
+   */
+  status?: {
+    id?: string;
+    name?: string;
+  };
+
+  /**
+   * Feature owner update
+   */
+  owner?: {
+    email?: string;
+  };
+
+  /**
+   * Feature timeframe with start and end dates
+   */
+  timeframe?: {
+    startDate?: string;
+    endDate?: string;
+    granularity?: string;
+  };
+
+  /**
+   * Custom fields - pass custom field names as additional parameters
+   * @example { "T-Shirt Sizing": "Large", "Business Value": "High" }
+   */
+  [customField: string]: unknown;
+
+  /**
+   * Productboard instance name (optional)
+   */
+  instance?: string;
+
+  /**
+   * Workspace ID (optional)
+   */
+  workspaceId?: string;
+}
+
 export interface ResponseOptimizationParams {
   /**
    * Maximum character length for entire response (truncates long fields)
