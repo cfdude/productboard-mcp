@@ -944,6 +944,74 @@ async function loadMcpTools(): Promise<{
     ]
   );
 
+  // Performance tools
+  registerCategory(
+    'performance',
+    'Performance Tools',
+    'High-performance lightweight tools for status checking, validation, and monitoring'
+  );
+  registerTool(
+    'check_entity_status',
+    'performance',
+    'Check status for multiple entities with minimal data transfer. Optimized for quick status overview of large entity sets.',
+    ['entityType', 'ids'],
+    ['fields', 'format', 'useCache', 'instance', 'workspaceId']
+  );
+  registerTool(
+    'validate_entity_existence',
+    'performance',
+    'Validate existence of multiple entities efficiently. Returns missing/existing entity lists.',
+    ['entityType', 'ids'],
+    ['returnMissing', 'returnExisting', 'useCache', 'instance', 'workspaceId']
+  );
+  registerTool(
+    'track_batch_progress',
+    'performance',
+    'Track progress for batch operations using custom markers (e.g., status:completed, customField).',
+    ['entityType', 'ids', 'progressMarker'],
+    ['includeDetails', 'groupBy', 'useCache', 'instance', 'workspaceId']
+  );
+  registerTool(
+    'get_entity_counts',
+    'performance',
+    'Get entity counts without fetching full data. Optimized for dashboard metrics and overview statistics.',
+    ['entityType'],
+    ['filters', 'useCache', 'instance', 'workspaceId']
+  );
+  registerTool(
+    'perform_health_check',
+    'performance',
+    'Perform comprehensive system health check including API connectivity, cache status, and memory usage.',
+    [],
+    [
+      'includeDetails',
+      'includeCacheStats',
+      'includeMemoryStats',
+      'instance',
+      'workspaceId',
+    ]
+  );
+  registerTool(
+    'get_performance_stats',
+    'performance',
+    'Get detailed performance statistics including response times, cache hit rates, and percentiles.',
+    [],
+    [
+      'operation',
+      'includePercentiles',
+      'clearOldMetrics',
+      'instance',
+      'workspaceId',
+    ]
+  );
+  registerTool(
+    'perform_cleanup',
+    'performance',
+    'Clear caches and perform system cleanup. Useful for memory management and troubleshooting.',
+    [],
+    ['clearCache', 'clearMetrics', 'forceGC', 'instance', 'workspaceId']
+  );
+
   return { tools, categories };
 }
 

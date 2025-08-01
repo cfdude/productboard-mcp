@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated": "2025-08-01T14:04:51.833Z",
+  "generated": "2025-08-01T16:39:21.092Z",
   "categories": {
     "notes": {
       "displayName": "Notes",
@@ -51,6 +51,11 @@
       "displayName": "Universal Search",
       "description": "Universal search across all Productboard entities",
       "tools": ["search"]
+    },
+    "performance": {
+      "displayName": "Performance Tools",
+      "description": "High-performance lightweight tools for status checking, validation, and monitoring",
+      "tools": ["check_entity_status", "validate_entity_existence", "track_batch_progress", "get_entity_counts", "perform_health_check", "get_performance_stats", "perform_cleanup"]
     }
   },
   "tools": {
@@ -940,6 +945,62 @@
       "description": "Universal search across all Productboard entities with flexible filtering and output control",
       "requiredParams": ["entityType"],
       "optionalParams": ["filters", "operators", "output", "limit", "startWith", "detail", "includeSubData"],
+      "implementation": "mcp"
+    },
+    "check_entity_status": {
+      "category": "performance",
+      "operation": "CHECK_ENTITY_STATUS",
+      "description": "Check status for multiple entities with minimal data transfer. Optimized for quick status overview of large entity sets.",
+      "requiredParams": ["entityType", "ids"],
+      "optionalParams": ["fields", "format", "useCache", "instance", "workspaceId"],
+      "implementation": "mcp"
+    },
+    "validate_entity_existence": {
+      "category": "performance",
+      "operation": "VALIDATE_ENTITY_EXISTENCE",
+      "description": "Validate existence of multiple entities efficiently. Returns missing/existing entity lists.",
+      "requiredParams": ["entityType", "ids"],
+      "optionalParams": ["returnMissing", "returnExisting", "useCache", "instance", "workspaceId"],
+      "implementation": "mcp"
+    },
+    "track_batch_progress": {
+      "category": "performance",
+      "operation": "TRACK_BATCH_PROGRESS",
+      "description": "Track progress for batch operations using custom markers (e.g., status:completed, customField).",
+      "requiredParams": ["entityType", "ids", "progressMarker"],
+      "optionalParams": ["includeDetails", "groupBy", "useCache", "instance", "workspaceId"],
+      "implementation": "mcp"
+    },
+    "get_entity_counts": {
+      "category": "performance",
+      "operation": "GET_ENTITY_COUNTS",
+      "description": "Get entity counts without fetching full data. Optimized for dashboard metrics and overview statistics.",
+      "requiredParams": ["entityType"],
+      "optionalParams": ["filters", "useCache", "instance", "workspaceId"],
+      "implementation": "mcp"
+    },
+    "perform_health_check": {
+      "category": "performance",
+      "operation": "PERFORM_HEALTH_CHECK",
+      "description": "Perform comprehensive system health check including API connectivity, cache status, and memory usage.",
+      "requiredParams": [],
+      "optionalParams": ["includeDetails", "includeCacheStats", "includeMemoryStats", "instance", "workspaceId"],
+      "implementation": "mcp"
+    },
+    "get_performance_stats": {
+      "category": "performance",
+      "operation": "GET_PERFORMANCE_STATS",
+      "description": "Get detailed performance statistics including response times, cache hit rates, and percentiles.",
+      "requiredParams": [],
+      "optionalParams": ["operation", "includePercentiles", "clearOldMetrics", "instance", "workspaceId"],
+      "implementation": "mcp"
+    },
+    "perform_cleanup": {
+      "category": "performance",
+      "operation": "PERFORM_CLEANUP",
+      "description": "Clear caches and perform system cleanup. Useful for memory management and troubleshooting.",
+      "requiredParams": [],
+      "optionalParams": ["clearCache", "clearMetrics", "forceGC", "instance", "workspaceId"],
       "implementation": "mcp"
     }
   }

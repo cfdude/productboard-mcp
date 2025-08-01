@@ -23,6 +23,7 @@ import { setupPluginIntegrationsTools } from './plugin-integrations.js';
 import { setupJiraIntegrationsTools } from './jira-integrations.js';
 import { setupDocumentationTools } from './documentation.js';
 import { setupSearchTools } from './search.js';
+import { setupPerformanceTools } from './performance.js';
 import { ToolDefinition } from '../types/tool-types.js';
 import { SearchParams } from '../types/search-types.js';
 
@@ -35,6 +36,7 @@ export function setupToolHandlers(server: Server): void {
 
   // Register tool categories
   tools.push(...setupSearchTools());
+  tools.push(...setupPerformanceTools());
   tools.push(...setupNotesTools());
   tools.push(...setupFeaturesTools());
   tools.push(...setupCompaniesTools());
@@ -170,6 +172,17 @@ export function setupToolHandlers(server: Server): void {
       } else if (name === 'get_docs') {
         const { handleDocumentationTool } = await import('./documentation.js');
         return await handleDocumentationTool(name, args || {});
+      } else if (
+        name.includes('entity_status') ||
+        name.includes('entity_existence') ||
+        name.includes('batch_progress') ||
+        name.includes('entity_counts') ||
+        name.includes('health_check') ||
+        name.includes('performance_stats') ||
+        name.includes('cleanup')
+      ) {
+        const { handlePerformanceTool } = await import('./performance.js');
+        return await handlePerformanceTool(name, args || {});
       } else {
         throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
       }
