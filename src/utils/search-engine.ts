@@ -21,6 +21,15 @@ import { handleCustomFieldsTool } from '../tools/custom-fields.js';
 import { handleWebhooksTool } from '../tools/webhooks.js';
 import { handlePluginIntegrationsTool } from '../tools/plugin-integrations.js';
 import { handleJiraIntegrationsTool } from '../tools/jira-integrations.js';
+import {
+  compilePattern,
+  applyPatternFilter,
+  generateSearchSuggestions,
+  expandFieldPatterns,
+  validatePatternComplexity,
+  type PatternMatchMode,
+  type WildcardPattern,
+} from './search-pattern-utils.js';
 
 export class SearchEngine {
   private entityMappings = EntityFieldMappings;
@@ -64,6 +73,11 @@ export class SearchEngine {
       detail: params.detail || 'standard',
       includeSubData: params.includeSubData || false,
       includeCustomFields: params.includeCustomFields || false,
+      // Enhanced search parameters
+      patternMatchMode: params.patternMatchMode || 'wildcard',
+      caseSensitive: params.caseSensitive || false,
+      suggestAlternatives: params.suggestAlternatives || false,
+      maxSuggestions: Math.min(params.maxSuggestions || 5, 10),
       ...(params.instance && { instance: params.instance }),
       ...(params.workspaceId && { workspaceId: params.workspaceId }),
     };
@@ -83,7 +97,7 @@ export class SearchEngine {
     // Use normalized filters
     normalized.filters = filterValidation.normalizedFilters;
 
-    // Validate operators
+    // Validate operators (now includes enhanced operators)
     const operatorValidation = this.validateOperators(normalized.operators);
     if (!operatorValidation.isValid) {
       throw new ValidationError(
@@ -436,6 +450,8 @@ export class SearchEngine {
       'endsWith',
       'before',
       'after',
+      'regex',
+      'wildcard',
     ];
     const errors: string[] = [];
     const warnings: string[] = [];
@@ -448,9 +464,21 @@ export class SearchEngine {
       }
 
       // Add warnings for operators that might not work as expected
-      if (operator === 'isEmpty' && field in operators) {
+      if (operator === 'isEmpty') {
         warnings.push(
           `Using "isEmpty" operator for field "${field}" - filter value will be ignored`
+        );
+      }
+
+      if (operator === 'regex') {
+        warnings.push(
+          `Using "regex" operator for field "${field}" - ensure pattern is safe and not overly complex`
+        );
+      }
+
+      if (operator === 'wildcard') {
+        warnings.push(
+          `Using "wildcard" operator for field "${field}" - supports * and ? patterns`
         );
       }
     }
@@ -584,6 +612,9 @@ export class SearchEngine {
   ): any[] {
     let filtered = data;
 
+    // Compile patterns once for reuse
+    const compiledPatterns = new Map<string, WildcardPattern>();
+
     for (const [field, value] of Object.entries(params.filters)) {
       // Skip server-side filters only if we have a single entity type
       if (
@@ -594,8 +625,47 @@ export class SearchEngine {
       }
 
       const operator = params.operators[field] || 'equals';
+
+      // Compile pattern if not already compiled
+      if (!compiledPatterns.has(field)) {
+        try {
+          // Validate pattern complexity for wildcard/regex operators
+          if (
+            (operator === 'wildcard' || operator === 'regex') &&
+            !validatePatternComplexity(String(value))
+          ) {
+            throw new ValidationError(
+              `Pattern too complex for field "${field}": ${value}`,
+              'filters'
+            );
+          }
+
+          const patternMode: PatternMatchMode =
+            operator === 'regex'
+              ? 'regex'
+              : operator === 'wildcard'
+                ? 'wildcard'
+                : params.patternMatchMode || 'wildcard';
+
+          const pattern = compilePattern(String(value), patternMode, {
+            caseSensitive: params.caseSensitive,
+          });
+          compiledPatterns.set(field, pattern);
+        } catch (error) {
+          console.warn(
+            `Failed to compile pattern for field "${field}":`,
+            error
+          );
+          // Fallback to exact pattern
+          const exactPattern = compilePattern(String(value), 'exact');
+          compiledPatterns.set(field, exactPattern);
+        }
+      }
+
+      // Apply pattern-based filtering using the compiled pattern
+      const pattern = compiledPatterns.get(field)!;
       filtered = filtered.filter(item =>
-        this.applyFilter(item, field, value, operator)
+        applyPatternFilter(item, field, pattern, operator)
       );
     }
 
@@ -603,7 +673,7 @@ export class SearchEngine {
   }
 
   /**
-   * Apply individual filter to an item
+   * Apply enhanced filter with pattern matching support (legacy method, kept for backward compatibility)
    */
   private applyFilter(
     item: any,
@@ -613,6 +683,28 @@ export class SearchEngine {
   ): boolean {
     const fieldValue = this.getNestedFieldValue(item, field);
 
+    // Handle pattern-based operators
+    if (operator === 'wildcard' || operator === 'regex') {
+      try {
+        const patternMode: PatternMatchMode =
+          operator === 'regex' ? 'regex' : 'wildcard';
+        const pattern = compilePattern(String(value), patternMode);
+        return applyPatternFilter(
+          { [field]: fieldValue },
+          field,
+          pattern,
+          'contains'
+        );
+      } catch (error) {
+        console.warn(
+          `Pattern matching failed for ${field} with pattern ${value}:`,
+          error
+        );
+        return false;
+      }
+    }
+
+    // Standard filtering logic for other operators
     switch (operator) {
       case 'equals':
         return fieldValue === value;
@@ -690,5 +782,91 @@ export class SearchEngine {
       instance: params.instance,
       workspaceId: params.workspaceId,
     });
+  }
+
+  /**
+   * Generate smart suggestions when no results are found
+   */
+  async generateSmartSuggestions(
+    params: NormalizedSearchParams
+  ): Promise<any[]> {
+    try {
+      const suggestions: any[] = [];
+
+      // Generate field expansion suggestions
+      for (const [field] of Object.entries(params.filters)) {
+        // Get available fields for the entity types
+        const availableFields: string[] = [];
+        for (const entityType of params.entityTypes) {
+          const entityConfig = this.entityMappings[entityType];
+          if (entityConfig) {
+            availableFields.push(...entityConfig.searchableFields);
+          }
+        }
+
+        const expandedFields = expandFieldPatterns([field], availableFields);
+
+        if (expandedFields.length > 1) {
+          // More than just the original field
+          suggestions.push({
+            type: 'field_expansion',
+            originalField: field,
+            suggestedFields: expandedFields.filter(f => f !== field),
+            message: `Try expanding "${field}" to: ${expandedFields.filter(f => f !== field).join(', ')}`,
+          });
+        }
+      }
+
+      // Generate search pattern suggestions using the pattern utilities
+      const searchTerms = Object.values(params.filters).map(v => String(v));
+      for (const term of searchTerms) {
+        if (term && term.length > 2) {
+          const patternSuggestions = generateSearchSuggestions(
+            term,
+            [], // Available values would need to be fetched from API in real implementation
+            3 // maxSuggestions
+          );
+
+          if (patternSuggestions.length > 0) {
+            suggestions.push({
+              type: 'pattern_suggestion',
+              originalTerm: term,
+              suggestions: patternSuggestions,
+              message: `Try similar terms: ${patternSuggestions.join(', ')}`,
+            });
+          }
+        }
+      }
+
+      // Generate operator suggestions for complex patterns
+      for (const [field, value] of Object.entries(params.filters)) {
+        const operator = params.operators[field] || 'equals';
+
+        if (operator === 'equals' && String(value).includes('*')) {
+          suggestions.push({
+            type: 'operator_suggestion',
+            field,
+            currentOperator: operator,
+            suggestedOperator: 'wildcard',
+            message: `Use "wildcard" operator for "${field}" to enable * pattern matching`,
+          });
+        }
+
+        if (operator === 'equals' && /[.*+?^${}()|[\]\\]/.test(String(value))) {
+          suggestions.push({
+            type: 'operator_suggestion',
+            field,
+            currentOperator: operator,
+            suggestedOperator: 'regex',
+            message: `Use "regex" operator for "${field}" to enable regex pattern matching`,
+          });
+        }
+      }
+
+      return suggestions;
+    } catch (error) {
+      console.warn('Failed to generate smart suggestions:', error);
+      return [];
+    }
   }
 }

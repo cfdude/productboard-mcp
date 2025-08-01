@@ -20,7 +20,7 @@ export function setupSearchTools() {
     {
       name: 'search',
       description:
-        'Universal search across all Productboard entities with flexible filtering and output control. Supports searching multiple entity types in a single request.',
+        'Universal search across all Productboard entities with advanced pattern matching, flexible filtering and output control. Supports wildcard patterns (*,?), regular expressions, case-sensitive search, and searching multiple entity types simultaneously with intelligent suggestions.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -84,7 +84,7 @@ export function setupSearchTools() {
           operators: {
             type: 'object',
             description:
-              'Operators for each filter field: equals, contains, isEmpty, startsWith, endsWith',
+              'Operators for each filter field: equals, contains, isEmpty, startsWith, endsWith, wildcard, regex',
             additionalProperties: {
               type: 'string',
               enum: [
@@ -95,6 +95,8 @@ export function setupSearchTools() {
                 'endsWith',
                 'before',
                 'after',
+                'wildcard',
+                'regex',
               ],
             },
           },
@@ -154,6 +156,31 @@ export function setupSearchTools() {
           workspaceId: {
             type: 'string',
             description: 'Workspace ID (optional)',
+          },
+          patternMatchMode: {
+            type: 'string',
+            enum: ['exact', 'wildcard', 'regex'],
+            description:
+              'Default pattern matching mode when no operator specified (default: wildcard)',
+            default: 'wildcard',
+          },
+          caseSensitive: {
+            type: 'boolean',
+            description: 'Case sensitive pattern matching (default: false)',
+            default: false,
+          },
+          suggestAlternatives: {
+            type: 'boolean',
+            description:
+              'Generate search suggestions when no results found (default: false)',
+            default: false,
+          },
+          maxSuggestions: {
+            type: 'number',
+            minimum: 1,
+            maximum: 10,
+            description: 'Maximum number of suggestions to return (default: 5)',
+            default: 5,
           },
         },
         required: ['entityType'],
@@ -283,6 +310,21 @@ async function performSearch(params: SearchParams) {
         normalizedParams
       );
 
+      // Generate smart suggestions if no results found and suggestions are enabled
+      if (
+        processedResults.data.length === 0 &&
+        normalizedParams.suggestAlternatives
+      ) {
+        const suggestions =
+          await searchEngine.generateSmartSuggestions(normalizedParams);
+        if (suggestions.length > 0) {
+          processedResults.suggestions = suggestions.slice(
+            0,
+            normalizedParams.maxSuggestions
+          );
+        }
+      }
+
       // Build search context for messaging
       // Use actual filtered count as totalRecords when client-side filtering was applied
       const actualTotalRecords = processedResults.data.length;
@@ -320,6 +362,10 @@ async function performSearch(params: SearchParams) {
             warnings: processedResults.warnings,
           }),
           ...(hints.length > 0 && { hints }),
+          ...(processedResults.suggestions &&
+            processedResults.suggestions.length > 0 && {
+              suggestions: processedResults.suggestions,
+            }),
           performance: {
             queryTimeMs: processedResults.queryTimeMs,
             cacheHit: processedResults.cacheHit || false,

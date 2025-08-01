@@ -26,7 +26,9 @@ export type SearchOperator =
   | 'startsWith'
   | 'endsWith'
   | 'before'
-  | 'after';
+  | 'after'
+  | 'regex'
+  | 'wildcard';
 
 export type OutputMode = 'ids-only' | 'summary' | 'full';
 export type DetailLevel = 'basic' | 'standard' | 'full';
@@ -43,6 +45,11 @@ export interface SearchParams {
   includeCustomFields?: boolean;
   instance?: string;
   workspaceId?: string;
+  // Enhanced search parameters
+  patternMatchMode?: 'exact' | 'wildcard' | 'regex';
+  caseSensitive?: boolean;
+  suggestAlternatives?: boolean;
+  maxSuggestions?: number;
 }
 
 export interface NormalizedSearchParams
@@ -71,6 +78,36 @@ export interface SearchResults {
   warnings: string[];
   queryTimeMs: number;
   cacheHit?: boolean;
+  suggestions?: SearchSuggestion[];
+}
+
+/**
+ * Enhanced search results with suggestions and pattern information
+ */
+export interface EnhancedSearchResults extends SearchResults {
+  suggestions?: SearchSuggestion[];
+  patternInfo?: PatternInfo;
+}
+
+/**
+ * Search suggestion for alternative queries
+ */
+export interface SearchSuggestion {
+  type: 'field' | 'value' | 'operator' | 'entity';
+  original: string;
+  suggested: string;
+  reason: string;
+  confidence: number;
+}
+
+/**
+ * Information about pattern matching applied to the search
+ */
+export interface PatternInfo {
+  patternsUsed: boolean;
+  wildcardFields: string[];
+  regexFields: string[];
+  complexityScore: number;
 }
 
 export interface SearchResponse {
