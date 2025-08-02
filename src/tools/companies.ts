@@ -497,11 +497,15 @@ async function createCompany(args: any) {
       if (args.description) body.description = args.description;
       if (args.externalId) body.externalId = args.externalId;
 
-      const response = await context.axios.post('/companies', body, {
-        headers: {
-          'Productboard-Partner-Id': args['Productboard-Partner-Id'],
-        },
-      });
+      const response = await context.axios.post(
+        '/companies',
+        { data: body },
+        {
+          headers: {
+            'Productboard-Partner-Id': args['Productboard-Partner-Id'],
+          },
+        }
+      );
 
       return {
         content: [
@@ -678,10 +682,9 @@ async function createCompanyField(args: any) {
         }
       }
 
-      const response = await context.axios.post(
-        '/companies/custom-fields',
-        body
-      );
+      const response = await context.axios.post('/companies/custom-fields', {
+        data: body,
+      });
 
       return {
         content: [
@@ -904,7 +907,7 @@ async function createUser(args: any) {
         }
       }
 
-      const response = await context.axios.post('/users', body);
+      const response = await context.axios.post('/users', { data: body });
       return {
         content: [
           {

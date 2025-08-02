@@ -918,7 +918,7 @@ async function createObjective(args: any) {
         if (args.endDate) body.timeframe.endDate = args.endDate;
       }
 
-      const response = await context.axios.post('/objectives', body);
+      const response = await context.axios.post('/objectives', { data: body });
 
       return {
         content: [
@@ -1114,7 +1114,8 @@ async function createObjectiveToFeatureLink(args: any) {
   return await withContext(
     async context => {
       await context.axios.post(
-        `/objectives/${args.id}/links/features/${args.featureId}`
+        `/objectives/${args.id}/links/features/${args.featureId}`,
+        { data: {} }
       );
 
       return {
@@ -1162,7 +1163,8 @@ async function createObjectiveToInitiativeLink(args: any) {
   return await withContext(
     async context => {
       await context.axios.post(
-        `/objectives/${args.id}/links/initiatives/${args.initiativeId}`
+        `/objectives/${args.id}/links/initiatives/${args.initiativeId}`,
+        { data: {} }
       );
 
       return {
@@ -1218,7 +1220,7 @@ async function createInitiative(args: any) {
       if (args.ownerId) body.owner = { id: args.ownerId };
       if (args.status) body.status = args.status;
 
-      const response = await context.axios.post('/initiatives', body);
+      const response = await context.axios.post('/initiatives', { data: body });
 
       return {
         content: [
@@ -1410,7 +1412,8 @@ async function createInitiativeToObjectiveLink(args: any) {
   return await withContext(
     async context => {
       await context.axios.post(
-        `/initiatives/${args.id}/links/objectives/${args.objectiveId}`
+        `/initiatives/${args.id}/links/objectives/${args.objectiveId}`,
+        { data: {} }
       );
 
       return {
@@ -1458,7 +1461,8 @@ async function createInitiativeToFeatureLink(args: any) {
   return await withContext(
     async context => {
       await context.axios.post(
-        `/initiatives/${args.id}/links/features/${args.featureId}`
+        `/initiatives/${args.id}/links/features/${args.featureId}`,
+        { data: {} }
       );
 
       return {
@@ -1517,7 +1521,7 @@ async function createKeyResult(args: any) {
       if (args.currentValue !== undefined)
         body.currentValue = args.currentValue;
 
-      const response = await context.axios.post('/key-results', body);
+      const response = await context.axios.post('/key-results', { data: body });
 
       return {
         content: [

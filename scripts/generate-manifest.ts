@@ -265,7 +265,7 @@ async function loadMcpTools(): Promise<{
     'features',
     'Create a new component in Productboard',
     ['name'],
-    ['description', 'productId']
+    ['description', 'parent']
   );
   registerTool(
     'get_components',

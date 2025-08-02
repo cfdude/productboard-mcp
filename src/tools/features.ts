@@ -140,6 +140,7 @@ function getFeatureToolSchemas() {
           },
         },
         required: ['name'],
+        additionalProperties: true,
       },
     },
     {
@@ -331,9 +332,21 @@ function getComponentToolSchemas() {
             type: 'string',
             description: 'Component description',
           },
-          productId: {
-            type: 'string',
-            description: 'Product ID this component belongs to',
+          parent: {
+            type: 'object',
+            description: 'Parent entity to associate this component with',
+            properties: {
+              id: {
+                type: 'string',
+                description: 'ID of the parent entity (typically a product)',
+              },
+              type: {
+                type: 'string',
+                enum: ['product'],
+                description: 'Type of parent entity',
+              },
+            },
+            required: ['id', 'type'],
           },
           instance: {
             type: 'string',
@@ -345,6 +358,7 @@ function getComponentToolSchemas() {
           },
         },
         required: ['name'],
+        additionalProperties: true,
       },
     },
     {
@@ -708,7 +722,7 @@ async function createComponent(args: any) {
         // Validate required fields with helpful error messages
         if (!args.name) {
           throw new ValidationError(
-            'Component name is required. Example: { "name": "Frontend UI", "description": "React components", "productId": "12345" }',
+            'Component name is required. Example: { "name": "Frontend UI", "description": "React components", "parent": { "id": "12345", "type": "product" } }',
             'name'
           );
         }
@@ -718,9 +732,11 @@ async function createComponent(args: any) {
         };
 
         if (args.description) body.description = args.description;
-        if (args.productId) body.product = { id: args.productId };
+        if (args.parent) body.parent = args.parent;
 
-        const response = await context.axios.post('/components', body);
+        const response = await context.axios.post('/components', {
+          data: body,
+        });
 
         return {
           content: [
@@ -741,7 +757,7 @@ async function createComponent(args: any) {
         // Enhanced error handling for common 404 scenarios
         if (error.response?.status === 404) {
           throw new ValidationError(
-            `Component creation failed - endpoint not found. Ensure you're using the correct format: { "name": "Component Name", "productId": "valid-product-id" }. Use 'get_products()' to find valid product IDs.`,
+            `Component creation failed - endpoint not found. Ensure you're using the correct format: { "name": "Component Name", "parent": { "id": "valid-product-id", "type": "product" } }. Use 'get_products()' to find valid product IDs.`,
             'request_format'
           );
         }
@@ -750,7 +766,7 @@ async function createComponent(args: any) {
           const apiError =
             error.response.data?.message || 'Invalid request format';
           throw new ValidationError(
-            `${apiError}. Required format: { "name": "string", "productId": "string" (optional), "description": "string" (optional) }. Use 'get_component_docs()' for complete documentation.`,
+            `${apiError}. Required format: { "name": "string", "parent": { "id": "string", "type": "product" } (optional), "description": "string" (optional) }. Use 'get_component_docs()' for complete documentation.`,
             'request_body'
           );
         }
@@ -782,7 +798,7 @@ async function createFeature(args: any) {
       if (args.owner) body.owner = args.owner;
       if (args.parent) body.parent = args.parent;
 
-      const response = await context.axios.post('/features', body);
+      const response = await context.axios.post('/features', { data: body });
 
       return {
         content: [
