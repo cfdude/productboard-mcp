@@ -49,7 +49,7 @@ export function normalizeListParams(
     validateFields: params.validateFields ?? true,
     outputFormat: params.outputFormat ?? 'json',
     // Optimization parameters
-    maxLength: params.maxLength,
+    ...(params.maxLength !== undefined && { maxLength: params.maxLength }),
     truncateFields: params.truncateFields ?? [],
     truncateIndicator: params.truncateIndicator ?? '...',
     includeDescription: params.includeDescription ?? true,
@@ -147,7 +147,7 @@ export function normalizeGetParams(
     validateFields: params.validateFields ?? true,
     outputFormat: params.outputFormat ?? 'json',
     // Optimization parameters
-    maxLength: params.maxLength,
+    ...(params.maxLength !== undefined && { maxLength: params.maxLength }),
     truncateFields: params.truncateFields ?? [],
     truncateIndicator: params.truncateIndicator ?? '...',
     includeDescription: params.includeDescription ?? true,
@@ -990,8 +990,9 @@ export function normalizeOptimizationParams(
 
   // Validate custom field inclusion
   if (
+    normalized.includeCustomFieldsStrategy &&
     !['all', 'onlyWithValues', 'none'].includes(
-      normalized.includeCustomFieldsStrategy!
+      normalized.includeCustomFieldsStrategy
     )
   ) {
     throw new ValidationError(

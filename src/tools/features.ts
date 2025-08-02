@@ -16,63 +16,6 @@ import { ProductboardError, ValidationError } from '../errors/index.js';
 import { ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 
 /**
- * Calculate timeframe duration in standardized format (e.g., '2w3d', '1m', '4w')
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function calculateTimeframeDuration(
-  startDate: string,
-  endDate: string
-): string {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const diffMs = end.getTime() - start.getTime();
-  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays <= 0) return '0d';
-
-  const months = Math.floor(diffDays / 30);
-  const remainingAfterMonths = diffDays % 30;
-  const weeks = Math.floor(remainingAfterMonths / 7);
-  const days = remainingAfterMonths % 7;
-
-  let result = '';
-  if (months > 0) result += `${months}m`;
-  if (weeks > 0) result += `${weeks}w`;
-  if (days > 0) result += `${days}d`;
-
-  return result || '0d';
-}
-
-/**
- * Parse duration string (e.g., '2w', '1m3d') to days
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function parseDurationToDays(duration: string): number {
-  const regex = /(\d+)([mwd])/g;
-  let totalDays = 0;
-  let match;
-
-  while ((match = regex.exec(duration)) !== null) {
-    const value = parseInt(match[1]);
-    const unit = match[2];
-
-    switch (unit) {
-      case 'm':
-        totalDays += value * 30;
-        break;
-      case 'w':
-        totalDays += value * 7;
-        break;
-      case 'd':
-        totalDays += value;
-        break;
-    }
-  }
-
-  return totalDays;
-}
-
-/**
  * Features Tools
  */
 export function setupFeaturesTools() {

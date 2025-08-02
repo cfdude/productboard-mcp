@@ -318,7 +318,7 @@ function createConditionFunction(condition: {
   value?: string;
   threshold?: number;
   field?: string;
-}): (context: ContextData, query: string, response: unknown) => boolean {
+}): (_context: ContextData, _query: string, _response: unknown) => boolean {
   switch (condition.type) {
     case 'query_contains':
       return (_context, query, _response) => {
@@ -353,7 +353,7 @@ function createConditionFunction(condition: {
 
     case 'custom':
     default:
-      return () => false; // Default to false for custom conditions
+      return (_context, _query, _response) => false; // Default to false for custom conditions
   }
 }
 
@@ -363,10 +363,10 @@ function createConditionFunction(condition: {
 function createAdaptationFunction(adaptation: {
   type: 'summarize' | 'simplify' | 'enhance' | 'filter' | 'custom';
   parameters?: Record<string, unknown>;
-}): (context: ContextData, query: string, response: unknown) => any {
+}): (_context: ContextData, _query: string, _response: unknown) => any {
   switch (adaptation.type) {
     case 'summarize':
-      return (context, query, response) => ({
+      return (_context, _query, response) => ({
         data: Array.isArray(response) ? response.slice(0, 10) : response,
         metadata: {
           responseFormat: 'summarized',
@@ -375,7 +375,7 @@ function createAdaptationFunction(adaptation: {
       });
 
     case 'simplify':
-      return (context, query, response) => ({
+      return (_context, _query, response) => ({
         data:
           typeof response === 'object' && response !== null
             ? { id: (response as any).id, name: (response as any).name }
@@ -387,7 +387,7 @@ function createAdaptationFunction(adaptation: {
       });
 
     case 'enhance':
-      return (context, query, response) => ({
+      return (_context, _query, response) => ({
         data: response,
         metadata: {
           responseFormat: 'enhanced',
@@ -399,7 +399,7 @@ function createAdaptationFunction(adaptation: {
       });
 
     case 'filter':
-      return (context, query, response) => ({
+      return (_context, _query, response) => ({
         data: response,
         metadata: {
           responseFormat: 'filtered',
@@ -409,7 +409,7 @@ function createAdaptationFunction(adaptation: {
 
     case 'custom':
     default:
-      return (context, query, response) => ({
+      return (_context, _query, response) => ({
         data: response,
         metadata: {
           responseFormat: 'custom',

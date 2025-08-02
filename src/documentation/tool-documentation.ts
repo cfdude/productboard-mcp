@@ -28,10 +28,10 @@ export interface CommonError {
 // Manual documentation (takes precedence over generated)
 export const toolDocumentation: Record<string, ToolDocumentation> = {
   // =============================================================================
-  // 🚀 ENHANCED FEATURES (v1.5.0+) - TOKEN OPTIMIZATION & ADVANCED CAPABILITIES
+  // 🚀 ENHANCED FEATURES (v1.5.0+) - RESPONSE OPTIMIZATION & ADVANCED CAPABILITIES
   // =============================================================================
 
-  // DYNAMIC FIELD SELECTION - Use 'fields' parameter for 60-80% token reduction
+  // DYNAMIC FIELD SELECTION - Use 'fields' parameter for 60-80% response reduction
   get_features: {
     description: 'Get features with advanced field selection and optimization',
     detailedDescription: `
