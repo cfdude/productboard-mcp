@@ -30,9 +30,14 @@ npm run build && npm run lint && npm test
 # 1. Build after changes
 npm run build
 
-# 2. Test with MCP inspector first (external tool)
-# 3. Only after MCP inspector verification, use native Claude Code MCP calls
-# 4. If issues found, fix and repeat from step 1
+# 2. Test data wrapper compatibility (after any tool changes)
+npm run test-data-wrapper
+
+# 3. Test with MCP inspector for manual verification
+npm run inspector
+
+# 4. Only after comprehensive testing, use native Claude Code MCP calls
+# 5. If issues found, fix and repeat from step 1
 ```
 
 ### 3. Commit Preparation
@@ -172,3 +177,89 @@ npm run build
 - Breaking changes require version bump and changelog entry
 
 This instruction set prioritizes: speed, accuracy, CI compliance, and expert-level TypeScript/Node.js practices.
+
+## Systematic MCP Tool Testing Strategy
+
+### Testing Protocol for API Compatibility Issues
+
+**CRITICAL**: All Productboard POST/PUT/PATCH endpoints require `{ data: requestBody }` wrapper
+
+#### 1. Create Test Script Template
+
+```javascript
+// Always create automated test script with cleanup tracking
+const testResults = [];
+const createdItems = [];
+
+// Test pattern:
+// 1. Try tool execution
+// 2. Detect schema vs API errors
+// 3. Track created items for cleanup
+// 4. Automatic cleanup at end
+```
+
+#### 2. Test Environment Setup
+
+```bash
+# Create dedicated test product/feature for hierarchical testing
+# 1. Create test product: "TEST-CLEANUP: Automated Testing Product"
+# 2. Create test feature under product: "TEST-CLEANUP: Feature Container"
+# 3. Create test components under feature
+# 4. Clean up in reverse order: components → features → products
+```
+
+#### 3. Error Classification Strategy
+
+- **Schema Error**: "properties which are not allowed by the schema" = needs `{ data: body }` fix
+- **API Error**: Productboard validation errors = tool working, just missing required fields
+- **Success**: Tool executes without MCP schema validation errors
+
+#### 4. Test Execution Pattern
+
+```bash
+# 1. Build server
+npm run build
+
+# 2. Run systematic test script
+node test-data-wrapper-tools.js
+
+# 3. Review results and fix identified tools
+# 4. Re-test fixed tools
+# 5. Commit fixes with descriptive messages
+```
+
+#### 5. Cleanup Requirements
+
+- **NEVER** leave test data in Productboard
+- Track all created items with IDs for deletion
+- Delete in dependency order (children before parents)
+- Handle cleanup failures gracefully
+- Verify cleanup completion
+
+### MCP Inspector Integration
+
+```bash
+# Start inspector for manual verification
+pkill -f inspector
+npx @modelcontextprotocol/inspector build/index.js
+
+# Browser: http://localhost:5173
+# Manual verification of schema fixes
+```
+
+## Feature Development Process
+
+- Productboard mcp server feature development / bug fix / feature enhancement process:
+  1. Record the process to Serena memory & Claude.md (if not already written)
+  2. Analyze user feedback/bug reports/suggestions and create individual memories for each improvement
+  3. Use sequential-thinking, ask_perplexity and/or chat_opena and research tools to develop detailed plans
+  4. Update memories with validated plans
+  5. Implement features sequentially starting with highest priority
+  6. For each implementation:
+  - Rebuild server
+  - Run/fix tests
+  - Handle linting/formatting
+  - Test with MCP inspector
+  - Commit using ~/.claude/commands/commit.md
+  - Monitor with 'gh' CLI - ensure all tests pass, all claude code or security comments are addressed and fixed
+  7. Continue until all features are built, tested, and committed (In progress)

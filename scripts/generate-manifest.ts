@@ -265,7 +265,7 @@ async function loadMcpTools(): Promise<{
     'features',
     'Create a new component in Productboard',
     ['name'],
-    ['description', 'productId']
+    ['description', 'parent']
   );
   registerTool(
     'get_components',
@@ -942,6 +942,167 @@ async function loadMcpTools(): Promise<{
       'detail',
       'includeSubData',
     ]
+  );
+
+  // Performance tools
+  registerCategory(
+    'performance',
+    'Performance Tools',
+    'High-performance lightweight tools for status checking, validation, and monitoring'
+  );
+  registerTool(
+    'check_entity_status',
+    'performance',
+    'Check status for multiple entities with minimal data transfer. Optimized for quick status overview of large entity sets.',
+    ['entityType', 'ids'],
+    ['fields', 'format', 'useCache', 'instance', 'workspaceId']
+  );
+  registerTool(
+    'validate_entity_existence',
+    'performance',
+    'Validate existence of multiple entities efficiently. Returns missing/existing entity lists.',
+    ['entityType', 'ids'],
+    ['returnMissing', 'returnExisting', 'useCache', 'instance', 'workspaceId']
+  );
+  registerTool(
+    'track_batch_progress',
+    'performance',
+    'Track progress for batch operations using custom markers (e.g., status:completed, customField).',
+    ['entityType', 'ids', 'progressMarker'],
+    ['includeDetails', 'groupBy', 'useCache', 'instance', 'workspaceId']
+  );
+  registerTool(
+    'get_entity_counts',
+    'performance',
+    'Get entity counts without fetching full data. Optimized for dashboard metrics and overview statistics.',
+    ['entityType'],
+    ['filters', 'useCache', 'instance', 'workspaceId']
+  );
+  registerTool(
+    'perform_health_check',
+    'performance',
+    'Perform comprehensive system health check including API connectivity, cache status, and memory usage.',
+    [],
+    [
+      'includeDetails',
+      'includeCacheStats',
+      'includeMemoryStats',
+      'instance',
+      'workspaceId',
+    ]
+  );
+  registerTool(
+    'get_performance_stats',
+    'performance',
+    'Get detailed performance statistics including response times, cache hit rates, and percentiles.',
+    [],
+    [
+      'operation',
+      'includePercentiles',
+      'clearOldMetrics',
+      'instance',
+      'workspaceId',
+    ]
+  );
+  registerTool(
+    'perform_cleanup',
+    'performance',
+    'Clear caches and perform system cleanup. Useful for memory management and troubleshooting.',
+    [],
+    ['clearCache', 'clearMetrics', 'forceGC', 'instance', 'workspaceId']
+  );
+
+  // Bulk operations tools
+  registerCategory(
+    'bulk-operations',
+    'Bulk Operations',
+    'Efficient bulk update operations with change tracking and diff analysis'
+  );
+  registerTool(
+    'perform_bulk_update',
+    'bulk-operations',
+    'Perform batch updates with diff tracking and change analysis. Supports features, notes, companies, users, and objectives.',
+    ['entityType', 'updates'],
+    [
+      'batchSize',
+      'concurrency',
+      'continueOnError',
+      'validateBeforeUpdate',
+      'trackChanges',
+      'diffFormat',
+      'includeUnchanged',
+      'instance',
+      'workspaceId',
+    ]
+  );
+  registerTool(
+    'compare_entities',
+    'bulk-operations',
+    'Compare current entity state with proposed changes without making updates. Shows what would change.',
+    ['entityType', 'comparisons'],
+    [
+      'diffFormat',
+      'highlightSignificant',
+      'includeUnchanged',
+      'instance',
+      'workspaceId',
+    ]
+  );
+  registerTool(
+    'validate_bulk_update',
+    'bulk-operations',
+    'Validate bulk update request without executing. Checks for errors and potential issues.',
+    ['entityType', 'updates'],
+    ['checkExistence', 'validateFields', 'instance', 'workspaceId']
+  );
+
+  // Context-aware tools
+  registerCategory(
+    'context-aware',
+    'Context-Aware Features',
+    'Intelligent response adaptation and user context management with personalization'
+  );
+  registerTool(
+    'set_user_context',
+    'context-aware',
+    'Set user context for intelligent response adaptation and personalization.',
+    ['sessionId'],
+    ['userPreferences', 'workspaceContext', 'instanceContext']
+  );
+  registerTool(
+    'get_user_context',
+    'context-aware',
+    'Retrieve current user context and preferences.',
+    ['sessionId'],
+    []
+  );
+  registerTool(
+    'adapt_response',
+    'context-aware',
+    'Adapt a response based on user context and preferences. Provides intelligent formatting and guidance.',
+    ['sessionId', 'query', 'originalResponse'],
+    ['includeGuidance', 'includeSuggestions']
+  );
+  registerTool(
+    'add_adaptation_rule',
+    'context-aware',
+    'Add custom adaptation rule for response processing. Allows personalized response handling.',
+    ['name', 'description', 'priority', 'condition', 'adaptation'],
+    ['sessionId']
+  );
+  registerTool(
+    'clear_user_context',
+    'context-aware',
+    'Clear all context data for a session. Useful for privacy or starting fresh.',
+    ['sessionId'],
+    []
+  );
+  registerTool(
+    'get_context_stats',
+    'context-aware',
+    'Get system statistics about context-aware features usage and performance.',
+    [],
+    []
   );
 
   return { tools, categories };

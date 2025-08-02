@@ -26,11 +26,10 @@ const toolAdapterConfig: Record<string, AdapterConfig> = {
     },
   },
   create_component: {
-    wrapInData: false,
+    wrapInData: false, // Static schema expects direct parameters, not body wrapper
     customTransform: args => {
-      if (args.body && typeof args.body === 'object') {
-        return args.body;
-      }
+      // create_component static implementation expects direct parameters
+      // No transformation needed since static schema handles it correctly
       return args;
     },
   },
@@ -127,35 +126,29 @@ export function generateParameterErrorMessage(
     create_feature: `
 The create_feature tool expects parameters in this format:
 {
-  "body": {
-    "name": "Feature name (required)",
-    "description": "Feature description (optional)",
-    "status": { "id": "status-id" } or { "name": "status-name" } (optional),
-    "owner": { "email": "owner@example.com" } (optional),
-    "parent": { 
-      "id": "parent-id",
-      "type": "product" | "component" | "feature" (required if parent specified)
-    } (optional)
-  }
+  "name": "Feature name (required)",
+  "description": "Feature description (optional)",
+  "status": { "id": "status-id" } or { "name": "status-name" } (optional),
+  "owner": { "email": "owner@example.com" } (optional),
+  "parent": { 
+    "id": "parent-id",
+    "type": "product" | "component" | "feature" (required if parent specified)
+  } (optional)
 }
 
 Example:
 {
-  "body": {
-    "name": "New Feature",
-    "description": "This feature does X",
-    "parent": { "id": "component-123", "type": "component" }
-  }
+  "name": "New Feature",
+  "description": "This feature does X",
+  "parent": { "id": "component-123", "type": "component" }
 }`,
 
     create_component: `
 The create_component tool expects:
 {
-  "body": {
-    "name": "Component name (required)",
-    "description": "Component description (optional)",
-    "parent": { "id": "product-id" } (optional)
-  }
+  "name": "Component name (required)",
+  "description": "Component description (optional)",
+  "parent": { "id": "product-id", "type": "product" } (optional)
 }`,
 
     get_custom_fields: `

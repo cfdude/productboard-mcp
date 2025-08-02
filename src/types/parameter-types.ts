@@ -1,22 +1,159 @@
 /**
  * Standard parameter types for all Productboard tools
  */
+// Constants are referenced in JSDoc comments
+// import { RESPONSE_LIMITS, API_LIMITS } from '../constants.js';
 
 export type DetailLevel = 'basic' | 'standard' | 'full';
 
-export interface StandardListParams {
+export type OutputFormat = 'json' | 'markdown' | 'csv' | 'summary';
+
+export type CustomFieldInclusion = 'all' | 'onlyWithValues' | 'none';
+
+export interface UpdateFeatureParams extends StandardGetParams {
+  /**
+   * Feature ID to update
+   */
+  id: string;
+
+  /**
+   * Updated feature name
+   */
+  name?: string;
+
+  /**
+   * Updated feature description
+   */
+  description?: string;
+
+  /**
+   * Archive status
+   */
+  archived?: boolean;
+
+  /**
+   * Component ID (to move feature to a different component)
+   */
+  componentId?: string;
+
+  /**
+   * Product ID (to move feature to a different product)
+   */
+  productId?: string;
+
+  /**
+   * Parent feature ID (for sub-features)
+   */
+  parentId?: string;
+
+  /**
+   * Feature status update
+   */
+  status?: {
+    id?: string;
+    name?: string;
+  };
+
+  /**
+   * Feature owner update
+   */
+  owner?: {
+    email?: string;
+  };
+
+  /**
+   * Feature timeframe with start and end dates
+   */
+  timeframe?: {
+    startDate?: string;
+    endDate?: string;
+    granularity?: string;
+  };
+
+  /**
+   * Custom fields - pass custom field names as additional parameters
+   * @example { "T-Shirt Sizing": "Large", "Business Value": "High" }
+   */
+  [customField: string]: unknown;
+
+  /**
+   * Productboard instance name (optional)
+   */
+  instance?: string;
+
+  /**
+   * Workspace ID (optional)
+   */
+  workspaceId?: string;
+}
+
+export interface ResponseOptimizationParams {
+  /**
+   * Maximum character length for entire response (truncates long fields)
+   * @minimum ${RESPONSE_LIMITS.MIN_RESPONSE_LENGTH}
+   * @maximum ${RESPONSE_LIMITS.MAX_RESPONSE_LENGTH}
+   */
+  maxLength?: number;
+
+  /**
+   * Fields to truncate if they exceed length limits
+   * @example ["description", "notes", "content"]
+   */
+  truncateFields?: string[];
+
+  /**
+   * Indicator to show when fields are truncated
+   * @default "..."
+   */
+  truncateIndicator?: string;
+
+  /**
+   * Include description field (can be large)
+   * @default true
+   */
+  includeDescription?: boolean;
+
+  /**
+   * Custom field inclusion strategy
+   * - all: Include all custom fields
+   * - onlyWithValues: Only include custom fields with non-empty values
+   * - none: Exclude all custom fields
+   * @default 'all'
+   */
+  includeCustomFieldsStrategy?: CustomFieldInclusion;
+
+  /**
+   * Include relationship/link data (can be extensive)
+   * @default true
+   */
+  includeLinks?: boolean;
+
+  /**
+   * Include fields with null or empty values
+   * @default true
+   */
+  includeEmpty?: boolean;
+
+  /**
+   * Include metadata fields (timestamps, versions, etc.)
+   * @default true
+   */
+  includeMetadata?: boolean;
+}
+
+export interface StandardListParams extends ResponseOptimizationParams {
   /**
    * Maximum number of records to return
-   * @default 100
-   * @minimum 1
-   * @maximum 100
+   * @default ${API_LIMITS.DEFAULT_PAGE_SIZE}
+   * @minimum ${API_LIMITS.MIN_PAGE_SIZE}
+   * @maximum ${API_LIMITS.MAX_PAGE_SIZE}
    */
   limit?: number;
 
   /**
    * Number of records to skip before returning results
-   * @default 0
-   * @minimum 0
+   * @default ${API_LIMITS.DEFAULT_OFFSET}
+   * @minimum ${API_LIMITS.MIN_OFFSET}
    */
   startWith?: number;
 
@@ -26,6 +163,7 @@ export interface StandardListParams {
    * - standard: Common fields including relationships
    * - full: All available fields
    * @default 'basic'
+   * @deprecated Use 'fields' parameter for precise field selection
    */
   detail?: DetailLevel;
 
@@ -34,15 +172,45 @@ export interface StandardListParams {
    * @default false
    */
   includeSubData?: boolean;
+
+  /**
+   * Specific fields to include in response (overrides detail level)
+   * Supports dot notation for nested fields (e.g., "timeframe.startDate")
+   * @example ["id", "name", "status.name", "owner.email"]
+   */
+  fields?: string[];
+
+  /**
+   * Fields to exclude from response
+   * @example ["description", "links", "createdAt"]
+   */
+  exclude?: string[];
+
+  /**
+   * Validate field names and return suggestions for invalid fields
+   * @default true
+   */
+  validateFields?: boolean;
+
+  /**
+   * Output format for response data
+   * - json: Standard JSON response (default)
+   * - markdown: Human-readable markdown format
+   * - csv: Comma-separated values for tabular data
+   * - summary: Condensed overview format
+   * @default 'json'
+   */
+  outputFormat?: OutputFormat;
 }
 
-export interface StandardGetParams {
+export interface StandardGetParams extends ResponseOptimizationParams {
   /**
    * Level of detail to return in response
    * - basic: Essential fields only (id, name, etc.)
    * - standard: Common fields including relationships
    * - full: All available fields
    * @default 'standard'
+   * @deprecated Use 'fields' parameter for precise field selection
    */
   detail?: DetailLevel;
 
@@ -51,6 +219,35 @@ export interface StandardGetParams {
    * @default false
    */
   includeSubData?: boolean;
+
+  /**
+   * Specific fields to include in response (overrides detail level)
+   * Supports dot notation for nested fields (e.g., "timeframe.startDate")
+   * @example ["id", "name", "status.name", "owner.email"]
+   */
+  fields?: string[];
+
+  /**
+   * Fields to exclude from response
+   * @example ["description", "links", "createdAt"]
+   */
+  exclude?: string[];
+
+  /**
+   * Validate field names and return suggestions for invalid fields
+   * @default true
+   */
+  validateFields?: boolean;
+
+  /**
+   * Output format for response data
+   * - json: Standard JSON response (default)
+   * - markdown: Human-readable markdown format
+   * - csv: Comma-separated values for tabular data
+   * - summary: Condensed overview format
+   * @default 'json'
+   */
+  outputFormat?: OutputFormat;
 }
 
 export interface EnterpriseErrorInfo {

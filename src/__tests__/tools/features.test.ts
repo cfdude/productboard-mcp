@@ -71,7 +71,7 @@ describe('Features Tools', () => {
   describe('Tool Handler', () => {
     it('should handle unknown tool error', async () => {
       await expect(handleFeaturesTool('unknown_tool', {})).rejects.toThrow(
-        'Unknown features tool: unknown_tool'
+        'Unknown tool: unknown_tool'
       );
     });
 
@@ -108,7 +108,7 @@ describe('Features Tools', () => {
       );
 
       expect(updateFeature?.inputSchema.properties).toHaveProperty('timeframe');
-      expect(updateFeature?.inputSchema.properties.timeframe).toEqual({
+      expect((updateFeature?.inputSchema.properties as any).timeframe).toEqual({
         type: 'object',
         description: 'Feature timeframe with start and end dates',
         properties: {

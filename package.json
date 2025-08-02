@@ -1,6 +1,6 @@
 {
   "name": "@the_cfdude/productboard-mcp",
-  "version": "1.5.0",
+  "version": "2.0.0",
   "description": "Model Context Protocol server for Productboard REST API with dynamic tool loading",
   "type": "module",
   "bin": {
@@ -39,7 +39,9 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
     "typecheck": "tsc --noEmit --strict",
-    "quality": "npm run typecheck && npm run lint && npm run format:check"
+    "quality": "npm run typecheck && npm run lint && npm run format:check",
+    "test-data-wrapper": "npm run build && node scripts/test-data-wrapper-compatibility.js",
+    "test-real-operations": "npm run build && node scripts/test-real-api-operations.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.6.0",

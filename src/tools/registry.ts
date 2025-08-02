@@ -143,9 +143,6 @@ export class ToolRegistry {
           const moduleFile = categoryMappings[toolInfo.category.toLowerCase()];
           if (moduleFile) {
             // Import from existing tools
-            console.error(
-              `Loading existing tool from category: ${toolInfo.category} -> ${moduleFile}`
-            );
             const module = await import(`./${moduleFile}.js`);
 
             // Get the handler function name based on the module file
@@ -162,9 +159,6 @@ export class ToolRegistry {
             return async (args: any) => handler(toolName, args);
           } else {
             // Import from generated tools
-            console.error(
-              `Category '${toolInfo.category}' not in existing categories, trying generated tools`
-            );
             const categoryFile = toolInfo.category
               .toLowerCase()
               .replace(/&/g, 'and')
@@ -331,11 +325,6 @@ export class ToolRegistry {
       loadToolDefinitions('jira-integrations', 'setupJiraIntegrationsTools'),
     ]);
 
-    console.error(
-      `[DEBUG] Loaded ${staticToolsMap.size} static tools:`,
-      Array.from(staticToolsMap.keys())
-    );
-
     for (const [toolName, toolInfo] of Object.entries(this.manifest.tools)) {
       // Skip if category is not enabled
       if (
@@ -352,23 +341,12 @@ export class ToolRegistry {
 
       // Check if this is a static implementation tool
       if (staticImplementationTools.includes(toolName)) {
-        console.error(`[DEBUG] Tool ${toolName} is in static list`);
         if (staticToolsMap.has(toolName)) {
-          console.error(
-            `[DEBUG] Tool ${toolName} found in staticToolsMap, using static definition`
-          );
           const staticDef = staticToolsMap.get(toolName)!;
-          console.error(
-            `[DEBUG] Static schema for ${toolName}:`,
-            JSON.stringify(staticDef.inputSchema, null, 2)
-          );
+
           // Use the actual tool definition from the module
           definitions.push(staticDef);
           continue;
-        } else {
-          console.error(
-            `[DEBUG] Tool ${toolName} NOT found in staticToolsMap!`
-          );
         }
       }
 
@@ -463,6 +441,7 @@ export class ToolRegistry {
         inputSchema: {
           type: 'object',
           properties,
+          additionalProperties: true,
         },
       };
 
@@ -471,12 +450,39 @@ export class ToolRegistry {
         toolDef.inputSchema.required = filteredRequiredParams;
       }
 
+      // Debug logging for create_component and create_feature dynamic schemas
+      if (toolName === 'create_component' || toolName === 'create_feature') {
+        console.log(
+          `⚙️ DYNAMIC SCHEMA GENERATED FOR ${toolName}:`,
+          JSON.stringify(toolDef.inputSchema, null, 2)
+        );
+      }
+
       definitions.push(toolDef);
     }
 
     // Add custom tools (not from manifest/OpenAPI)
     for (const [, tool] of this.customTools) {
       definitions.push(tool);
+    }
+
+    // Debug logging: Final tool definitions count
+    const componentDef = definitions.find(
+      def => def.name === 'create_component'
+    );
+    const featureDef = definitions.find(def => def.name === 'create_feature');
+
+    if (componentDef) {
+      console.log(
+        '🚀 FINAL create_component DEFINITION:',
+        JSON.stringify(componentDef, null, 2)
+      );
+    }
+    if (featureDef) {
+      console.log(
+        '🚀 FINAL create_feature DEFINITION:',
+        JSON.stringify(featureDef, null, 2)
+      );
     }
 
     return definitions;
@@ -527,6 +533,19 @@ export class ToolRegistry {
     // Execute handler with error handling
     // Apply parameter adaptation before calling handler
     const adaptedArgs = adaptParameters(toolName, args);
+
+    // Debug logging for create_component and create_feature
+    if (toolName === 'create_component' || toolName === 'create_feature') {
+      console.log(
+        `🎯 EXECUTING ${toolName} with args:`,
+        JSON.stringify(args, null, 2)
+      );
+      console.log(
+        `🎯 ADAPTED args for ${toolName}:`,
+        JSON.stringify(adaptedArgs, null, 2)
+      );
+    }
+
     return await handler(adaptedArgs);
   }
 

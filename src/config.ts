@@ -8,6 +8,7 @@ import {
   MultiInstanceProductboardConfig,
   ProductboardInstanceConfig,
 } from './types.js';
+import { RATE_LIMITS } from './constants.js';
 
 const CONFIG_FILE = '.productboard-config.json';
 
@@ -23,7 +24,7 @@ export function loadConfig(): MultiInstanceProductboardConfig {
         test: {
           apiToken: 'mock-test-token',
           baseUrl: 'https://api.productboard.test',
-          rateLimitPerMinute: 60,
+          rateLimitPerMinute: RATE_LIMITS.DEFAULT_RATE_LIMIT_PER_MINUTE,
           workspaces: ['test-workspace'],
         },
       },
@@ -127,7 +128,7 @@ function validateConfig(
       instance.baseUrl = 'https://api.productboard.com';
     }
     if (!instance.rateLimitPerMinute) {
-      instance.rateLimitPerMinute = 60;
+      instance.rateLimitPerMinute = RATE_LIMITS.DEFAULT_RATE_LIMIT_PER_MINUTE;
     }
   }
 

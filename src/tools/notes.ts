@@ -630,7 +630,7 @@ async function createNote(args: any) {
       // Add optional fields
       if (args.tags && args.tags.length > 0) body.tags = args.tags;
 
-      const response = await context.axios.post('/notes', body);
+      const response = await context.axios.post('/notes', { data: body });
 
       return {
         content: [
@@ -886,7 +886,9 @@ async function listNoteTags(args: any) {
 async function addNoteTag(args: any) {
   return await withContext(
     async context => {
-      await context.axios.post(`/notes/${args.noteId}/tags/${args.tagName}`);
+      await context.axios.post(`/notes/${args.noteId}/tags/${args.tagName}`, {
+        data: {},
+      });
 
       return {
         content: [
@@ -950,7 +952,9 @@ async function listNoteLinks(args: any) {
 async function createNoteLink(args: any) {
   return await withContext(
     async context => {
-      await context.axios.post(`/notes/${args.noteId}/links/${args.entityId}`);
+      await context.axios.post(`/notes/${args.noteId}/links/${args.entityId}`, {
+        data: {},
+      });
 
       return {
         content: [
