@@ -39,6 +39,77 @@ interface ToolManifest {
 }
 
 /**
+ * Tools that have static implementations and should NOT be included in manifest
+ * These tools have their own detailed schemas in their respective modules
+ */
+const STATIC_IMPLEMENTATION_TOOLS = [
+  'create_feature',
+  'update_feature',
+  'delete_feature',
+  'get_features',
+  'get_feature',
+  'create_component',
+  'update_component',
+  'get_components',
+  'get_component',
+  'create_product',
+  'update_product',
+  'get_products',
+  'get_product',
+  'create_note',
+  'update_note',
+  'delete_note',
+  'get_notes',
+  'get_note',
+  'create_company',
+  'update_company',
+  'delete_company',
+  'get_companies',
+  'get_company',
+  'create_user',
+  'update_user',
+  'delete_user',
+  'get_users',
+  'get_user',
+  'create_release',
+  'update_release',
+  'delete_release',
+  'get_releases',
+  'get_release',
+  'create_release_group',
+  'update_release_group',
+  'delete_release_group',
+  'get_release_groups',
+  'get_release_group',
+  'create_webhook',
+  'list_webhooks',
+  'get_webhook',
+  'delete_webhook',
+  'create_objective',
+  'update_objective',
+  'delete_objective',
+  'get_objectives',
+  'get_objective',
+  'create_initiative',
+  'update_initiative',
+  'delete_initiative',
+  'get_initiatives',
+  'get_initiative',
+  'create_key_result',
+  'update_key_result',
+  'delete_key_result',
+  'get_key_results',
+  'get_key_result',
+  'get_custom_fields',
+  'get_custom_field',
+  'get_custom_fields_values',
+  'get_custom_field_value',
+  'set_custom_field_value',
+  'delete_custom_field_value',
+  'get_feature_statuses',
+];
+
+/**
  * Load tools from actual MCP server implementations
  */
 async function loadMcpTools(): Promise<{
@@ -71,6 +142,12 @@ async function loadMcpTools(): Promise<{
     requiredParams: string[],
     optionalParams: string[]
   ) => {
+    // Skip static implementation tools - they have their own detailed schemas
+    if (STATIC_IMPLEMENTATION_TOOLS.includes(name)) {
+      console.log(`⏭️  Skipping ${name} (static implementation)`);
+      return;
+    }
+
     tools[name] = {
       category,
       operation: name.toUpperCase(),
