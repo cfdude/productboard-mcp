@@ -1,41 +1,41 @@
 {
   "version": "1.0.0",
-  "generated": "2025-08-02T19:47:17.453Z",
+  "generated": "2025-08-04T07:31:29.975Z",
   "categories": {
     "notes": {
       "displayName": "Notes",
       "description": "Customer feedback and notes management",
-      "tools": ["create_note", "get_notes", "get_note", "update_note", "delete_note", "bulk_add_note_followers", "remove_note_follower", "list_tags", "create_note_tag", "delete_note_tag", "list_links", "create_link", "list_feedback_form_configurations", "get_feedback_form_configuration", "submit_feedback_form"]
+      "tools": ["bulk_add_note_followers", "remove_note_follower", "list_tags", "create_note_tag", "delete_note_tag", "list_links", "create_link", "list_feedback_form_configurations", "get_feedback_form_configuration", "submit_feedback_form"]
     },
     "features": {
       "displayName": "Features",
       "description": "Product features, components, and products management",
-      "tools": ["create_feature", "get_features", "get_feature", "update_feature", "delete_feature", "create_component", "get_components", "get_component", "update_component", "get_products", "get_product", "update_product"]
+      "tools": []
     },
     "companies": {
       "displayName": "Companies",
       "description": "Company and user management",
-      "tools": ["create_company", "get_companies", "get_company", "update_company", "delete_company", "create_company_field", "list_company_fields", "get_company_field", "update_company_field", "delete_company_field", "get_company_field_value", "set_company_field_value", "delete_company_field_value", "get_users", "create_user", "get_user", "update_user", "delete_user"]
+      "tools": ["create_company_field", "list_company_fields", "get_company_field", "update_company_field", "delete_company_field", "get_company_field_value", "set_company_field_value", "delete_company_field_value"]
     },
     "webhooks": {
       "displayName": "Webhooks",
       "description": "Webhook subscription management",
-      "tools": ["post_webhook", "get_webhooks", "get_webhook", "delete_webhook"]
+      "tools": ["post_webhook", "get_webhooks"]
     },
     "objectives": {
       "displayName": "Objectives",
       "description": "Strategic objectives, initiatives, and key results management",
-      "tools": ["get_objectives", "create_objective", "get_objective", "update_objective", "delete_objective", "list_links_objective_to_features", "list_links_objective_to_initiatives", "create_objective_to_initiative_link", "delete_objective_to_initiative_link", "create_objective_to_feature_link", "delete_objective_to_feature_link", "get_initiatives", "create_initiative", "get_initiative", "update_initiative", "delete_initiative", "list_links_initiative_to_objectives", "list_links_initiative_to_features", "create_initiative_to_objective_link", "delete_initiative_to_objective_link", "create_initiative_to_feature_link", "delete_initiative_to_feature_link", "get_key_results", "create_key_result", "get_key_result", "update_key_result", "delete_key_result"]
+      "tools": ["list_links_objective_to_features", "list_links_objective_to_initiatives", "create_objective_to_initiative_link", "delete_objective_to_initiative_link", "create_objective_to_feature_link", "delete_objective_to_feature_link", "list_links_initiative_to_objectives", "list_links_initiative_to_features", "create_initiative_to_objective_link", "delete_initiative_to_objective_link", "create_initiative_to_feature_link", "delete_initiative_to_feature_link"]
     },
     "custom-fields": {
       "displayName": "Custom Fields",
       "description": "Custom field management for hierarchy entities",
-      "tools": ["get_custom_fields", "get_custom_fields_values", "get_custom_field", "get_custom_field_value", "set_custom_field_value", "delete_custom_field_value", "get_feature_statuses"]
+      "tools": []
     },
     "releases": {
       "displayName": "Releases",
       "description": "Release and release group management",
-      "tools": ["create_release_group", "list_release_groups", "get_release_group", "update_release_group", "delete_release_group", "create_release", "list_releases", "get_release", "update_release", "delete_release", "list_feature_release_assignments", "get_feature_release_assignment", "update_feature_release_assignment"]
+      "tools": ["list_release_groups", "list_releases", "list_feature_release_assignments", "get_feature_release_assignment", "update_feature_release_assignment"]
     },
     "plugin-integrations": {
       "displayName": "Plugin Integrations",
@@ -69,46 +69,6 @@
     }
   },
   "tools": {
-    "create_note": {
-      "category": "notes",
-      "operation": "CREATE_NOTE",
-      "description": "Create a new note in Productboard",
-      "requiredParams": ["title", "content"],
-      "optionalParams": ["ownerEmail", "userEmail", "userName", "userExternalId", "companyDomain", "sourceOrigin", "sourceRecordId", "displayUrl", "tags"],
-      "implementation": "mcp"
-    },
-    "get_notes": {
-      "category": "notes",
-      "operation": "GET_NOTES",
-      "description": "List all notes with filtering and pagination",
-      "requiredParams": [],
-      "optionalParams": ["limit", "startWith", "detail", "includeSubData", "allTags", "anyTag", "companyId", "createdFrom", "createdTo", "dateFrom", "dateTo", "featureId", "ownerEmail", "source", "term", "updatedFrom", "updatedTo"],
-      "implementation": "mcp"
-    },
-    "get_note": {
-      "category": "notes",
-      "operation": "GET_NOTE",
-      "description": "Get a specific note by ID",
-      "requiredParams": ["id"],
-      "optionalParams": ["detail", "includeSubData"],
-      "implementation": "mcp"
-    },
-    "update_note": {
-      "category": "notes",
-      "operation": "UPDATE_NOTE",
-      "description": "Update an existing note",
-      "requiredParams": ["id"],
-      "optionalParams": ["title", "content", "tags"],
-      "implementation": "mcp"
-    },
-    "delete_note": {
-      "category": "notes",
-      "operation": "DELETE_NOTE",
-      "description": "Delete a note",
-      "requiredParams": ["id"],
-      "optionalParams": [],
-      "implementation": "mcp"
-    },
     "bulk_add_note_followers": {
       "category": "notes",
       "operation": "BULK_ADD_NOTE_FOLLOWERS",
@@ -189,142 +149,6 @@
       "optionalParams": ["body"],
       "implementation": "mcp"
     },
-    "create_feature": {
-      "category": "features",
-      "operation": "CREATE_FEATURE",
-      "description": "Create a new feature in Productboard",
-      "requiredParams": ["name"],
-      "optionalParams": ["description", "status", "owner", "parent"],
-      "implementation": "mcp"
-    },
-    "get_features": {
-      "category": "features",
-      "operation": "GET_FEATURES",
-      "description": "List all features in Productboard",
-      "requiredParams": [],
-      "optionalParams": ["limit", "startWith", "detail", "includeSubData", "archived", "noteId", "ownerEmail", "parentId", "statusId", "statusName"],
-      "implementation": "mcp"
-    },
-    "get_feature": {
-      "category": "features",
-      "operation": "GET_FEATURE",
-      "description": "Get a specific feature by ID",
-      "requiredParams": ["id"],
-      "optionalParams": ["detail", "includeSubData"],
-      "implementation": "mcp"
-    },
-    "update_feature": {
-      "category": "features",
-      "operation": "UPDATE_FEATURE",
-      "description": "Update a feature. Supports both standard fields and custom fields - pass custom field names as additional parameters (e.g., \"T-Shirt Sizing\": \"large\").",
-      "requiredParams": ["id"],
-      "optionalParams": ["name", "description", "status", "owner", "archived", "timeframe", "parentId", "componentId", "productId", "...customFields"],
-      "implementation": "mcp"
-    },
-    "delete_feature": {
-      "category": "features",
-      "operation": "DELETE_FEATURE",
-      "description": "Delete a feature",
-      "requiredParams": ["id"],
-      "optionalParams": [],
-      "implementation": "mcp"
-    },
-    "create_component": {
-      "category": "features",
-      "operation": "CREATE_COMPONENT",
-      "description": "Create a new component in Productboard",
-      "requiredParams": ["name"],
-      "optionalParams": ["description", "parent"],
-      "implementation": "mcp"
-    },
-    "get_components": {
-      "category": "features",
-      "operation": "GET_COMPONENTS",
-      "description": "List all components in Productboard",
-      "requiredParams": [],
-      "optionalParams": ["limit", "startWith", "detail", "includeSubData", "productId"],
-      "implementation": "mcp"
-    },
-    "get_component": {
-      "category": "features",
-      "operation": "GET_COMPONENT",
-      "description": "Get a specific component by ID",
-      "requiredParams": ["id"],
-      "optionalParams": ["detail", "includeSubData"],
-      "implementation": "mcp"
-    },
-    "update_component": {
-      "category": "features",
-      "operation": "UPDATE_COMPONENT",
-      "description": "Update a component",
-      "requiredParams": ["id"],
-      "optionalParams": ["name", "description"],
-      "implementation": "mcp"
-    },
-    "get_products": {
-      "category": "features",
-      "operation": "GET_PRODUCTS",
-      "description": "List all products in Productboard",
-      "requiredParams": [],
-      "optionalParams": ["limit", "startWith", "detail", "includeSubData"],
-      "implementation": "mcp"
-    },
-    "get_product": {
-      "category": "features",
-      "operation": "GET_PRODUCT",
-      "description": "Get a specific product by ID",
-      "requiredParams": ["id"],
-      "optionalParams": ["detail", "includeSubData"],
-      "implementation": "mcp"
-    },
-    "update_product": {
-      "category": "features",
-      "operation": "UPDATE_PRODUCT",
-      "description": "Update a product",
-      "requiredParams": ["id"],
-      "optionalParams": ["name", "description"],
-      "implementation": "mcp"
-    },
-    "create_company": {
-      "category": "companies",
-      "operation": "CREATE_COMPANY",
-      "description": "Create a new company",
-      "requiredParams": ["name"],
-      "optionalParams": ["description", "domain", "externalId"],
-      "implementation": "mcp"
-    },
-    "get_companies": {
-      "category": "companies",
-      "operation": "GET_COMPANIES",
-      "description": "List all companies",
-      "requiredParams": [],
-      "optionalParams": ["detail", "featureId", "hasNotes", "includeSubData", "limit", "startWith", "term"],
-      "implementation": "mcp"
-    },
-    "get_company": {
-      "category": "companies",
-      "operation": "GET_COMPANY",
-      "description": "Retrieve a specific company",
-      "requiredParams": ["id"],
-      "optionalParams": ["detail", "includeSubData"],
-      "implementation": "mcp"
-    },
-    "update_company": {
-      "category": "companies",
-      "operation": "UPDATE_COMPANY",
-      "description": "Update a company",
-      "requiredParams": ["id", "body"],
-      "optionalParams": [],
-      "implementation": "mcp"
-    },
-    "delete_company": {
-      "category": "companies",
-      "operation": "DELETE_COMPANY",
-      "description": "Delete a company",
-      "requiredParams": ["id"],
-      "optionalParams": [],
-      "implementation": "mcp"
-    },
     "create_company_field": {
       "category": "companies",
       "operation": "CREATE_COMPANY_FIELD",
@@ -389,46 +213,6 @@
       "optionalParams": [],
       "implementation": "mcp"
     },
-    "get_users": {
-      "category": "companies",
-      "operation": "GET_USERS",
-      "description": "List all users in Productboard",
-      "requiredParams": [],
-      "optionalParams": ["detail", "includeSubData", "limit", "startWith"],
-      "implementation": "mcp"
-    },
-    "create_user": {
-      "category": "companies",
-      "operation": "CREATE_USER",
-      "description": "Create a new user in Productboard",
-      "requiredParams": ["email"],
-      "optionalParams": ["name", "role", "companyId", "externalId"],
-      "implementation": "mcp"
-    },
-    "get_user": {
-      "category": "companies",
-      "operation": "GET_USER",
-      "description": "Get a specific user by ID",
-      "requiredParams": ["id"],
-      "optionalParams": ["detail", "includeSubData"],
-      "implementation": "mcp"
-    },
-    "update_user": {
-      "category": "companies",
-      "operation": "UPDATE_USER",
-      "description": "Update an existing user",
-      "requiredParams": ["id"],
-      "optionalParams": ["name", "role", "companyId", "externalId"],
-      "implementation": "mcp"
-    },
-    "delete_user": {
-      "category": "companies",
-      "operation": "DELETE_USER",
-      "description": "Delete a user",
-      "requiredParams": ["id"],
-      "optionalParams": [],
-      "implementation": "mcp"
-    },
     "post_webhook": {
       "category": "webhooks",
       "operation": "POST_WEBHOOK",
@@ -442,62 +226,6 @@
       "operation": "GET_WEBHOOKS",
       "description": "List all subscriptions",
       "requiredParams": [],
-      "optionalParams": [],
-      "implementation": "mcp"
-    },
-    "get_webhook": {
-      "category": "webhooks",
-      "operation": "GET_WEBHOOK",
-      "description": "Get a specific webhook subscription by ID",
-      "requiredParams": ["id"],
-      "optionalParams": ["detail", "includeSubData"],
-      "implementation": "mcp"
-    },
-    "delete_webhook": {
-      "category": "webhooks",
-      "operation": "DELETE_WEBHOOK",
-      "description": "Delete a webhook subscription",
-      "requiredParams": ["id"],
-      "optionalParams": [],
-      "implementation": "mcp"
-    },
-    "get_objectives": {
-      "category": "objectives",
-      "operation": "GET_OBJECTIVES",
-      "description": "List all objectives",
-      "requiredParams": [],
-      "optionalParams": ["detail", "includeSubData", "limit", "startWith"],
-      "implementation": "mcp"
-    },
-    "create_objective": {
-      "category": "objectives",
-      "operation": "CREATE_OBJECTIVE",
-      "description": "Create a new objective",
-      "requiredParams": ["name"],
-      "optionalParams": ["description", "startDate", "endDate", "ownerId"],
-      "implementation": "mcp"
-    },
-    "get_objective": {
-      "category": "objectives",
-      "operation": "GET_OBJECTIVE",
-      "description": "Get a specific objective by ID",
-      "requiredParams": ["id"],
-      "optionalParams": ["detail", "includeSubData"],
-      "implementation": "mcp"
-    },
-    "update_objective": {
-      "category": "objectives",
-      "operation": "UPDATE_OBJECTIVE",
-      "description": "Update an existing objective",
-      "requiredParams": ["id"],
-      "optionalParams": ["name", "description", "startDate", "endDate", "ownerId"],
-      "implementation": "mcp"
-    },
-    "delete_objective": {
-      "category": "objectives",
-      "operation": "DELETE_OBJECTIVE",
-      "description": "Delete an objective",
-      "requiredParams": ["id"],
       "optionalParams": [],
       "implementation": "mcp"
     },
@@ -549,46 +277,6 @@
       "optionalParams": [],
       "implementation": "mcp"
     },
-    "get_initiatives": {
-      "category": "objectives",
-      "operation": "GET_INITIATIVES",
-      "description": "List all initiatives",
-      "requiredParams": [],
-      "optionalParams": ["detail", "includeSubData", "limit", "startWith"],
-      "implementation": "mcp"
-    },
-    "create_initiative": {
-      "category": "objectives",
-      "operation": "CREATE_INITIATIVE",
-      "description": "Create a new initiative",
-      "requiredParams": ["name"],
-      "optionalParams": ["description", "ownerId", "status"],
-      "implementation": "mcp"
-    },
-    "get_initiative": {
-      "category": "objectives",
-      "operation": "GET_INITIATIVE",
-      "description": "Get a specific initiative by ID",
-      "requiredParams": ["id"],
-      "optionalParams": ["detail", "includeSubData"],
-      "implementation": "mcp"
-    },
-    "update_initiative": {
-      "category": "objectives",
-      "operation": "UPDATE_INITIATIVE",
-      "description": "Update an existing initiative",
-      "requiredParams": ["id"],
-      "optionalParams": ["name", "description", "ownerId", "status"],
-      "implementation": "mcp"
-    },
-    "delete_initiative": {
-      "category": "objectives",
-      "operation": "DELETE_INITIATIVE",
-      "description": "Delete an initiative",
-      "requiredParams": ["id"],
-      "optionalParams": [],
-      "implementation": "mcp"
-    },
     "list_links_initiative_to_objectives": {
       "category": "objectives",
       "operation": "LIST_LINKS_INITIATIVE_TO_OBJECTIVES",
@@ -637,110 +325,6 @@
       "optionalParams": [],
       "implementation": "mcp"
     },
-    "get_key_results": {
-      "category": "objectives",
-      "operation": "GET_KEY_RESULTS",
-      "description": "List all key results",
-      "requiredParams": [],
-      "optionalParams": ["detail", "includeSubData", "limit", "startWith"],
-      "implementation": "mcp"
-    },
-    "create_key_result": {
-      "category": "objectives",
-      "operation": "CREATE_KEY_RESULT",
-      "description": "Create a new key result",
-      "requiredParams": ["name", "objectiveId", "type", "targetValue"],
-      "optionalParams": ["currentValue", "startValue"],
-      "implementation": "mcp"
-    },
-    "get_key_result": {
-      "category": "objectives",
-      "operation": "GET_KEY_RESULT",
-      "description": "Get a specific key result by ID",
-      "requiredParams": ["id"],
-      "optionalParams": ["detail", "includeSubData"],
-      "implementation": "mcp"
-    },
-    "update_key_result": {
-      "category": "objectives",
-      "operation": "UPDATE_KEY_RESULT",
-      "description": "Update an existing key result",
-      "requiredParams": ["id"],
-      "optionalParams": ["name", "targetValue", "currentValue"],
-      "implementation": "mcp"
-    },
-    "delete_key_result": {
-      "category": "objectives",
-      "operation": "DELETE_KEY_RESULT",
-      "description": "Delete a key result",
-      "requiredParams": ["id"],
-      "optionalParams": [],
-      "implementation": "mcp"
-    },
-    "get_custom_fields": {
-      "category": "custom-fields",
-      "operation": "GET_CUSTOM_FIELDS",
-      "description": "List all custom fields for hierarchy entities",
-      "requiredParams": ["type"],
-      "optionalParams": [],
-      "implementation": "mcp"
-    },
-    "get_custom_fields_values": {
-      "category": "custom-fields",
-      "operation": "GET_CUSTOM_FIELDS_VALUES",
-      "description": "List all custom field values",
-      "requiredParams": [],
-      "optionalParams": ["customField.id", "hierarchyEntity.id", "type"],
-      "implementation": "mcp"
-    },
-    "get_custom_field": {
-      "category": "custom-fields",
-      "operation": "GET_CUSTOM_FIELD",
-      "description": "Retrieve a specific custom field",
-      "requiredParams": ["id"],
-      "optionalParams": [],
-      "implementation": "mcp"
-    },
-    "get_custom_field_value": {
-      "category": "custom-fields",
-      "operation": "GET_CUSTOM_FIELD_VALUE",
-      "description": "Retrieve a custom field value for a hierarchy entity",
-      "requiredParams": ["customField.id", "hierarchyEntity.id"],
-      "optionalParams": [],
-      "implementation": "mcp"
-    },
-    "set_custom_field_value": {
-      "category": "custom-fields",
-      "operation": "SET_CUSTOM_FIELD_VALUE",
-      "description": "Set value of a custom field for a hierarchy entity",
-      "requiredParams": ["customField.id", "hierarchyEntity.id", "body"],
-      "optionalParams": [],
-      "implementation": "mcp"
-    },
-    "delete_custom_field_value": {
-      "category": "custom-fields",
-      "operation": "DELETE_CUSTOM_FIELD_VALUE",
-      "description": "Delete value of a custom field for a hierarchy entity",
-      "requiredParams": ["customField.id", "hierarchyEntity.id"],
-      "optionalParams": [],
-      "implementation": "mcp"
-    },
-    "get_feature_statuses": {
-      "category": "custom-fields",
-      "operation": "GET_FEATURE_STATUSES",
-      "description": "List all feature statuses",
-      "requiredParams": [],
-      "optionalParams": [],
-      "implementation": "mcp"
-    },
-    "create_release_group": {
-      "category": "releases",
-      "operation": "CREATE_RELEASE_GROUP",
-      "description": "Create a new release group",
-      "requiredParams": ["name"],
-      "optionalParams": ["description", "isDefault"],
-      "implementation": "mcp"
-    },
     "list_release_groups": {
       "category": "releases",
       "operation": "LIST_RELEASE_GROUPS",
@@ -749,68 +333,12 @@
       "optionalParams": [],
       "implementation": "mcp"
     },
-    "get_release_group": {
-      "category": "releases",
-      "operation": "GET_RELEASE_GROUP",
-      "description": "Get a specific release group by ID",
-      "requiredParams": ["id"],
-      "optionalParams": ["detail", "includeSubData"],
-      "implementation": "mcp"
-    },
-    "update_release_group": {
-      "category": "releases",
-      "operation": "UPDATE_RELEASE_GROUP",
-      "description": "Update an existing release group",
-      "requiredParams": ["id"],
-      "optionalParams": ["name", "description", "isDefault"],
-      "implementation": "mcp"
-    },
-    "delete_release_group": {
-      "category": "releases",
-      "operation": "DELETE_RELEASE_GROUP",
-      "description": "Delete a release group",
-      "requiredParams": ["id"],
-      "optionalParams": [],
-      "implementation": "mcp"
-    },
-    "create_release": {
-      "category": "releases",
-      "operation": "CREATE_RELEASE",
-      "description": "Create a new release",
-      "requiredParams": ["name", "releaseGroupId"],
-      "optionalParams": ["description", "startDate", "releaseDate", "state"],
-      "implementation": "mcp"
-    },
     "list_releases": {
       "category": "releases",
       "operation": "LIST_RELEASES",
       "description": "List all releases",
       "requiredParams": [],
       "optionalParams": ["releaseGroup.id"],
-      "implementation": "mcp"
-    },
-    "get_release": {
-      "category": "releases",
-      "operation": "GET_RELEASE",
-      "description": "Get a specific release by ID",
-      "requiredParams": ["id"],
-      "optionalParams": ["detail", "includeSubData"],
-      "implementation": "mcp"
-    },
-    "update_release": {
-      "category": "releases",
-      "operation": "UPDATE_RELEASE",
-      "description": "Update an existing release",
-      "requiredParams": ["id"],
-      "optionalParams": ["name", "description", "startDate", "releaseDate", "state"],
-      "implementation": "mcp"
-    },
-    "delete_release": {
-      "category": "releases",
-      "operation": "DELETE_RELEASE",
-      "description": "Delete a release",
-      "requiredParams": ["id"],
-      "optionalParams": [],
       "implementation": "mcp"
     },
     "list_feature_release_assignments": {

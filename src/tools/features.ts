@@ -41,7 +41,8 @@ function getFeatureToolSchemas() {
           },
           description: {
             type: 'string',
-            description: 'Feature description',
+            description:
+              'Feature description (HTML format required, e.g., "<p>Description text</p>")',
           },
           status: {
             type: 'object',
@@ -174,7 +175,8 @@ function getFeatureToolSchemas() {
           },
           description: {
             type: 'string',
-            description: 'Feature description',
+            description:
+              'Feature description (HTML format required, e.g., "<p>Description text</p>")',
           },
           status: {
             type: 'object',
@@ -273,23 +275,30 @@ function getComponentToolSchemas() {
           },
           description: {
             type: 'string',
-            description: 'Component description',
+            description:
+              'Component description (HTML format required, e.g., "<p>Description text</p>")',
           },
           parent: {
             type: 'object',
             description: 'Parent entity to associate this component with',
             properties: {
-              id: {
-                type: 'string',
-                description: 'ID of the parent entity (typically a product)',
-              },
-              type: {
-                type: 'string',
-                enum: ['product'],
-                description: 'Type of parent entity',
+              product: {
+                type: 'object',
+                properties: {
+                  id: {
+                    type: 'string',
+                    description: 'ID of the parent product',
+                  },
+                },
+                required: ['id'],
+                description: 'Parent product information',
               },
             },
-            required: ['id', 'type'],
+            required: ['product'],
+          },
+          ownerEmail: {
+            type: 'string',
+            description: 'Owner email for the component (optional)',
           },
           instance: {
             type: 'string',
@@ -349,7 +358,8 @@ function getComponentToolSchemas() {
           },
           description: {
             type: 'string',
-            description: 'Component description',
+            description:
+              'Component description (HTML format required, e.g., "<p>Description text</p>")',
           },
           instance: {
             type: 'string',
@@ -411,7 +421,8 @@ function getProductToolSchemas() {
           },
           description: {
             type: 'string',
-            description: 'Product description',
+            description:
+              'Product description (HTML format required, e.g., "<p>Description text</p>")',
           },
           instance: {
             type: 'string',
@@ -665,7 +676,7 @@ async function createComponent(args: any) {
         // Validate required fields with helpful error messages
         if (!args.name) {
           throw new ValidationError(
-            'Component name is required. Example: { "name": "Frontend UI", "description": "React components", "parent": { "id": "12345", "type": "product" } }',
+            'Component name is required. Example: { "name": "Frontend UI", "description": "<p>React components with <b>modern</b> design</p>", "parent": { "product": { "id": "12345" } } }',
             'name'
           );
         }
@@ -677,6 +688,11 @@ async function createComponent(args: any) {
         if (args.description) body.description = args.description;
         if (args.parent) body.parent = args.parent;
 
+        // Add owner email if provided (as shown in API example)
+        if (args.ownerEmail) {
+          body.owner = { email: args.ownerEmail };
+        }
+
         const response = await context.axios.post('/components', {
           data: body,
         });
@@ -685,22 +701,36 @@ async function createComponent(args: any) {
           content: [
             {
               type: 'text',
-              text: formatResponse(
-                {
-                  success: true,
-                  component: response.data,
-                },
-                'json',
-                'component'
+              text: JSON.stringify(
+                formatResponse(
+                  {
+                    success: true,
+                    component: response.data,
+                  },
+                  'json',
+                  'component'
+                )
               ),
             },
           ],
         };
       } catch (error: any) {
+        // Enhanced error handling for HTML validation errors
+        if (
+          error.response?.data &&
+          typeof error.response.data === 'string' &&
+          error.response.data.includes('cvc-complex-type')
+        ) {
+          throw new ValidationError(
+            `HTML validation failed in description field. Productboard only allows these exact HTML tags: <b>, <i>, <s>, <u>, <br>, <a>, <code>, <img>. Replace <strong> with <b>, <em> with <i>, etc. Example: "<p>Component with <b>bold text</b> and <i>italic text</i></p>"`,
+            'html_tags'
+          );
+        }
+
         // Enhanced error handling for common 404 scenarios
         if (error.response?.status === 404) {
           throw new ValidationError(
-            `Component creation failed - endpoint not found. Ensure you're using the correct format: { "name": "Component Name", "parent": { "id": "valid-product-id", "type": "product" } }. Use 'get_products()' to find valid product IDs.`,
+            `Component creation failed - endpoint not found. Ensure you're using the correct format: { "name": "Component Name", "parent": { "product": { "id": "valid-product-id" } } }. Use 'get_products()' to find valid product IDs.`,
             'request_format'
           );
         }
@@ -708,8 +738,20 @@ async function createComponent(args: any) {
         if (error.response?.status === 400) {
           const apiError =
             error.response.data?.message || 'Invalid request format';
+
+          // Check if it's an HTML validation error specifically
+          if (
+            apiError.includes('cvc-complex-type') ||
+            apiError.includes('Invalid content was found')
+          ) {
+            throw new ValidationError(
+              `HTML validation error: ${apiError}. Productboard only allows these HTML tags: <b>, <i>, <s>, <u>, <br>, <a>, <code>, <img>. Avoid <strong>, <em>, <div>, <span>, etc. Use: "<p>Text with <b>bold</b> and <i>italic</i> formatting</p>"`,
+              'html_validation'
+            );
+          }
+
           throw new ValidationError(
-            `${apiError}. Required format: { "name": "string", "parent": { "id": "string", "type": "product" } (optional), "description": "string" (optional) }. Use 'get_component_docs()' for complete documentation.`,
+            `${apiError}. Required format: { "name": "string", "parent": { "product": { "id": "string" } } (optional), "description": "string with allowed HTML tags: <b>, <i>, <s>, <u>, <br>, <a>, <code>, <img>" (optional) }`,
             'request_body'
           );
         }
@@ -747,13 +789,15 @@ async function createFeature(args: any) {
         content: [
           {
             type: 'text',
-            text: formatResponse(
-              {
-                success: true,
-                feature: response.data,
-              },
-              'json',
-              'feature'
+            text: JSON.stringify(
+              formatResponse(
+                {
+                  success: true,
+                  feature: response.data,
+                },
+                'json',
+                'feature'
+              )
             ),
           },
         ],

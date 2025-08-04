@@ -104,3 +104,6 @@ jspm_packages/
 # Test scripts
 test-*.js
 scripts/test/test-*.js
+
+# OpenAPI files
+productboard_openapi.yaml

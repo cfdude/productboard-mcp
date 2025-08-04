@@ -105,9 +105,20 @@ export async function setupDynamicToolHandlers(server: Server) {
   }
 
   // List tools handler
-  server.setRequestHandler(ListToolsRequestSchema, async () => ({
-    tools: await registry.getToolDefinitions(),
-  }));
+  server.setRequestHandler(ListToolsRequestSchema, async () => {
+    const tools = await registry.getToolDefinitions();
+
+    // DEBUG: Log create_component schema
+    const createComponentTool = tools.find(t => t.name === 'create_component');
+    if (createComponentTool) {
+      console.error(
+        '🔍 DEBUG: create_component tool being served to MCP client:'
+      );
+      console.error(JSON.stringify(createComponentTool, null, 2));
+    }
+
+    return { tools };
+  });
 
   // Call tool handler
   server.setRequestHandler(CallToolRequestSchema, async request => {
