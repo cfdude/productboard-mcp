@@ -736,13 +736,6 @@ export class SearchEngine {
   }
 
   /**
-   * Get nested field value using dot notation
-   */
-  private getNestedFieldValue(obj: any, path: string): any {
-    return path.split('.').reduce((current, key) => current?.[key], obj);
-  }
-
-  /**
    * Normalize filter values
    */
   private normalizeFilterValue(value: any): any {

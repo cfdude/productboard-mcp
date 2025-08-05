@@ -229,11 +229,18 @@ export function filterByDetailLevel<T extends Record<string, any>>(
       // Invalid fields will be handled by the field selector internally
     }
 
-    filteredData = fieldSelector.selectFields(data, {
+    const selectConfig: {
+      fields: string[];
+      validateFields: true;
+      exclude?: string[];
+    } = {
       fields,
-      exclude,
       validateFields: true,
-    }) as Partial<T>;
+    };
+    if (exclude) {
+      selectConfig.exclude = exclude;
+    }
+    filteredData = fieldSelector.selectFields(data, selectConfig) as Partial<T>;
   }
   // If exclude fields are specified, apply exclusion
   else if (exclude && exclude.length > 0) {
@@ -254,11 +261,21 @@ export function filterByDetailLevel<T extends Record<string, any>>(
       fieldsToUse = fieldSelector.getEssentialFields(String(entityType));
     }
 
-    filteredData = fieldSelector.selectFields(data, {
+    const selectConfig2: {
+      fields: string[];
+      validateFields: false;
+      exclude?: string[];
+    } = {
       fields: fieldsToUse,
-      exclude,
       validateFields: false, // Skip validation for predefined fields
-    }) as Partial<T>;
+    };
+    if (exclude) {
+      selectConfig2.exclude = exclude;
+    }
+    filteredData = fieldSelector.selectFields(
+      data,
+      selectConfig2
+    ) as Partial<T>;
   }
 
   // Apply response optimization if specified
@@ -968,7 +985,6 @@ export function normalizeOptimizationParams(
   params: ResponseOptimizationParams = {}
 ): ResponseOptimizationParams {
   const normalized: ResponseOptimizationParams = {
-    maxLength: params.maxLength,
     truncateFields: params.truncateFields || [],
     truncateIndicator: params.truncateIndicator || '...',
     includeDescription: params.includeDescription ?? true,
@@ -977,6 +993,11 @@ export function normalizeOptimizationParams(
     includeEmpty: params.includeEmpty ?? true,
     includeMetadata: params.includeMetadata ?? true,
   };
+
+  // Only add maxLength if it's defined
+  if (params.maxLength !== undefined) {
+    normalized.maxLength = params.maxLength;
+  }
 
   // Validate maxLength
   if (normalized.maxLength !== undefined) {

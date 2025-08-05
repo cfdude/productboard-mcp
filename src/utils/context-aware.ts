@@ -200,7 +200,7 @@ export class ContextAwareAdapter {
 
     // Error guidance adaptation
     this.addAdaptationRule({
-      condition: (context, _query, response) => {
+      condition: (_context, _query, response) => {
         return this.isErrorResponse(response);
       },
       adaptation: (_context, _query, response) => {
@@ -478,7 +478,7 @@ export class ContextAwareAdapter {
    * Generate related actions based on context and query
    */
   private generateRelatedActions(
-    context: ContextData,
+    _context: ContextData,
     query: string
   ): string[] {
     const actions: string[] = [];
@@ -500,7 +500,7 @@ export class ContextAwareAdapter {
   /**
    * Generate next steps based on context and query
    */
-  private generateNextSteps(context: ContextData, query: string): string[] {
+  private generateNextSteps(_context: ContextData, query: string): string[] {
     const steps: string[] = [];
 
     if (query.toLowerCase().includes('create')) {

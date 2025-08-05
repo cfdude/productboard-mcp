@@ -348,12 +348,15 @@ export class LightweightQueryEngine {
       // Analyze progress
       const progressDetails = entities.map(entity => {
         const hasMarker = this.checkProgressMarker(entity, progressMarker);
-        return {
+        const detail = {
           id: entity.id,
           status: entity.status || 'unknown',
           progress: hasMarker,
-          marker: hasMarker ? progressMarker : undefined,
         };
+        if (hasMarker) {
+          (detail as any).marker = progressMarker;
+        }
+        return detail;
       });
 
       const completed = progressDetails.filter(p => p.progress).length;
