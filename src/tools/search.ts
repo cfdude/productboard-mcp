@@ -270,8 +270,6 @@ export async function handleSearchTool(name: string, args: SearchParams) {
   try {
     return await performSearch(fixedArgs);
   } catch (error: any) {
-    console.error('Search error:', error);
-
     if (
       error instanceof ValidationError ||
       error instanceof ProductboardError

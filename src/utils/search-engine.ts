@@ -227,16 +227,10 @@ export class SearchEngine {
       const listParams = this.buildListParams(params, params.entityType);
 
       // Route to appropriate handler based on entity type
-      console.error(
-        `[DEBUG] Routing ${params.entityType} to ${entityConfig.listFunction}`
-      );
       const response = await this.routeToEntityHandler(
         params.entityType,
         entityConfig.listFunction,
         listParams
-      );
-      console.error(
-        `[DEBUG] Handler returned response with content length: ${response?.content?.[0]?.text?.length || 0}`
       );
 
       // Parse response from the handler
