@@ -511,17 +511,7 @@ export class ToolRegistry {
     // Apply parameter adaptation before calling handler
     const adaptedArgs = adaptParameters(toolName, args);
 
-    // Debug logging for create_component and create_feature
-    if (toolName === 'create_component' || toolName === 'create_feature') {
-      console.log(
-        `🎯 EXECUTING ${toolName} with args:`,
-        JSON.stringify(args, null, 2)
-      );
-      console.log(
-        `🎯 ADAPTED args for ${toolName}:`,
-        JSON.stringify(adaptedArgs, null, 2)
-      );
-    }
+    // Debug logging removed for production
 
     return await handler(adaptedArgs);
   }
