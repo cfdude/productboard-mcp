@@ -77,7 +77,6 @@ export interface SearchResults {
   hasMore: boolean;
   warnings: string[];
   queryTimeMs: number;
-  cacheHit?: boolean;
   suggestions?: SearchSuggestion[];
 }
 
@@ -127,7 +126,6 @@ export interface SearchResponse {
     hints?: string[];
     performance: {
       queryTimeMs: number;
-      cacheHit: boolean;
     };
   };
   pagination?: {

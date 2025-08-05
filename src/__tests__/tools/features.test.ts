@@ -18,7 +18,7 @@ describe('Features Tools', () => {
     it('should define all features tools with correct schemas', () => {
       const tools = setupFeaturesTools();
 
-      expect(tools.length).toBeGreaterThan(10);
+      expect(tools.length).toBe(6);
 
       const toolNames = tools.map((tool: ToolDefinition) => tool.name);
 
@@ -28,17 +28,7 @@ describe('Features Tools', () => {
       expect(toolNames).toContain('get_feature');
       expect(toolNames).toContain('update_feature');
       expect(toolNames).toContain('delete_feature');
-
-      // Components tools
-      expect(toolNames).toContain('create_component');
-      expect(toolNames).toContain('get_components');
-      expect(toolNames).toContain('get_component');
-      expect(toolNames).toContain('update_component');
-
-      // Products tools
-      expect(toolNames).toContain('get_products');
-      expect(toolNames).toContain('get_product');
-      expect(toolNames).toContain('update_product');
+      expect(toolNames).toContain('get_available_fields');
     });
 
     it('should have standardized parameters for list operations', () => {
@@ -82,13 +72,7 @@ describe('Features Tools', () => {
         'get_feature',
         'update_feature',
         'delete_feature',
-        'create_component',
-        'get_components',
-        'get_component',
-        'update_component',
-        'get_products',
-        'get_product',
-        'update_product',
+        'get_available_fields',
       ];
 
       validTools.forEach(toolName => {

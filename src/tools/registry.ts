@@ -111,8 +111,8 @@ export class ToolRegistry {
             'jira-integrations': 'jira-integrations',
             // Handle category name mismatches from manifest
             followers: 'notes',
-            components: 'features',
-            products: 'features',
+            components: 'components',
+            products: 'products',
             statuses: 'features',
             hierarchyentitiescustomfields: 'custom-fields',
             hierarchyentitiescustomfieldsvalues: 'custom-fields',
@@ -450,13 +450,7 @@ export class ToolRegistry {
         toolDef.inputSchema.required = filteredRequiredParams;
       }
 
-      // Debug logging for create_component and create_feature dynamic schemas
-      if (toolName === 'create_component' || toolName === 'create_feature') {
-        console.log(
-          `⚙️ DYNAMIC SCHEMA GENERATED FOR ${toolName}:`,
-          JSON.stringify(toolDef.inputSchema, null, 2)
-        );
-      }
+      // Debug logging removed - handled by debugLog utility
 
       definitions.push(toolDef);
     }
@@ -466,24 +460,7 @@ export class ToolRegistry {
       definitions.push(tool);
     }
 
-    // Debug logging: Final tool definitions count
-    const componentDef = definitions.find(
-      def => def.name === 'create_component'
-    );
-    const featureDef = definitions.find(def => def.name === 'create_feature');
-
-    if (componentDef) {
-      console.log(
-        '🚀 FINAL create_component DEFINITION:',
-        JSON.stringify(componentDef, null, 2)
-      );
-    }
-    if (featureDef) {
-      console.log(
-        '🚀 FINAL create_feature DEFINITION:',
-        JSON.stringify(featureDef, null, 2)
-      );
-    }
+    // Debug logging removed - handled by debugLog utility
 
     return definitions;
   }
@@ -534,17 +511,7 @@ export class ToolRegistry {
     // Apply parameter adaptation before calling handler
     const adaptedArgs = adaptParameters(toolName, args);
 
-    // Debug logging for create_component and create_feature
-    if (toolName === 'create_component' || toolName === 'create_feature') {
-      console.log(
-        `🎯 EXECUTING ${toolName} with args:`,
-        JSON.stringify(args, null, 2)
-      );
-      console.log(
-        `🎯 ADAPTED args for ${toolName}:`,
-        JSON.stringify(adaptedArgs, null, 2)
-      );
-    }
+    // Debug logging removed for production
 
     return await handler(adaptedArgs);
   }

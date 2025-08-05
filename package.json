@@ -1,6 +1,6 @@
 {
   "name": "@the_cfdude/productboard-mcp",
-  "version": "2.0.0",
+  "version": "2.0.2",
   "description": "Model Context Protocol server for Productboard REST API with dynamic tool loading",
   "type": "module",
   "bin": {
@@ -25,6 +25,8 @@
     "watch": "tsc --watch",
     "inspector": "npx @modelcontextprotocol/inspector build/index.js",
     "dev": "npm run build && npm run inspector",
+    "shutdown": "node scripts/shutdown.js",
+    "restart": "npm run shutdown && npm run build",
     "generate-manifest": "tsx scripts/generate-manifest.ts",
     "generate-tools": "tsx scripts/generate-tools.ts",
     "generate-tools-with-docs": "tsx scripts/generate-tools-with-docs.ts",

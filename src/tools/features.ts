@@ -1,5 +1,5 @@
 /**
- * Features, Components, and Products management tools
+ * Features management tools
  */
 import {
   normalizeListParams,
@@ -12,19 +12,14 @@ import {
 import { UpdateFeatureParams } from '../types/parameter-types.js';
 import { fieldSelector } from '../utils/field-selection.js';
 import { withContext } from '../utils/tool-wrapper.js';
-import { ProductboardError, ValidationError } from '../errors/index.js';
+import { ProductboardError } from '../errors/index.js';
 import { ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 
 /**
  * Features Tools
  */
 export function setupFeaturesTools() {
-  return [
-    ...getFeatureToolSchemas(),
-    ...getComponentToolSchemas(),
-    ...getProductToolSchemas(),
-    ...getUtilityToolSchemas(),
-  ];
+  return [...getFeatureToolSchemas(), ...getUtilityToolSchemas()];
 }
 
 function getFeatureToolSchemas() {
@@ -261,184 +256,6 @@ function getFeatureToolSchemas() {
   ];
 }
 
-function getComponentToolSchemas() {
-  return [
-    {
-      name: 'create_component',
-      description: 'Create a new component in Productboard',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          name: {
-            type: 'string',
-            description: 'Component name',
-          },
-          description: {
-            type: 'string',
-            description:
-              'Component description (HTML format required, e.g., "<p>Description text</p>")',
-          },
-          parent: {
-            type: 'object',
-            description: 'Parent entity to associate this component with',
-            properties: {
-              product: {
-                type: 'object',
-                properties: {
-                  id: {
-                    type: 'string',
-                    description: 'ID of the parent product',
-                  },
-                },
-                required: ['id'],
-                description: 'Parent product information',
-              },
-            },
-            required: ['product'],
-          },
-          ownerEmail: {
-            type: 'string',
-            description: 'Owner email for the component (optional)',
-          },
-          instance: {
-            type: 'string',
-            description: 'Productboard instance name (optional)',
-          },
-          workspaceId: {
-            type: 'string',
-            description: 'Workspace ID (optional)',
-          },
-        },
-        required: ['name'],
-        additionalProperties: true,
-      },
-    },
-    {
-      name: 'get_components',
-      description: 'List all components in Productboard',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          ...getStandardListProperties(),
-          productId: {
-            type: 'string',
-            description: 'Filter by product ID',
-          },
-        },
-      },
-    },
-    {
-      name: 'get_component',
-      description: 'Get a specific component by ID',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          id: {
-            type: 'string',
-            description: 'Component ID',
-          },
-          ...getStandardGetProperties(),
-        },
-        required: ['id'],
-      },
-    },
-    {
-      name: 'update_component',
-      description: 'Update a component',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          id: {
-            type: 'string',
-            description: 'Component ID',
-          },
-          name: {
-            type: 'string',
-            description: 'Component name',
-          },
-          description: {
-            type: 'string',
-            description:
-              'Component description (HTML format required, e.g., "<p>Description text</p>")',
-          },
-          instance: {
-            type: 'string',
-            description: 'Productboard instance name (optional)',
-          },
-          workspaceId: {
-            type: 'string',
-            description: 'Workspace ID (optional)',
-          },
-        },
-        required: ['id'],
-      },
-    },
-  ];
-}
-
-function getProductToolSchemas() {
-  return [
-    {
-      name: 'get_products',
-      description: 'List all products in Productboard',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          ...getStandardListProperties(),
-          ...getFieldSelectionProperties(),
-        },
-      },
-    },
-    {
-      name: 'get_product',
-      description: 'Get a specific product by ID',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          id: {
-            type: 'string',
-            description: 'Product ID',
-          },
-          ...getStandardGetProperties(),
-          ...getFieldSelectionProperties(),
-        },
-        required: ['id'],
-      },
-    },
-    {
-      name: 'update_product',
-      description: 'Update a product',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          id: {
-            type: 'string',
-            description: 'Product ID',
-          },
-          name: {
-            type: 'string',
-            description: 'Product name',
-          },
-          description: {
-            type: 'string',
-            description:
-              'Product description (HTML format required, e.g., "<p>Description text</p>")',
-          },
-          instance: {
-            type: 'string',
-            description: 'Productboard instance name (optional)',
-          },
-          workspaceId: {
-            type: 'string',
-            description: 'Workspace ID (optional)',
-          },
-        },
-        required: ['id'],
-      },
-    },
-  ];
-}
-
 function getUtilityToolSchemas() {
   return [
     {
@@ -546,27 +363,6 @@ function getStandardGetProperties() {
   };
 }
 
-function getFieldSelectionProperties() {
-  return {
-    fields: {
-      type: 'array',
-      items: { type: 'string' },
-      description:
-        'Specific fields to include (dot notation supported for nested fields, e.g., "owner.email")',
-    },
-    exclude: {
-      type: 'array',
-      items: { type: 'string' },
-      description: 'Fields to exclude from response',
-    },
-    validateFields: {
-      type: 'boolean',
-      description:
-        'Validate field names and return suggestions for invalid fields',
-    },
-  };
-}
-
 function getResponseOptimizationProperties() {
   return {
     maxLength: {
@@ -626,24 +422,6 @@ export async function handleFeaturesTool(name: string, args: any) {
       case 'delete_feature':
         return await deleteFeature(args);
 
-      // Components
-      case 'create_component':
-        return await createComponent(args);
-      case 'get_components':
-        return await listComponents(args);
-      case 'get_component':
-        return await getComponent(args);
-      case 'update_component':
-        return await updateComponent(args);
-
-      // Products
-      case 'get_products':
-        return await listProducts(args);
-      case 'get_product':
-        return await getProduct(args);
-      case 'update_product':
-        return await updateProduct(args);
-
       // Available fields
       case 'get_available_fields':
         return await getAvailableFields(args);
@@ -664,105 +442,6 @@ export async function handleFeaturesTool(name: string, args: any) {
     }
     throw error;
   }
-}
-
-/**
- * Create a new component in Productboard
- */
-async function createComponent(args: any) {
-  return await withContext(
-    async context => {
-      try {
-        // Validate required fields with helpful error messages
-        if (!args.name) {
-          throw new ValidationError(
-            'Component name is required. Example: { "name": "Frontend UI", "description": "<p>React components with <b>modern</b> design</p>", "parent": { "product": { "id": "12345" } } }',
-            'name'
-          );
-        }
-
-        const body: any = {
-          name: args.name,
-        };
-
-        if (args.description) body.description = args.description;
-        if (args.parent) body.parent = args.parent;
-
-        // Add owner email if provided (as shown in API example)
-        if (args.ownerEmail) {
-          body.owner = { email: args.ownerEmail };
-        }
-
-        const response = await context.axios.post('/components', {
-          data: body,
-        });
-
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(
-                formatResponse(
-                  {
-                    success: true,
-                    component: response.data,
-                  },
-                  'json',
-                  'component'
-                )
-              ),
-            },
-          ],
-        };
-      } catch (error: any) {
-        // Enhanced error handling for HTML validation errors
-        if (
-          error.response?.data &&
-          typeof error.response.data === 'string' &&
-          error.response.data.includes('cvc-complex-type')
-        ) {
-          throw new ValidationError(
-            `HTML validation failed in description field. Productboard only allows these exact HTML tags: <b>, <i>, <s>, <u>, <br>, <a>, <code>, <img>. Replace <strong> with <b>, <em> with <i>, etc. Example: "<p>Component with <b>bold text</b> and <i>italic text</i></p>"`,
-            'html_tags'
-          );
-        }
-
-        // Enhanced error handling for common 404 scenarios
-        if (error.response?.status === 404) {
-          throw new ValidationError(
-            `Component creation failed - endpoint not found. Ensure you're using the correct format: { "name": "Component Name", "parent": { "product": { "id": "valid-product-id" } } }. Use 'get_products()' to find valid product IDs.`,
-            'request_format'
-          );
-        }
-
-        if (error.response?.status === 400) {
-          const apiError =
-            error.response.data?.message || 'Invalid request format';
-
-          // Check if it's an HTML validation error specifically
-          if (
-            apiError.includes('cvc-complex-type') ||
-            apiError.includes('Invalid content was found')
-          ) {
-            throw new ValidationError(
-              `HTML validation error: ${apiError}. Productboard only allows these HTML tags: <b>, <i>, <s>, <u>, <br>, <a>, <code>, <img>. Avoid <strong>, <em>, <div>, <span>, etc. Use: "<p>Text with <b>bold</b> and <i>italic</i> formatting</p>"`,
-              'html_validation'
-            );
-          }
-
-          throw new ValidationError(
-            `${apiError}. Required format: { "name": "string", "parent": { "product": { "id": "string" } } (optional), "description": "string with allowed HTML tags: <b>, <i>, <s>, <u>, <br>, <a>, <code>, <img>" (optional) }`,
-            'request_body'
-          );
-        }
-
-        throw error;
-      }
-    },
-    args.instance,
-    args.workspaceId,
-    'create_component'
-  );
 }
 
 /**
@@ -958,221 +637,6 @@ async function deleteFeature(args: any) {
   );
 }
 
-/**
- * List components in Productboard
- */
-async function listComponents(args: any) {
-  return await withContext(
-    async context => {
-      const normalizedParams = normalizeListParams(args);
-      const params: any = {
-        pageLimit: normalizedParams.limit,
-        pageOffset: normalizedParams.startWith,
-      };
-
-      if (args.productId) params['product.id'] = args.productId;
-
-      const response = await context.axios.get('/components', { params });
-
-      const result = filterArrayByDetailLevel(
-        response.data.data,
-        'component',
-        normalizedParams.detail
-      );
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: formatResponse(
-              result,
-              args.outputFormat || 'json',
-              'component'
-            ),
-          },
-        ],
-      };
-    },
-    args.instance,
-    args.workspaceId,
-    'get_components'
-  );
-}
-
-/**
- * Get a specific component by ID
- */
-async function getComponent(args: any) {
-  return await withContext(
-    async context => {
-      const normalizedParams = normalizeGetParams(args);
-      const response = await context.axios.get(`/components/${args.id}`);
-
-      const result = filterByDetailLevel(
-        response.data,
-        'component',
-        normalizedParams.detail
-      );
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: formatResponse(
-              result,
-              args.outputFormat || 'json',
-              'component'
-            ),
-          },
-        ],
-      };
-    },
-    args.instance,
-    args.workspaceId,
-    'get_component'
-  );
-}
-
-/**
- * Update a component
- */
-async function updateComponent(args: any) {
-  return await withContext(
-    async context => {
-      const { id, ...updateData } = args;
-
-      const response = await context.axios.patch(
-        `/components/${id}`,
-        updateData
-      );
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: formatResponse(
-              {
-                success: true,
-                component: response.data,
-              },
-              'json',
-              'component'
-            ),
-          },
-        ],
-      };
-    },
-    args.instance,
-    args.workspaceId,
-    'update_component'
-  );
-}
-
-/**
- * List products in Productboard
- */
-async function listProducts(args: any) {
-  return await withContext(
-    async context => {
-      const normalizedParams = normalizeListParams(args);
-      const params: any = {
-        pageLimit: normalizedParams.limit,
-        pageOffset: normalizedParams.startWith,
-      };
-
-      const response = await context.axios.get('/products', { params });
-
-      const result = filterArrayByDetailLevel(
-        response.data.data,
-        'product',
-        normalizedParams.detail
-      );
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: formatResponse(
-              result,
-              args.outputFormat || 'json',
-              'product'
-            ),
-          },
-        ],
-      };
-    },
-    args.instance,
-    args.workspaceId,
-    'get_products'
-  );
-}
-
-/**
- * Get a specific product by ID
- */
-async function getProduct(args: any) {
-  return await withContext(
-    async context => {
-      const normalizedParams = normalizeGetParams(args);
-      const response = await context.axios.get(`/products/${args.id}`);
-
-      const result = filterByDetailLevel(
-        response.data,
-        'product',
-        normalizedParams.detail
-      );
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: formatResponse(
-              result,
-              args.outputFormat || 'json',
-              'product'
-            ),
-          },
-        ],
-      };
-    },
-    args.instance,
-    args.workspaceId,
-    'get_product'
-  );
-}
-
-/**
- * Update a product
- */
-async function updateProduct(args: any) {
-  return await withContext(
-    async context => {
-      const { id, ...updateData } = args;
-
-      const response = await context.axios.patch(`/products/${id}`, updateData);
-
-      return {
-        content: [
-          {
-            type: 'text',
-            text: formatResponse(
-              {
-                success: true,
-                product: response.data,
-              },
-              'json',
-              'product'
-            ),
-          },
-        ],
-      };
-    },
-    args.instance,
-    args.workspaceId,
-    'update_product'
-  );
-}
-
 async function getAvailableFields(args: {
   entityType: string;
   instance?: string;
@@ -1228,7 +692,7 @@ async function getAvailableFields(args: {
     content: [
       {
         type: 'text',
-        text: JSON.stringify(result, null, 2),
+        text: JSON.stringify(result),
       },
     ],
   };

@@ -395,8 +395,7 @@ export async function getPerformanceStats(args: {
   try {
     // Clear old metrics if requested
     if (clearOldMetrics) {
-      const cleared = performanceCollector.clearOldMetrics(3600000); // 1 hour
-      console.log(`Cleared ${cleared} old performance metrics`);
+      performanceCollector.clearOldMetrics(3600000); // 1 hour
     }
 
     const stats = performanceCollector.getStats(operation);

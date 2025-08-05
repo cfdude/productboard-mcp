@@ -142,9 +142,13 @@ async function loadMcpTools(): Promise<{
     requiredParams: string[],
     optionalParams: string[]
   ) => {
-    // Skip static implementation tools - they have their own detailed schemas
+    // Skip static implementation tools from manifest but add to category
     if (STATIC_IMPLEMENTATION_TOOLS.includes(name)) {
       console.log(`⏭️  Skipping ${name} (static implementation)`);
+      // Still add to category tools array
+      if (categories[category]) {
+        categories[category].tools.push(name);
+      }
       return;
     }
 

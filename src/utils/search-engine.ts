@@ -12,6 +12,8 @@ import { ValidationError } from '../errors/index.js';
 import { EntityFieldMappings } from './search-field-mappings.js';
 import { OutputProcessor } from './search-output-processor.js';
 import { handleFeaturesTool } from '../tools/features.js';
+import { handleProductsTool } from '../tools/products.js';
+import { handleComponentsTool } from '../tools/components.js';
 import { handleNotesTool } from '../tools/notes.js';
 import { handleCompaniesTool } from '../tools/companies.js';
 import { handleUsersTool } from '../tools/users.js';
@@ -30,12 +32,12 @@ import {
   type PatternMatchMode,
   type WildcardPattern,
 } from './search-pattern-utils.js';
+import { debugLog } from './debug-logger.js';
 
 export class SearchEngine {
   private entityMappings = EntityFieldMappings;
   private outputProcessor = new OutputProcessor();
-  private cache = new Map<string, { data: any; timestamp: number }>();
-  private cacheTimeout = 300000; // 5 minutes
+  // Cache removed - was causing stale data issues
 
   /**
    * Validate and normalize search parameters
@@ -43,6 +45,8 @@ export class SearchEngine {
   async validateAndNormalizeParams(
     params: SearchParams
   ): Promise<NormalizedSearchParams> {
+    debugLog('search-engine', 'validateAndNormalizeParams called', { params });
+
     // Normalize entityType to array
     const entityTypes = Array.isArray(params.entityType)
       ? params.entityType
@@ -96,6 +100,8 @@ export class SearchEngine {
 
     // Use normalized filters
     normalized.filters = filterValidation.normalizedFilters;
+
+    debugLog('search-engine', 'Parameters normalized', { normalized });
 
     // Validate operators (now includes enhanced operators)
     const operatorValidation = this.validateOperators(normalized.operators);
@@ -189,7 +195,7 @@ export class SearchEngine {
         hasMore,
         warnings: [...new Set(warnings)], // Remove duplicates
         queryTimeMs: queryTime,
-        cacheHit: false,
+        // cacheHit removed with cache removal
       };
     } catch (error: any) {
       throw new Error(
@@ -206,22 +212,13 @@ export class SearchEngine {
     params: NormalizedSearchParams & { entityType: EntityType },
     startTime: number
   ): Promise<SearchResults> {
-    // Generate cache key
-    const cacheKey = this.generateCacheKey(params);
+    debugLog('search-engine', 'executeSingleEntitySearch called', {
+      entityType: params.entityType,
+      filters: params.filters,
+      limit: params.limit,
+    });
 
-    // Check cache first
-    if (this.cache.has(cacheKey)) {
-      const cached = this.cache.get(cacheKey)!;
-      if (Date.now() - cached.timestamp < this.cacheTimeout) {
-        return {
-          ...cached.data,
-          queryTimeMs: Date.now() - startTime,
-          cacheHit: true,
-        };
-      } else {
-        this.cache.delete(cacheKey);
-      }
-    }
+    // Cache removed - was causing stale data issues
 
     try {
       const entityConfig = this.entityMappings[params.entityType];
@@ -237,7 +234,18 @@ export class SearchEngine {
       );
 
       // Parse response from the handler
+      debugLog('search-engine', 'Parsing handler response', {
+        entityType: params.entityType,
+        responseType: typeof response,
+        hasContent: !!response?.content,
+        contentType: response?.content?.[0]?.type,
+      });
       const parsedResponse = this.parseHandlerResponse(response);
+      debugLog('search-engine', 'Handler response parsed', {
+        entityType: params.entityType,
+        dataLength: parsedResponse.data?.length || 0,
+        totalRecords: parsedResponse.totalRecords,
+      });
 
       const queryTime = Date.now() - startTime;
 
@@ -250,11 +258,7 @@ export class SearchEngine {
         queryTimeMs: queryTime,
       };
 
-      // Cache the results
-      this.cache.set(cacheKey, {
-        data: results,
-        timestamp: Date.now(),
-      });
+      // Cache removed - was causing stale data issues
 
       return results;
     } catch (error: any) {
@@ -547,11 +551,32 @@ export class SearchEngine {
     functionName: string,
     params: any
   ): Promise<any> {
+    debugLog('search-engine', 'Routing to entity handler', {
+      entityType,
+      functionName,
+      paramsKeys: Object.keys(params),
+    });
+
     switch (entityType) {
       case 'features':
-      case 'products':
-      case 'components':
         return await handleFeaturesTool(functionName, params);
+      case 'products': {
+        debugLog('search-engine', 'Calling handleProductsTool', {
+          functionName,
+          params,
+        });
+        const productsResult = await handleProductsTool(functionName, params);
+        debugLog('search-engine', 'handleProductsTool returned', {
+          hasContent: !!productsResult?.content,
+          contentLength:
+            typeof productsResult?.content?.[0]?.text === 'string'
+              ? productsResult.content[0].text.length
+              : 0,
+        });
+        return productsResult;
+      }
+      case 'components':
+        return await handleComponentsTool(functionName, params);
 
       case 'notes':
         return await handleNotesTool(functionName, params);
@@ -592,14 +617,50 @@ export class SearchEngine {
    * Parse response from tool handlers
    */
   private parseHandlerResponse(response: any): any {
+    debugLog('search-engine', 'parseHandlerResponse called', {
+      hasResponse: !!response,
+      hasContent: !!response?.content,
+      contentLength: response?.content?.[0]?.text?.length || 0,
+    });
+
     if (response?.content?.[0]?.text) {
       try {
         const parsed = JSON.parse(response.content[0].text);
-        return parsed;
-      } catch {
+
+        // Handle both structured responses and raw arrays
+        let result;
+        if (Array.isArray(parsed)) {
+          // Raw array response - wrap it in the expected structure
+          result = {
+            data: parsed,
+            totalRecords: parsed.length,
+            hasMore: false,
+          };
+        } else if (parsed.data) {
+          // Structured response - use as is
+          result = parsed;
+        } else {
+          // Object that's not an array and doesn't have data property - treat as single item
+          result = {
+            data: [parsed],
+            totalRecords: 1,
+            hasMore: false,
+          };
+        }
+
+        debugLog('search-engine', 'Successfully parsed response', {
+          dataLength: result.data?.length || 0,
+          totalRecords: result.totalRecords || 0,
+        });
+        return result;
+      } catch (error) {
+        debugLog('search-engine', 'Failed to parse response', {
+          error: (error as Error).message,
+        });
         return { data: [], totalRecords: 0, hasMore: false };
       }
     }
+    debugLog('search-engine', 'No content to parse, returning empty result');
     return { data: [], totalRecords: 0, hasMore: false };
   }
 
@@ -669,87 +730,6 @@ export class SearchEngine {
   }
 
   /**
-   * Apply enhanced filter with pattern matching support (legacy method, kept for backward compatibility)
-   */
-  private applyFilter(
-    item: any,
-    field: string,
-    value: any,
-    operator: string
-  ): boolean {
-    const fieldValue = this.getNestedFieldValue(item, field);
-
-    // Handle pattern-based operators
-    if (operator === 'wildcard' || operator === 'regex') {
-      try {
-        const patternMode: PatternMatchMode =
-          operator === 'regex' ? 'regex' : 'wildcard';
-        const pattern = compilePattern(String(value), patternMode);
-        return applyPatternFilter(
-          { [field]: fieldValue },
-          field,
-          pattern,
-          'contains'
-        );
-      } catch {
-        // Pattern matching failed (removed console.warn for production)
-        return false;
-      }
-    }
-
-    // Standard filtering logic for other operators
-    switch (operator) {
-      case 'equals':
-        return fieldValue === value;
-
-      case 'contains':
-        return (
-          fieldValue &&
-          fieldValue
-            .toString()
-            .toLowerCase()
-            .includes(value.toString().toLowerCase())
-        );
-
-      case 'isEmpty':
-        return (
-          !fieldValue ||
-          fieldValue === '' ||
-          fieldValue === null ||
-          fieldValue === undefined
-        );
-
-      case 'startsWith':
-        return (
-          fieldValue &&
-          fieldValue
-            .toString()
-            .toLowerCase()
-            .startsWith(value.toString().toLowerCase())
-        );
-
-      case 'endsWith':
-        return (
-          fieldValue &&
-          fieldValue
-            .toString()
-            .toLowerCase()
-            .endsWith(value.toString().toLowerCase())
-        );
-
-      default:
-        return fieldValue === value;
-    }
-  }
-
-  /**
-   * Get nested field value using dot notation
-   */
-  private getNestedFieldValue(obj: any, path: string): any {
-    return path.split('.').reduce((current, key) => current?.[key], obj);
-  }
-
-  /**
    * Normalize filter values
    */
   private normalizeFilterValue(value: any): any {
@@ -757,24 +737,6 @@ export class SearchEngine {
       return '';
     }
     return value;
-  }
-
-  /**
-   * Generate cache key from search parameters
-   */
-  private generateCacheKey(params: NormalizedSearchParams): string {
-    return JSON.stringify({
-      entityType: params.entityType,
-      filters: params.filters,
-      operators: params.operators,
-      output: params.output,
-      limit: params.limit,
-      startWith: params.startWith,
-      detail: params.detail,
-      includeSubData: params.includeSubData,
-      instance: params.instance,
-      workspaceId: params.workspaceId,
-    });
   }
 
   /**
