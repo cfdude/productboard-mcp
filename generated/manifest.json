@@ -1,41 +1,41 @@
 {
   "version": "1.0.0",
-  "generated": "2025-08-04T15:19:55.643Z",
+  "generated": "2025-08-05T00:50:52.126Z",
   "categories": {
     "notes": {
       "displayName": "Notes",
       "description": "Customer feedback and notes management",
-      "tools": ["bulk_add_note_followers", "remove_note_follower", "list_tags", "create_note_tag", "delete_note_tag", "list_links", "create_link", "list_feedback_form_configurations", "get_feedback_form_configuration", "submit_feedback_form"]
+      "tools": ["create_note", "get_notes", "get_note", "update_note", "delete_note", "bulk_add_note_followers", "remove_note_follower", "list_tags", "create_note_tag", "delete_note_tag", "list_links", "create_link", "list_feedback_form_configurations", "get_feedback_form_configuration", "submit_feedback_form"]
     },
     "features": {
       "displayName": "Features",
       "description": "Product features, components, and products management",
-      "tools": []
+      "tools": ["create_feature", "get_features", "get_feature", "update_feature", "delete_feature", "create_component", "get_components", "get_component", "update_component", "get_products", "get_product", "update_product"]
     },
     "companies": {
       "displayName": "Companies",
       "description": "Company and user management",
-      "tools": ["create_company_field", "list_company_fields", "get_company_field", "update_company_field", "delete_company_field", "get_company_field_value", "set_company_field_value", "delete_company_field_value"]
+      "tools": ["create_company", "get_companies", "get_company", "update_company", "delete_company", "create_company_field", "list_company_fields", "get_company_field", "update_company_field", "delete_company_field", "get_company_field_value", "set_company_field_value", "delete_company_field_value", "get_users", "create_user", "get_user", "update_user", "delete_user"]
     },
     "webhooks": {
       "displayName": "Webhooks",
       "description": "Webhook subscription management",
-      "tools": ["post_webhook", "get_webhooks"]
+      "tools": ["post_webhook", "get_webhooks", "get_webhook", "delete_webhook"]
     },
     "objectives": {
       "displayName": "Objectives",
       "description": "Strategic objectives, initiatives, and key results management",
-      "tools": ["list_links_objective_to_features", "list_links_objective_to_initiatives", "create_objective_to_initiative_link", "delete_objective_to_initiative_link", "create_objective_to_feature_link", "delete_objective_to_feature_link", "list_links_initiative_to_objectives", "list_links_initiative_to_features", "create_initiative_to_objective_link", "delete_initiative_to_objective_link", "create_initiative_to_feature_link", "delete_initiative_to_feature_link"]
+      "tools": ["get_objectives", "create_objective", "get_objective", "update_objective", "delete_objective", "list_links_objective_to_features", "list_links_objective_to_initiatives", "create_objective_to_initiative_link", "delete_objective_to_initiative_link", "create_objective_to_feature_link", "delete_objective_to_feature_link", "get_initiatives", "create_initiative", "get_initiative", "update_initiative", "delete_initiative", "list_links_initiative_to_objectives", "list_links_initiative_to_features", "create_initiative_to_objective_link", "delete_initiative_to_objective_link", "create_initiative_to_feature_link", "delete_initiative_to_feature_link", "get_key_results", "create_key_result", "get_key_result", "update_key_result", "delete_key_result"]
     },
     "custom-fields": {
       "displayName": "Custom Fields",
       "description": "Custom field management for hierarchy entities",
-      "tools": []
+      "tools": ["get_custom_fields", "get_custom_fields_values", "get_custom_field", "get_custom_field_value", "set_custom_field_value", "delete_custom_field_value", "get_feature_statuses"]
     },
     "releases": {
       "displayName": "Releases",
       "description": "Release and release group management",
-      "tools": ["list_release_groups", "list_releases", "list_feature_release_assignments", "get_feature_release_assignment", "update_feature_release_assignment"]
+      "tools": ["create_release_group", "list_release_groups", "get_release_group", "update_release_group", "delete_release_group", "create_release", "list_releases", "get_release", "update_release", "delete_release", "list_feature_release_assignments", "get_feature_release_assignment", "update_feature_release_assignment"]
     },
     "plugin-integrations": {
       "displayName": "Plugin Integrations",

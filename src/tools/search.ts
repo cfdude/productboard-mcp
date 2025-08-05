@@ -2,6 +2,7 @@
  * Universal search tool for all Productboard entities
  */
 import { withContext, formatResponse } from '../utils/tool-wrapper.js';
+import { debugLog } from '../utils/debug-logger.js';
 import {
   SearchParams,
   SearchResponse,
@@ -193,6 +194,7 @@ export function setupSearchTools() {
  * Handle search tool execution
  */
 export async function handleSearchTool(name: string, args: SearchParams) {
+  debugLog('search', 'handleSearchTool called', { name, args });
   if (name !== 'search') {
     throw new Error(`Unknown search tool: ${name}`);
   }
@@ -345,6 +347,11 @@ async function performSearch(params: SearchParams) {
       const hints = messageGenerator.generateContextualHints(searchContext);
 
       // Build final response
+      debugLog('search', 'Building final response', {
+        entityType: normalizedParams.entityType,
+        dataLength: processedResults.data.length,
+        totalRecords: actualTotalRecords,
+      });
       const response: SearchResponse = {
         success: true,
         data: processedResults.data,
@@ -368,7 +375,6 @@ async function performSearch(params: SearchParams) {
             }),
           performance: {
             queryTimeMs: processedResults.queryTimeMs,
-            cacheHit: processedResults.cacheHit || false,
           },
         },
         ...(processedResults.hasMore && {
@@ -384,14 +390,24 @@ async function performSearch(params: SearchParams) {
         }),
       };
 
-      return {
+      const result = {
         content: [
           {
             type: 'text',
-            text: formatResponse(response),
+            text: formatResponse(response, false),
           },
         ],
       };
+
+      debugLog('search', 'Returning result', {
+        contentLength:
+          typeof result.content[0].text === 'string'
+            ? result.content[0].text.length
+            : 0,
+        hasData: response.data.length > 0,
+      });
+
+      return result;
     },
     params.instance,
     params.workspaceId

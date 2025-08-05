@@ -72,13 +72,22 @@ export function createToolContext(
       //   `[DEBUG] Making request: ${config.method?.toUpperCase()} ${config.url}${config.params ? '?' + new URLSearchParams(config.params).toString() : ''}`
       // );
       // console.error(`[DEBUG] Request params:`, JSON.stringify(config.params));
+      // console.error(`[DEBUG] Request headers:`, JSON.stringify(config.headers));
 
       return config;
     });
 
     // Add response interceptor for error handling FIRST (so it runs last due to LIFO)
     axiosInstance.interceptors.response.use(
-      response => response,
+      response => {
+        // console.error(`[DEBUG] Response from ${response.config.url}:`, {
+        //   status: response.status,
+        //   dataLength: response.data?.data?.length || 0,
+        //   totalCount: response.data?.totalCount,
+        //   hasData: !!response.data?.data
+        // });
+        return response;
+      },
       error => {
         // In test mode, suppress network error logging
         // Uncomment below for debugging API errors

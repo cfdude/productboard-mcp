@@ -13,6 +13,8 @@ import {
 // Import tool handlers
 import { setupNotesTools } from './notes.js';
 import { setupFeaturesTools } from './features.js';
+import { setupProductsTools } from './products.js';
+import { setupComponentsTools } from './components.js';
 import { setupCompaniesTools } from './companies.js';
 import { setupUsersTools } from './users.js';
 import { setupReleasesTools } from './releases.js';
@@ -43,6 +45,8 @@ export function setupToolHandlers(server: Server): void {
   tools.push(...setupContextAwareTools());
   tools.push(...setupNotesTools());
   tools.push(...setupFeaturesTools());
+  tools.push(...setupProductsTools());
+  tools.push(...setupComponentsTools());
   tools.push(...setupCompaniesTools());
   tools.push(...setupUsersTools());
   tools.push(...setupReleasesTools());
@@ -128,13 +132,15 @@ export function setupToolHandlers(server: Server): void {
       ) {
         const { handleNotesTool } = await import('./notes.js');
         return await handleNotesTool(name, args || {});
-      } else if (
-        name.includes('feature') ||
-        name.includes('component') ||
-        name.includes('product')
-      ) {
+      } else if (name.includes('feature')) {
         const { handleFeaturesTool } = await import('./features.js');
         return await handleFeaturesTool(name, args || {});
+      } else if (name.includes('product')) {
+        const { handleProductsTool } = await import('./products.js');
+        return await handleProductsTool(name, args || {});
+      } else if (name.includes('component')) {
+        const { handleComponentsTool } = await import('./components.js');
+        return await handleComponentsTool(name, args || {});
       } else if (
         name === 'get_custom_fields' ||
         name.startsWith('get_custom_field') ||

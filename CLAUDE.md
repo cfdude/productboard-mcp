@@ -27,18 +27,24 @@ npm run build && npm run lint && npm test
 ### 2. MCP Server Testing Protocol (MANDATORY)
 
 ```bash
-# 1. Build after changes
-npm run build
+# 1. Shutdown any existing servers and build after changes
+npm run shutdown && npm run build
 
 # 2. Test data wrapper compatibility (after any tool changes)
 npm run test-data-wrapper
 
-# 3. Test with MCP inspector for manual verification
-npm run inspector
+# 3. Test with native Claude Code MCP calls
 
-# 4. Only after comprehensive testing, use native Claude Code MCP calls
-# 5. If issues found, fix and repeat from step 1
+# 4. If debugging needed, check the debug log:
+tail -f mcp-debug.log
+
+# 5. Only use MCP inspector if you need real-time debugging output:
+npm run inspector
 ```
+
+**CRITICAL**: Always use `npm run shutdown && npm run build` after making code changes. Building alone is NOT sufficient - the MCP server must be restarted to clear in-memory caches and load new code.
+
+**Debug Logging**: The server writes debug logs to `mcp-debug.log` in the project root. Use `tail -f mcp-debug.log` to monitor logs in real-time during testing.
 
 ### 3. Commit Preparation
 
@@ -148,7 +154,7 @@ filterMappings: {
 npm run lint --fix
 npm run generate-manifest
 git diff generated/
-npm run build
+npm run shutdown && npm run build
 ```
 
 ### Test Failures
@@ -157,16 +163,35 @@ npm run build
 # Identify failing tests quickly
 npm test -- --verbose
 # Fix and verify
-npm run build && npm test
+npm run shutdown && npm run build && npm test
 ```
 
 ### MCP Tool Issues
 
 ```bash
 # Rebuild and test sequence
+npm run shutdown && npm run build
+
+# Test with Claude Code MCP calls directly
+
+# Check debug logs for issues
+tail -f mcp-debug.log
+
+# Only if real-time debugging needed:
+npm run inspector
+```
+
+### Multiple Instance Issues
+
+```bash
+# Check for multiple running instances
+ps aux | grep "productboard-mcp/build/index.js" | grep -v grep
+
+# Clean shutdown all instances
+npm run shutdown
+
+# Rebuild and restart
 npm run build
-# Test with MCP inspector
-# Verify with Claude Code MCP calls
 ```
 
 ## Documentation Standards
@@ -217,15 +242,18 @@ const createdItems = [];
 #### 4. Test Execution Pattern
 
 ```bash
-# 1. Build server
-npm run build
+# 1. Shutdown and rebuild server
+npm run shutdown && npm run build
 
 # 2. Run systematic test script
 node test-data-wrapper-tools.js
 
 # 3. Review results and fix identified tools
-# 4. Re-test fixed tools
-# 5. Commit fixes with descriptive messages
+# 4. Re-test fixed tools with native MCP calls
+# 5. Check debug logs if issues occur
+tail -f mcp-debug.log
+
+# 6. Commit fixes with descriptive messages
 ```
 
 #### 5. Cleanup Requirements
@@ -256,10 +284,57 @@ npx @modelcontextprotocol/inspector build/index.js
   4. Update memories with validated plans
   5. Implement features sequentially starting with highest priority
   6. For each implementation:
-  - Rebuild server
+  - Shutdown and rebuild server: `npm run shutdown && npm run build`
   - Run/fix tests
   - Handle linting/formatting
-  - Test with MCP inspector
+  - Test with native MCP calls
+  - Check debug logs if needed: `tail -f mcp-debug.log`
   - Commit using ~/.claude/commands/commit.md
   - Monitor with 'gh' CLI - ensure all tests pass, all claude code or security comments are addressed and fixed
   7. Continue until all features are built, tested, and committed (In progress)
+
+## Debug Logging Process
+
+### Enable Debug Logging
+Debug logging is automatically enabled when the server runs. The logs are written to `mcp-debug.log` in the project root.
+
+### Review Logs During Testing
+```bash
+# Monitor logs in real-time
+tail -f mcp-debug.log
+
+# Search for specific components
+grep "search-engine" mcp-debug.log
+
+# View recent entries
+tail -100 mcp-debug.log
+
+# Search for errors
+grep -i "error\|fail" mcp-debug.log
+```
+
+### Clean Up After Testing
+```bash
+# Clear log contents but keep file
+> mcp-debug.log
+
+# Or remove log file completely
+rm mcp-debug.log
+
+# The shutdown script automatically clears debug logs
+npm run shutdown
+```
+
+### When to Use Debug Logging
+- Troubleshooting empty or unexpected results
+- Tracking execution flow through the MCP pipeline
+- Identifying where data transformations occur
+- Debugging cache behavior
+- Understanding performance bottlenecks
+
+### Debug Log Format
+Each log entry contains:
+- `timestamp`: ISO timestamp
+- `component`: Source component (e.g., 'search-engine', 'productboard-server')
+- `message`: Description of the event
+- `data`: Optional structured data related to the event

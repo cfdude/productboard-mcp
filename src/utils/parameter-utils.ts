@@ -507,7 +507,7 @@ export function formatResponse<T>(
   format: OutputFormat = 'json',
   entityType: string
 ): string | T {
-  if (format === 'json') return data;
+  if (format === 'json') return JSON.stringify(data, null, 2);
 
   try {
     const formatters = {
@@ -519,7 +519,7 @@ export function formatResponse<T>(
     return formatters[format](data, entityType);
   } catch {
     // Format conversion failed, fallback to JSON (removed console.warn for production)
-    return data; // Fallback to JSON
+    return JSON.stringify(data, null, 2); // Fallback to JSON string
   }
 }
 

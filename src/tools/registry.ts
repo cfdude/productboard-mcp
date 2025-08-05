@@ -111,8 +111,8 @@ export class ToolRegistry {
             'jira-integrations': 'jira-integrations',
             // Handle category name mismatches from manifest
             followers: 'notes',
-            components: 'features',
-            products: 'features',
+            components: 'components',
+            products: 'products',
             statuses: 'features',
             hierarchyentitiescustomfields: 'custom-fields',
             hierarchyentitiescustomfieldsvalues: 'custom-fields',

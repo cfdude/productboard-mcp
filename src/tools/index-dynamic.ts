@@ -12,6 +12,7 @@ import { join } from 'path';
 import { existsSync } from 'fs';
 import { ToolRegistry } from './registry.js';
 import { loadConfig } from '../config.js';
+import { debugLog } from '../utils/debug-logger.js';
 
 /**
  * Get enabled categories from configuration
@@ -124,8 +125,16 @@ export async function setupDynamicToolHandlers(server: Server) {
   server.setRequestHandler(CallToolRequestSchema, async request => {
     const { name, arguments: args } = request.params;
 
+    debugLog('index-dynamic', 'Tool called via MCP', { name, args });
+
     try {
-      return await registry.executeTool(name, args || {});
+      const result = await registry.executeTool(name, args || {});
+      debugLog('index-dynamic', 'Tool execution completed', {
+        name,
+        hasContent: !!result?.content,
+        contentLength: result?.content?.[0]?.text?.length || 0,
+      });
+      return result;
     } catch (error) {
       if (error instanceof McpError) {
         throw error;
