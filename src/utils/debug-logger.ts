@@ -17,7 +17,7 @@ export function debugLog(component: string, message: string, data?: any) {
 
   try {
     appendFileSync(DEBUG_LOG_PATH, JSON.stringify(logEntry) + '\n', 'utf-8');
-  } catch (error) {
+  } catch {
     // Silently fail if we can't write to log
   }
 }
@@ -25,7 +25,7 @@ export function debugLog(component: string, message: string, data?: any) {
 export function clearDebugLog() {
   try {
     appendFileSync(DEBUG_LOG_PATH, '\n--- LOG CLEARED ---\n', 'utf-8');
-  } catch (error) {
+  } catch {
     // Silently fail
   }
 }

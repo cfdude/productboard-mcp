@@ -566,7 +566,7 @@ export class SearchEngine {
     switch (entityType) {
       case 'features':
         return await handleFeaturesTool(functionName, params);
-      case 'products':
+      case 'products': {
         debugLog('search-engine', 'Calling handleProductsTool', {
           functionName,
           params,
@@ -580,6 +580,7 @@ export class SearchEngine {
               : 0,
         });
         return productsResult;
+      }
       case 'components':
         return await handleComponentsTool(functionName, params);
 
@@ -732,80 +733,6 @@ export class SearchEngine {
     }
 
     return filtered;
-  }
-
-  /**
-   * Apply enhanced filter with pattern matching support (legacy method, kept for backward compatibility)
-   */
-  private applyFilter(
-    item: any,
-    field: string,
-    value: any,
-    operator: string
-  ): boolean {
-    const fieldValue = this.getNestedFieldValue(item, field);
-
-    // Handle pattern-based operators
-    if (operator === 'wildcard' || operator === 'regex') {
-      try {
-        const patternMode: PatternMatchMode =
-          operator === 'regex' ? 'regex' : 'wildcard';
-        const pattern = compilePattern(String(value), patternMode);
-        return applyPatternFilter(
-          { [field]: fieldValue },
-          field,
-          pattern,
-          'contains'
-        );
-      } catch {
-        // Pattern matching failed (removed console.warn for production)
-        return false;
-      }
-    }
-
-    // Standard filtering logic for other operators
-    switch (operator) {
-      case 'equals':
-        return fieldValue === value;
-
-      case 'contains':
-        return (
-          fieldValue &&
-          fieldValue
-            .toString()
-            .toLowerCase()
-            .includes(value.toString().toLowerCase())
-        );
-
-      case 'isEmpty':
-        return (
-          !fieldValue ||
-          fieldValue === '' ||
-          fieldValue === null ||
-          fieldValue === undefined
-        );
-
-      case 'startsWith':
-        return (
-          fieldValue &&
-          fieldValue
-            .toString()
-            .toLowerCase()
-            .startsWith(value.toString().toLowerCase())
-        );
-
-      case 'endsWith':
-        return (
-          fieldValue &&
-          fieldValue
-            .toString()
-            .toLowerCase()
-            .endsWith(value.toString().toLowerCase())
-        );
-
-      default:
-        return fieldValue === value;
-    }
   }
 
   /**

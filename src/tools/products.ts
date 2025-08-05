@@ -11,7 +11,6 @@ import {
 import { withContext, formatResponse } from '../utils/tool-wrapper.js';
 import { ProductboardError } from '../errors/index.js';
 import { ErrorCode } from '@modelcontextprotocol/sdk/types.js';
-import { fieldSelector } from '../utils/field-selection.js';
 
 /**
  * Products Tools

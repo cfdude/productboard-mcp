@@ -8,7 +8,6 @@ import {
   filterByDetailLevel,
   isEnterpriseError,
 } from '../utils/parameter-utils.js';
-import { UpdateFeatureParams } from '../types/parameter-types.js';
 import { withContext, formatResponse } from '../utils/tool-wrapper.js';
 import { ProductboardError, ValidationError } from '../errors/index.js';
 import { ErrorCode } from '@modelcontextprotocol/sdk/types.js';

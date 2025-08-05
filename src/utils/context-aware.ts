@@ -170,13 +170,13 @@ export class ContextAwareAdapter {
   private initializeDefaultRules(): void {
     // Large dataset adaptation
     this.addAdaptationRule({
-      condition: (context, query, response) => {
+      condition: (context, _query, response) => {
         return (
           this.isLargeDataset(response) &&
           context.userPreferences?.dataFormat !== 'detailed'
         );
       },
-      adaptation: (context, query, response) => {
+      adaptation: (_context, _query, response) => {
         return {
           data: this.summarizeResponse(response),
           metadata: {
@@ -200,10 +200,10 @@ export class ContextAwareAdapter {
 
     // Error guidance adaptation
     this.addAdaptationRule({
-      condition: (context, query, response) => {
+      condition: (context, _query, response) => {
         return this.isErrorResponse(response);
       },
-      adaptation: (context, query, response) => {
+      adaptation: (_context, _query, response) => {
         const errorInfo = this.extractErrorInfo(response);
         return {
           data: response,
@@ -224,13 +224,13 @@ export class ContextAwareAdapter {
 
     // Format preference adaptation
     this.addAdaptationRule({
-      condition: (context, query, response) => {
+      condition: (context, _query, response) => {
         return (
           context.userPreferences?.dataFormat === 'basic' &&
           this.isDetailedResponse(response)
         );
       },
-      adaptation: (context, query, response) => {
+      adaptation: (_context, _query, response) => {
         return {
           data: this.simplifyResponse(response),
           metadata: {
@@ -246,7 +246,7 @@ export class ContextAwareAdapter {
 
     // Workspace context adaptation
     this.addAdaptationRule({
-      condition: (context, query, response) => {
+      condition: (context, _query, response) => {
         return !!(
           context.workspaceContext?.permissions &&
           this.containsRestrictedData(
@@ -255,7 +255,7 @@ export class ContextAwareAdapter {
           )
         );
       },
-      adaptation: (context, query, response) => {
+      adaptation: (context, _query, response) => {
         return {
           data: this.filterByPermissions(
             response,

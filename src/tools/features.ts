@@ -12,7 +12,7 @@ import {
 import { UpdateFeatureParams } from '../types/parameter-types.js';
 import { fieldSelector } from '../utils/field-selection.js';
 import { withContext } from '../utils/tool-wrapper.js';
-import { ProductboardError, ValidationError } from '../errors/index.js';
+import { ProductboardError } from '../errors/index.js';
 import { ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 
 /**
@@ -359,27 +359,6 @@ function getStandardGetProperties() {
     workspaceId: {
       type: 'string',
       description: 'Workspace ID (optional)',
-    },
-  };
-}
-
-function getFieldSelectionProperties() {
-  return {
-    fields: {
-      type: 'array',
-      items: { type: 'string' },
-      description:
-        'Specific fields to include (dot notation supported for nested fields, e.g., "owner.email")',
-    },
-    exclude: {
-      type: 'array',
-      items: { type: 'string' },
-      description: 'Fields to exclude from response',
-    },
-    validateFields: {
-      type: 'boolean',
-      description:
-        'Validate field names and return suggestions for invalid fields',
     },
   };
 }
