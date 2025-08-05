@@ -296,9 +296,11 @@ npx @modelcontextprotocol/inspector build/index.js
 ## Debug Logging Process
 
 ### Enable Debug Logging
+
 Debug logging is automatically enabled when the server runs. The logs are written to `mcp-debug.log` in the project root.
 
 ### Review Logs During Testing
+
 ```bash
 # Monitor logs in real-time
 tail -f mcp-debug.log
@@ -314,6 +316,7 @@ grep -i "error\|fail" mcp-debug.log
 ```
 
 ### Clean Up After Testing
+
 ```bash
 # Clear log contents but keep file
 > mcp-debug.log
@@ -326,6 +329,7 @@ npm run shutdown
 ```
 
 ### When to Use Debug Logging
+
 - Troubleshooting empty or unexpected results
 - Tracking execution flow through the MCP pipeline
 - Identifying where data transformations occur
@@ -333,7 +337,9 @@ npm run shutdown
 - Understanding performance bottlenecks
 
 ### Debug Log Format
+
 Each log entry contains:
+
 - `timestamp`: ISO timestamp
 - `component`: Source component (e.g., 'search-engine', 'productboard-server')
 - `message`: Description of the event
