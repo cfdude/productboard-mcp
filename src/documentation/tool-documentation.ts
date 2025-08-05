@@ -37,20 +37,20 @@ export const toolDocumentation: Record<string, ToolDocumentation> = {
     detailedDescription: `
 🎯 **Enhanced with Dynamic Field Selection & Smart Optimization**
 
-The get_features tool now supports advanced field selection for significant token reduction:
+The get_features tool now supports advanced field selection for significant response size reduction:
 
-**Dynamic Field Selection (60-80% token reduction):**
+**Dynamic Field Selection (60-80% response size reduction):**
 - Use 'fields' parameter with exact field specification
 - Supports dot notation for nested fields: "owner.email", "status.name", "timeframe.startDate"
 - Field validation with intelligent suggestions for typos
 
-**Output Format Options (40-90% token reduction):**
+**Output Format Options (40-90% response size reduction):**
 - json: Standard JSON response (default)
 - markdown: Human-readable format for documentation
 - csv: Tabular data for spreadsheet import
 - summary: Condensed overview with key metrics
 
-**Smart Response Optimization (30-50% token reduction):**
+**Smart Response Optimization (30-50% response size reduction):**
 - maxLength: Auto-truncate responses over character limit
 - truncateFields: Specify which fields to truncate ["description", "notes"]
 - includeEmpty: Exclude null/empty fields (default: true)
@@ -64,7 +64,7 @@ The get_features tool now supports advanced field selection for significant toke
     `,
     examples: [
       {
-        title: 'Essential Fields Only (80% token reduction)',
+        title: 'Essential Fields Only (80% response size reduction)',
         description: 'Get just the critical information',
         input: {
           fields: ['id', 'name', 'status.name', 'owner.email'],
@@ -98,7 +98,7 @@ The get_features tool now supports advanced field selection for significant toke
       },
     ],
     bestPractices: [
-      '🎯 Always use "fields" parameter for production - can reduce tokens by 60-80%',
+      '🎯 Always use "fields" parameter for production - can reduce response size by 60-80%',
       '📊 Use "outputFormat: summary" for quick overviews and dashboards',
       '🔧 Set "maxLength" with "truncateFields" for consistent response sizes',
       '🔍 Use wildcard patterns (*,?) for flexible filtering without regex complexity',
