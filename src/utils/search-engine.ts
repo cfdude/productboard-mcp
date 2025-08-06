@@ -857,7 +857,9 @@ export class SearchEngine {
           compiledPatterns.set(field, pattern);
         } catch {
           // Failed to compile pattern, fallback to exact pattern (removed console.warn for production)
-          const exactPattern = compilePattern(String(value), 'exact');
+          const exactPattern = compilePattern(String(value), 'exact', {
+            caseSensitive: params.caseSensitive,
+          });
           compiledPatterns.set(field, exactPattern);
         }
       }

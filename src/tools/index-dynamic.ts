@@ -13,6 +13,7 @@ import { existsSync } from 'fs';
 import { ToolRegistry } from './registry.js';
 import { loadConfig } from '../config.js';
 import { debugLog } from '../utils/debug-logger.js';
+import { SessionState } from '../session-manager.js';
 
 /**
  * Get enabled categories from configuration
@@ -66,7 +67,7 @@ function getEnabledCategories(): string[] {
 /**
  * Setup dynamic tool handlers for the server
  */
-export async function setupDynamicToolHandlers(server: Server) {
+export async function setupDynamicToolHandlers(server: Server, session?: SessionState) {
   // Create tool registry
   const registry = new ToolRegistry(getEnabledCategories());
 
@@ -78,7 +79,7 @@ export async function setupDynamicToolHandlers(server: Server) {
     console.warn('Tool manifest not found, falling back to static tools');
     // Import and use the original static setup
     const module = await import('./index.js');
-    module.setupToolHandlers(server);
+    module.setupToolHandlers(server, session);
     return;
   }
 
@@ -101,7 +102,7 @@ export async function setupDynamicToolHandlers(server: Server) {
     console.error('Failed to load tool manifest:', error);
     // Fall back to static tools
     const module = await import('./index.js');
-    module.setupToolHandlers(server);
+    module.setupToolHandlers(server, session);
     return;
   }
 
@@ -109,6 +110,11 @@ export async function setupDynamicToolHandlers(server: Server) {
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     const tools = await registry.getToolDefinitions();
 
+    // DEBUG: Log tool counts
+    console.error(`📊 Total tools available: ${tools.length}`);
+    const createTools = tools.filter(t => t.name.startsWith('create_'));
+    console.error(`✨ Create tools available: ${createTools.map(t => t.name).join(', ')}`);
+    
     // DEBUG: Log create_component schema
     const createComponentTool = tools.find(t => t.name === 'create_component');
     if (createComponentTool) {
@@ -116,6 +122,8 @@ export async function setupDynamicToolHandlers(server: Server) {
         '🔍 DEBUG: create_component tool being served to MCP client:'
       );
       console.error(JSON.stringify(createComponentTool, null, 2));
+    } else {
+      console.error('❌ create_component tool NOT FOUND in tools list');
     }
 
     return { tools };

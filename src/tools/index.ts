@@ -30,11 +30,12 @@ import { setupBulkOperationsTools } from './bulk-operations.js';
 import { setupContextAwareTools } from './context-aware.js';
 import { ToolDefinition } from '../types/tool-types.js';
 import { SearchParams } from '../types/search-types.js';
+import { SessionState } from '../session-manager.js';
 
 /**
- * Setup all tool handlers for the server
+ * Setup all tool handlers for the server with session support
  */
-export function setupToolHandlers(server: Server): void {
+export function setupToolHandlers(server: Server, session?: SessionState): void {
   // Tool definitions registry
   const tools: ToolDefinition[] = [];
 

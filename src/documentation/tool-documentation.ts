@@ -649,6 +649,20 @@ search({
           'Use only searchable fields for filters, or use client-side processing for non-searchable fields',
       },
       {
+        error: 'Empty results with parent.name filter',
+        cause:
+          'Components only contain parent.product.id, not parent.name or parent.product.name fields',
+        solution:
+          'CRITICAL: Use two-step search: 1) Find product by name to get ID, 2) Search components by parent.product.id',
+      },
+      {
+        error: 'Components search returns empty for name-based filters',
+        cause:
+          'Trying to search components with parent.product.name, parent.name, or product.name - these fields do not exist in component data',
+        solution:
+          'Step 1: search({entityType: "products", filters: {"name": "ProductName"}}) to get product ID. Step 2: search({entityType: "components", filters: {"parent.product.id": "product-uuid-from-step-1"}})',
+      },
+      {
         error: 'Limit exceeds maximum',
         cause: 'Limit parameter exceeds the maximum allowed value',
         solution:

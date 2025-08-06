@@ -38,6 +38,8 @@ export const EntityFieldMappings: Record<
       'parent.component',
       'parent.component.id',
       'parent.component.name',
+      'product.name', // Alternative ways humans might specify
+      'component.name', // Alternative ways humans might specify
       'timeframe',
       'timeframe.startDate',
       'timeframe.endDate',
@@ -203,12 +205,17 @@ export const EntityFieldMappings: Record<
       'name',
       'description',
       'parent',
+      'parent.id',
+      'parent.type',
       'parent.product',
       'parent.product.id',
       'parent.product.links',
       'parent.product.links.self',
+      'parent.component', // For sub-components
+      'parent.component.id', // For sub-components
       'owner',
       'owner.email',
+      'owner.name',
       'createdAt',
       'updatedAt',
       'links',
@@ -218,8 +225,12 @@ export const EntityFieldMappings: Record<
     displayNames: {
       name: 'component name',
       description: 'description',
+      'parent.id': 'parent ID',
+      'parent.type': 'parent type',
       'parent.product.id': 'product ID',
+      'parent.component.id': 'parent component ID',
       'owner.email': 'owner email',
+      'owner.name': 'owner name',
     },
     summaryFields: ['id', 'name', 'parent.product.id'],
     endpoint: '/components',

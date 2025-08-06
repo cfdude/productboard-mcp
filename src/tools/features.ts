@@ -455,6 +455,7 @@ async function createFeature(args: any) {
     async context => {
       const body: any = {
         name: args.name,
+        type: 'feature', // Required field for ProductBoard API
       };
 
       if (args.description) body.description = args.description;
@@ -592,7 +593,9 @@ async function updateFeature(args: UpdateFeatureParams) {
     async context => {
       const { id, ...updateData } = args;
 
-      const response = await context.axios.patch(`/features/${id}`, updateData);
+      const response = await context.axios.patch(`/features/${id}`, {
+        data: updateData
+      });
 
       return {
         content: [

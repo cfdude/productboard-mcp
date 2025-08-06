@@ -419,3 +419,89 @@ search({
   filters: { state: 'in_progress' },
 });
 ```
+
+## ⚠️ Critical Search Field Limitations
+
+### Components Entity Type Restrictions
+
+**IMPORTANT**: When searching `components`, be aware that component data only includes parent product **IDs**, not names. The following searches will **NOT work**:
+
+```javascript
+// ❌ THESE WILL FAIL - Fields don't exist in component data
+search({
+  entityType: 'components',
+  filters: { 'parent.name': 'CMA' }, // ❌ parent.name doesn't exist
+});
+
+search({
+  entityType: 'components',
+  filters: { 'parent.product.name': 'CMA' }, // ❌ parent.product.name doesn't exist
+});
+
+search({
+  entityType: 'components',
+  filters: { 'product.name': 'CMA' }, // ❌ product.name doesn't exist
+});
+```
+
+**✅ CORRECT Approach**: Use parent product IDs instead:
+
+```javascript
+// ✅ Step 1: Find the product ID by name first
+const product = await search({
+  entityType: 'products',
+  filters: { name: 'CMA' },
+  output: ['id', 'name'],
+});
+
+// ✅ Step 2: Use the product ID to find components
+const components = await search({
+  entityType: 'components',
+  filters: { 'parent.product.id': product.data[0].id },
+  output: ['id', 'name', 'parent.product.id'],
+});
+```
+
+### Available Component Fields
+
+Components only include these parent relationship fields:
+- ✅ `parent.product.id` - Product UUID
+- ✅ `parent.product.links.self` - API link to product
+- ✅ `parent.component.id` - Parent component UUID (for sub-components)
+- ❌ `parent.name` - **NOT AVAILABLE**
+- ❌ `parent.product.name` - **NOT AVAILABLE** 
+- ❌ `parent.component.name` - **NOT AVAILABLE**
+
+### Human-Friendly Search Pattern
+
+Since "90% of the time the AI is not going to have the product.id, component.id or feature.id handy, they will most likely always know or deal with a product.name, component.name, feature.name", use this two-step pattern:
+
+```javascript
+// Pattern: Name → ID → Related Entities
+// Step 1: Resolve human-friendly name to UUID
+const parentEntity = await search({
+  entityType: 'products', // or 'components', 'features'
+  filters: { name: 'Human Readable Name' },
+  output: ['id', 'name'],
+});
+
+// Step 2: Use UUID for hierarchical searches  
+const childEntities = await search({
+  entityType: 'components', // or 'features'
+  filters: { 'parent.product.id': parentEntity.data[0].id },
+  output: ['id', 'name', 'parent.product.id'],
+});
+```
+
+### Why This Limitation Exists
+
+The ProductBoard API returns component data with only parent UUIDs, not expanded parent objects with names. This is a design decision for API efficiency. The search tool reflects the actual API data structure and cannot create fields that don't exist in the source data.
+
+### Error Prevention
+
+If you attempt to use non-existent fields, the search will:
+1. **Not throw an error** (to avoid breaking workflows)
+2. **Return empty results** (because no items match non-existent fields)
+3. **Provide generic "no results found" messaging**
+
+Always verify field availability in the entity's data structure before building search filters.
