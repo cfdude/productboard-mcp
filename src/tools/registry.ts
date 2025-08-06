@@ -86,7 +86,9 @@ export class ToolRegistry {
     }
 
     // First register loaders for static implementation tools
-    for (const [category, catInfo] of Object.entries(this.manifest.categories)) {
+    for (const [category, catInfo] of Object.entries(
+      this.manifest.categories
+    )) {
       for (const toolName of catInfo.tools) {
         // Skip if category is not enabled
         if (
@@ -98,20 +100,69 @@ export class ToolRegistry {
 
         // Check if it's a static implementation tool
         const staticImplementationTools = [
-          'create_feature', 'update_feature', 'delete_feature', 'get_features', 'get_feature',
-          'create_component', 'update_component', 'get_components', 'get_component',
-          'create_product', 'update_product', 'get_products', 'get_product',
-          'create_note', 'update_note', 'delete_note', 'get_notes', 'get_note',
-          'create_company', 'update_company', 'delete_company', 'get_companies', 'get_company',
-          'create_user', 'update_user', 'delete_user', 'get_users', 'get_user',
-          'create_release', 'update_release', 'delete_release', 'get_releases', 'get_release',
-          'create_release_group', 'update_release_group', 'delete_release_group', 'get_release_groups', 'get_release_group',
-          'create_webhook', 'list_webhooks', 'get_webhook', 'delete_webhook',
-          'create_objective', 'update_objective', 'delete_objective', 'get_objectives', 'get_objective',
-          'create_initiative', 'update_initiative', 'delete_initiative', 'get_initiatives', 'get_initiative',
-          'create_key_result', 'update_key_result', 'delete_key_result', 'get_key_results', 'get_key_result',
-          'get_custom_fields', 'get_custom_field', 'get_custom_fields_values', 
-          'get_custom_field_value', 'set_custom_field_value', 'delete_custom_field_value',
+          'create_feature',
+          'update_feature',
+          'delete_feature',
+          'get_features',
+          'get_feature',
+          'create_component',
+          'update_component',
+          'get_components',
+          'get_component',
+          'create_product',
+          'update_product',
+          'get_products',
+          'get_product',
+          'create_note',
+          'update_note',
+          'delete_note',
+          'get_notes',
+          'get_note',
+          'create_company',
+          'update_company',
+          'delete_company',
+          'get_companies',
+          'get_company',
+          'create_user',
+          'update_user',
+          'delete_user',
+          'get_users',
+          'get_user',
+          'create_release',
+          'update_release',
+          'delete_release',
+          'get_releases',
+          'get_release',
+          'create_release_group',
+          'update_release_group',
+          'delete_release_group',
+          'get_release_groups',
+          'get_release_group',
+          'create_webhook',
+          'list_webhooks',
+          'get_webhook',
+          'delete_webhook',
+          'create_objective',
+          'update_objective',
+          'delete_objective',
+          'get_objectives',
+          'get_objective',
+          'create_initiative',
+          'update_initiative',
+          'delete_initiative',
+          'get_initiatives',
+          'get_initiative',
+          'create_key_result',
+          'update_key_result',
+          'delete_key_result',
+          'get_key_results',
+          'get_key_result',
+          'get_custom_fields',
+          'get_custom_field',
+          'get_custom_fields_values',
+          'get_custom_field_value',
+          'set_custom_field_value',
+          'delete_custom_field_value',
           'get_feature_statuses',
         ];
 
@@ -139,7 +190,7 @@ export class ToolRegistry {
 
             // For components and products, they have their own module files
             let moduleFile = categoryMappings[category.toLowerCase()];
-            
+
             // Special handling for component/product tools
             if (toolName.includes('component')) {
               moduleFile = 'components';
@@ -148,11 +199,13 @@ export class ToolRegistry {
             }
 
             if (!moduleFile) {
-              throw new Error(`No module mapping found for tool ${toolName} in category ${category}`);
+              throw new Error(
+                `No module mapping found for tool ${toolName} in category ${category}`
+              );
             }
 
             const module = await import(`./${moduleFile}.js`);
-            
+
             // Get the handler function name based on the module file
             const handlerName = `handle${moduleFile.charAt(0).toUpperCase() + moduleFile.slice(1).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())}Tool`;
             const handler = module[handlerName];
@@ -395,7 +448,7 @@ export class ToolRegistry {
     };
 
     // Load all static tool definitions
-    const loadResults = await Promise.all([
+    await Promise.all([
       loadToolDefinitions('notes', 'setupNotesTools'),
       loadToolDefinitions('features', 'setupFeaturesTools'),
       loadToolDefinitions('components', 'setupComponentsTools'),
@@ -412,7 +465,7 @@ export class ToolRegistry {
       ),
       loadToolDefinitions('jira-integrations', 'setupJiraIntegrationsTools'),
     ]);
-    
+
     // Debug log what tools were loaded
     console.error(`📦 Loaded ${staticToolsMap.size} static tool definitions`);
 
@@ -422,7 +475,9 @@ export class ToolRegistry {
       if (this.enabledCategories.size > 0) {
         // Find which category this tool belongs to
         let toolCategory = '';
-        for (const [category, catInfo] of Object.entries(this.manifest.categories)) {
+        for (const [category, catInfo] of Object.entries(
+          this.manifest.categories
+        )) {
           if (catInfo.tools.includes(toolName)) {
             toolCategory = category;
             break;
@@ -432,7 +487,7 @@ export class ToolRegistry {
           continue;
         }
       }
-      
+
       // Add the static tool definition
       definitions.push(toolDef);
     }

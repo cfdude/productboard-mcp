@@ -28,7 +28,7 @@ export interface SessionConfig {
  */
 export function loadSessionConfig(session: SessionState): SessionConfig {
   const cacheKey = 'session-config';
-  
+
   // Check session cache first
   if (session.configCache.has(cacheKey)) {
     debugLog('session-config', 'Configuration loaded from session cache', {
@@ -40,14 +40,17 @@ export function loadSessionConfig(session: SessionState): SessionConfig {
   // Load configuration from environment variables
   const config: SessionConfig = {
     apiToken: process.env.PRODUCTBOARD_API_TOKEN,
-    baseUrl: process.env.PRODUCTBOARD_BASE_URL || 'https://api.productboard.com',
+    baseUrl:
+      process.env.PRODUCTBOARD_BASE_URL || 'https://api.productboard.com',
     timeouts: {
       request: parseInt(process.env.PRODUCTBOARD_REQUEST_TIMEOUT || '30000'),
       response: parseInt(process.env.PRODUCTBOARD_RESPONSE_TIMEOUT || '30000'),
     },
     rateLimiting: {
       enabled: process.env.PRODUCTBOARD_RATE_LIMITING !== 'false',
-      maxRequestsPerMinute: parseInt(process.env.PRODUCTBOARD_MAX_REQUESTS_PER_MINUTE || '100'),
+      maxRequestsPerMinute: parseInt(
+        process.env.PRODUCTBOARD_MAX_REQUESTS_PER_MINUTE || '100'
+      ),
     },
     caching: {
       enabled: process.env.PRODUCTBOARD_CACHING !== 'false',
@@ -72,10 +75,13 @@ export function loadSessionConfig(session: SessionState): SessionConfig {
 /**
  * Update session configuration
  */
-export function updateSessionConfig(session: SessionState, updates: Partial<SessionConfig>): void {
+export function updateSessionConfig(
+  session: SessionState,
+  updates: Partial<SessionConfig>
+): void {
   const cacheKey = 'session-config';
   const currentConfig = session.configCache.get(cacheKey) || {};
-  
+
   const updatedConfig = {
     ...currentConfig,
     ...updates,
@@ -104,7 +110,10 @@ export function clearSessionConfigCache(session: SessionState): void {
 /**
  * Validate session configuration
  */
-export function validateSessionConfig(config: SessionConfig): { valid: boolean; errors: string[] } {
+export function validateSessionConfig(config: SessionConfig): {
+  valid: boolean;
+  errors: string[];
+} {
   const errors: string[] = [];
 
   if (!config.apiToken) {
@@ -121,11 +130,17 @@ export function validateSessionConfig(config: SessionConfig): { valid: boolean; 
     }
   }
 
-  if (config.timeouts?.request && (config.timeouts.request < 1000 || config.timeouts.request > 120000)) {
+  if (
+    config.timeouts?.request &&
+    (config.timeouts.request < 1000 || config.timeouts.request > 120000)
+  ) {
     errors.push('Request timeout must be between 1000ms and 120000ms');
   }
 
-  if (config.rateLimiting?.maxRequestsPerMinute && config.rateLimiting.maxRequestsPerMinute < 1) {
+  if (
+    config.rateLimiting?.maxRequestsPerMinute &&
+    config.rateLimiting.maxRequestsPerMinute < 1
+  ) {
     errors.push('Rate limiting max requests per minute must be at least 1');
   }
 

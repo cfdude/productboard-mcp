@@ -40,7 +40,7 @@ export interface SessionStats {
 
 class ProductBoardSessionManager implements SessionManager {
   private sessions = new Map<string, SessionState>();
-  private cleanupInterval: NodeJS.Timeout | null = null;
+  private cleanupInterval: ReturnType<typeof setTimeout> | null = null;
   private readonly sessionTimeout: number = 300000; // 5 minutes
   private readonly cleanupIntervalMs: number = 60000; // 1 minute
 
@@ -54,7 +54,7 @@ class ProductBoardSessionManager implements SessionManager {
 
   createSession(sessionId?: string): SessionState {
     const id = sessionId || this.generateSessionId();
-    
+
     const session: SessionState = {
       sessionId: id,
       createdAt: new Date(),
@@ -98,10 +98,14 @@ class ProductBoardSessionManager implements SessionManager {
 
     // Clean up any remaining active requests
     if (session.activeRequests.size > 0) {
-      debugLog('session-manager', 'Cleaning up active requests during session removal', {
-        sessionId,
-        activeRequestCount: session.activeRequests.size,
-      });
+      debugLog(
+        'session-manager',
+        'Cleaning up active requests during session removal',
+        {
+          sessionId,
+          activeRequestCount: session.activeRequests.size,
+        }
+      );
       session.activeRequests.clear();
     }
 
@@ -123,7 +127,7 @@ class ProductBoardSessionManager implements SessionManager {
 
     for (const [sessionId, session] of this.sessions.entries()) {
       const timeSinceActivity = now.getTime() - session.lastActivity.getTime();
-      
+
       if (timeSinceActivity > this.sessionTimeout) {
         expiredSessions.push(sessionId);
       }
@@ -147,16 +151,21 @@ class ProductBoardSessionManager implements SessionManager {
 
   getSessionStats(): SessionStats {
     const sessions = Array.from(this.sessions.values());
-    const totalRequests = sessions.reduce((sum, session) => sum + session.requestCount, 0);
-    
+    const totalRequests = sessions.reduce(
+      (sum, session) => sum + session.requestCount,
+      0
+    );
+
     return {
       totalSessions: sessions.length,
       activeSessions: sessions.length,
       totalRequests,
-      averageRequestsPerSession: sessions.length > 0 ? totalRequests / sessions.length : 0,
-      oldestSession: sessions.length > 0 
-        ? new Date(Math.min(...sessions.map(s => s.createdAt.getTime())))
-        : undefined,
+      averageRequestsPerSession:
+        sessions.length > 0 ? totalRequests / sessions.length : 0,
+      oldestSession:
+        sessions.length > 0
+          ? new Date(Math.min(...sessions.map(s => s.createdAt.getTime())))
+          : undefined,
     };
   }
 

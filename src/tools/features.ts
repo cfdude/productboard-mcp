@@ -594,7 +594,7 @@ async function updateFeature(args: UpdateFeatureParams) {
       const { id, ...updateData } = args;
 
       const response = await context.axios.patch(`/features/${id}`, {
-        data: updateData
+        data: updateData,
       });
 
       return {

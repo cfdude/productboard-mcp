@@ -3,7 +3,7 @@
  * Creates isolated HTTP clients per session to prevent conflicts
  */
 
-import axios, { AxiosInstance } from 'axios';
+import axios from 'axios';
 import { SessionConfig } from './session-config.js';
 import { debugLog } from './debug-logger.js';
 import {
@@ -31,9 +31,9 @@ export function createProductBoardApiClient(config: SessionConfig): ApiClient {
     timeout: config.timeouts?.request || 30000,
     headers: {
       'Content-Type': 'application/json',
-      'Accept': 'application/json',
+      Accept: 'application/json',
       ...(config.apiToken && {
-        'Authorization': `Bearer ${config.apiToken}`,
+        Authorization: `Bearer ${config.apiToken}`,
         'X-Version': '1',
       }),
     },
@@ -41,7 +41,7 @@ export function createProductBoardApiClient(config: SessionConfig): ApiClient {
 
   // Add request interceptor for logging and rate limiting
   axiosInstance.interceptors.request.use(
-    (requestConfig) => {
+    requestConfig => {
       debugLog('api-client', 'HTTP request started', {
         method: requestConfig.method?.toUpperCase(),
         url: requestConfig.url,
@@ -51,7 +51,7 @@ export function createProductBoardApiClient(config: SessionConfig): ApiClient {
 
       return requestConfig;
     },
-    (error) => {
+    error => {
       debugLog('api-client', 'HTTP request setup failed', {
         error: error.message,
       });
@@ -61,7 +61,7 @@ export function createProductBoardApiClient(config: SessionConfig): ApiClient {
 
   // Add response interceptor for logging and error handling
   axiosInstance.interceptors.response.use(
-    (response) => {
+    response => {
       debugLog('api-client', 'HTTP response received', {
         status: response.status,
         statusText: response.statusText,
@@ -71,7 +71,7 @@ export function createProductBoardApiClient(config: SessionConfig): ApiClient {
 
       return response;
     },
-    (error) => {
+    error => {
       // Enhanced error handling with ProductBoard-specific logic
       const errorResponse = error.response;
       const errorMessage = sanitizeErrorMessage(error.message);
@@ -88,14 +88,19 @@ export function createProductBoardApiClient(config: SessionConfig): ApiClient {
       if (errorResponse) {
         switch (errorResponse.status) {
           case 401:
-            throw new AuthenticationError('Authentication failed - check your API token');
+            throw new AuthenticationError(
+              'Authentication failed - check your API token'
+            );
           case 429:
             throw new RateLimitError();
           case 500:
           case 502:
           case 503:
           case 504:
-            throw new NetworkError(`ProductBoard server error (${errorResponse.status}): ${errorMessage}`, error);
+            throw new NetworkError(
+              `ProductBoard server error (${errorResponse.status}): ${errorMessage}`,
+              error
+            );
           default:
             return Promise.reject(error);
         }
@@ -103,7 +108,10 @@ export function createProductBoardApiClient(config: SessionConfig): ApiClient {
 
       // Network errors (no response)
       if (error.code === 'ECONNABORTED') {
-        throw new NetworkError('Request timeout - ProductBoard API may be slow', error);
+        throw new NetworkError(
+          'Request timeout - ProductBoard API may be slow',
+          error
+        );
       }
 
       if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
@@ -162,7 +170,7 @@ export function createResilientApiClient(config: SessionConfig): ApiClient {
               delay,
               error: error.message,
             });
-            
+
             await new Promise(resolve => setTimeout(resolve, delay));
           }
         }

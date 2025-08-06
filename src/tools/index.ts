@@ -35,7 +35,10 @@ import { SessionState } from '../session-manager.js';
 /**
  * Setup all tool handlers for the server with session support
  */
-export function setupToolHandlers(server: Server, session?: SessionState): void {
+export function setupToolHandlers(
+  server: Server,
+  _session?: SessionState
+): void {
   // Tool definitions registry
   const tools: ToolDefinition[] = [];
 

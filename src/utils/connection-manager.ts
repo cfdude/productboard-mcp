@@ -12,7 +12,14 @@ interface Connection {
 
 class ConnectionManager {
   private connections = new Map<string, Connection>();
-  private requestQueue = new Map<string, Array<{ resolve: Function; reject: Function; request: any }>>();
+  private requestQueue = new Map<
+    string,
+    Array<{
+      resolve: (value: any) => void;
+      reject: (reason?: any) => void;
+      request: any;
+    }>
+  >();
   private activeRequests = new Map<string, number>();
   private readonly maxConcurrentRequests = 10;
   private readonly connectionTimeout = 300000; // 5 minutes
@@ -26,7 +33,7 @@ class ConnectionManager {
       createdAt: new Date(),
       lastUsed: new Date(),
       requestCount: 0,
-      isActive: true
+      isActive: true,
     });
 
     // Initialize request tracking
@@ -39,7 +46,10 @@ class ConnectionManager {
   /**
    * Handle incoming request with queuing and concurrency control
    */
-  async handleRequest<T>(connectionId: string, requestHandler: () => Promise<T>): Promise<T> {
+  async handleRequest<T>(
+    connectionId: string,
+    requestHandler: () => Promise<T>
+  ): Promise<T> {
     // Register connection if not exists
     if (!this.connections.has(connectionId)) {
       this.registerConnection(connectionId);
@@ -51,7 +61,7 @@ class ConnectionManager {
 
     // Check if we can process immediately
     const currentActive = this.activeRequests.get(connectionId) || 0;
-    
+
     if (currentActive >= this.maxConcurrentRequests) {
       // Queue the request
       return new Promise<T>((resolve, reject) => {
@@ -67,7 +77,10 @@ class ConnectionManager {
   /**
    * Execute a request with proper tracking
    */
-  private async executeRequest<T>(connectionId: string, requestHandler: () => Promise<T>): Promise<T> {
+  private async executeRequest<T>(
+    connectionId: string,
+    requestHandler: () => Promise<T>
+  ): Promise<T> {
     // Increment active request count
     const currentActive = this.activeRequests.get(connectionId) || 0;
     this.activeRequests.set(connectionId, currentActive + 1);
@@ -109,7 +122,7 @@ class ConnectionManager {
     const connection = this.connections.get(connectionId);
     if (connection) {
       connection.isActive = false;
-      
+
       // Reject any queued requests
       const queue = this.requestQueue.get(connectionId) || [];
       queue.forEach(({ reject }) => {
@@ -134,20 +147,25 @@ class ConnectionManager {
     totalRequests: number;
     queuedRequests: number;
   } {
-    const activeConnections = Array.from(this.connections.values())
-      .filter(conn => conn.isActive).length;
-    
-    const totalRequests = Array.from(this.connections.values())
-      .reduce((sum, conn) => sum + conn.requestCount, 0);
-    
-    const queuedRequests = Array.from(this.requestQueue.values())
-      .reduce((sum, queue) => sum + queue.length, 0);
+    const activeConnections = Array.from(this.connections.values()).filter(
+      conn => conn.isActive
+    ).length;
+
+    const totalRequests = Array.from(this.connections.values()).reduce(
+      (sum, conn) => sum + conn.requestCount,
+      0
+    );
+
+    const queuedRequests = Array.from(this.requestQueue.values()).reduce(
+      (sum, queue) => sum + queue.length,
+      0
+    );
 
     return {
       totalConnections: this.connections.size,
       activeConnections,
       totalRequests,
-      queuedRequests
+      queuedRequests,
     };
   }
 
@@ -166,9 +184,11 @@ class ConnectionManager {
     });
 
     staleConnections.forEach(id => this.closeConnection(id));
-    
+
     if (staleConnections.length > 0) {
-      console.log(`[ConnectionManager] Cleaned up ${staleConnections.length} stale connections`);
+      console.log(
+        `[ConnectionManager] Cleaned up ${staleConnections.length} stale connections`
+      );
     }
   }
 }

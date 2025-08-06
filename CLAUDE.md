@@ -344,3 +344,51 @@ Each log entry contains:
 - `component`: Source component (e.g., 'search-engine', 'productboard-server')
 - `message`: Description of the event
 - `data`: Optional structured data related to the event
+
+## Testing Standards
+
+**CRITICAL**: All development must follow strict testing standards to maintain 90%+ code coverage.
+
+### Testing Requirements
+
+- **Coverage Thresholds**: 90% minimum across all metrics (statements, branches, functions, lines)
+- **Test Structure**: Follow Jest AAA pattern (Arrange, Act, Assert)
+- **Test Isolation**: Each test must be independent and not rely on other tests
+- **Performance**: Individual tests should complete in <100ms when possible
+
+### Testing Documentation
+
+Complete testing standards are documented in **`tests/TESTING_STANDARDS.md`**. This includes:
+
+- File organization and naming conventions
+- Test structure patterns and examples
+- Mock creation and test data standards
+- Async testing and error handling patterns
+- Tool handler and utility function testing guidelines
+- Integration testing approaches
+- Coverage requirements and quality gates
+- Performance testing standards
+- Anti-patterns to avoid
+
+### Pre-Development Testing Protocol
+
+```bash
+# 1. Check current coverage status
+NODE_OPTIONS='--experimental-vm-modules' npx jest --collectCoverage=true
+
+# 2. Run full test suite before changes
+npm test
+
+# 3. After changes, rebuild and retest
+npm run shutdown && npm run build && npm test
+
+# 4. Verify coverage thresholds are met
+NODE_OPTIONS='--experimental-vm-modules' npx jest --collectCoverage=true --coverageReporters=text-summary
+```
+
+### Testing Integration with Development Workflow
+
+- **Before Code Changes**: Run tests to establish baseline
+- **During Development**: Write tests alongside code changes
+- **Before Commits**: Ensure all tests pass and coverage thresholds met
+- **CI/CD Integration**: Tests must pass for merges to main branch

@@ -67,7 +67,10 @@ function getEnabledCategories(): string[] {
 /**
  * Setup dynamic tool handlers for the server
  */
-export async function setupDynamicToolHandlers(server: Server, session?: SessionState) {
+export async function setupDynamicToolHandlers(
+  server: Server,
+  session?: SessionState
+) {
   // Create tool registry
   const registry = new ToolRegistry(getEnabledCategories());
 
@@ -113,8 +116,10 @@ export async function setupDynamicToolHandlers(server: Server, session?: Session
     // DEBUG: Log tool counts
     console.error(`📊 Total tools available: ${tools.length}`);
     const createTools = tools.filter(t => t.name.startsWith('create_'));
-    console.error(`✨ Create tools available: ${createTools.map(t => t.name).join(', ')}`);
-    
+    console.error(
+      `✨ Create tools available: ${createTools.map(t => t.name).join(', ')}`
+    );
+
     // DEBUG: Log create_component schema
     const createComponentTool = tools.find(t => t.name === 'create_component');
     if (createComponentTool) {
