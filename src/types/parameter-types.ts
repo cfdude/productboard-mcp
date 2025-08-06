@@ -271,8 +271,8 @@ export const DetailFieldMappings = {
     ],
   },
   component: {
-    basic: ['id', 'name', 'description'],
-    standard: ['id', 'name', 'description', 'owner', 'createdAt'],
+    basic: ['id', 'name', 'parent'],
+    standard: ['id', 'name', 'description', 'parent', 'owner', 'createdAt'],
     full: [
       'id',
       'name',
@@ -285,13 +285,14 @@ export const DetailFieldMappings = {
     ],
   },
   feature: {
-    basic: ['id', 'name', 'type', 'status.name'],
+    basic: ['id', 'name', 'type', 'status.name', 'parent'],
     standard: [
       'id',
       'name',
       'type',
       'status',
       'archived',
+      'parent',
       'owner.email',
       'timeframe.startDate',
       'timeframe.endDate',
@@ -302,6 +303,7 @@ export const DetailFieldMappings = {
       'type',
       'status',
       'archived',
+      'parent',
       'owner',
       'timeframe',
       'links',

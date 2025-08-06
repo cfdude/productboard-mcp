@@ -512,6 +512,11 @@ export class SearchEngine {
       workspaceId: params.workspaceId,
     };
 
+    // Add cursor for pagination if present
+    if ((params as any).pageCursor) {
+      listParams.pageCursor = (params as any).pageCursor;
+    }
+
     // Add entity-specific filters if we have a single entity type
     const singleEntityType =
       entityType ||
@@ -544,7 +549,7 @@ export class SearchEngine {
   }
 
   /**
-   * Route to appropriate entity handler
+   * Route to appropriate entity handler with pagination support
    */
   private async routeToEntityHandler(
     entityType: EntityType,
@@ -557,60 +562,198 @@ export class SearchEngine {
       paramsKeys: Object.keys(params),
     });
 
-    switch (entityType) {
-      case 'features':
-        return await handleFeaturesTool(functionName, params);
-      case 'products': {
-        debugLog('search-engine', 'Calling handleProductsTool', {
-          functionName,
-          params,
-        });
-        const productsResult = await handleProductsTool(functionName, params);
-        debugLog('search-engine', 'handleProductsTool returned', {
-          hasContent: !!productsResult?.content,
-          contentLength:
-            typeof productsResult?.content?.[0]?.text === 'string'
-              ? productsResult.content[0].text.length
-              : 0,
-        });
-        return productsResult;
+    // For pagination, we need to fetch ALL pages and combine results
+    // The API returns max 100 records per page with links.next for pagination
+    const allData: any[] = [];
+    let currentParams = { ...params };
+    let hasMorePages = true;
+    let pageCount = 0;
+    const maxPages = 50; // Safety limit to prevent infinite loops
+
+    while (hasMorePages && pageCount < maxPages) {
+      pageCount++;
+      debugLog(
+        'search-engine',
+        `Fetching page ${pageCount} for ${entityType}`,
+        {
+          offset: currentParams.startWith || 0,
+          limit: currentParams.limit,
+        }
+      );
+
+      let response: any;
+      switch (entityType) {
+        case 'features':
+          response = await handleFeaturesTool(functionName, currentParams);
+          break;
+        case 'products':
+          debugLog('search-engine', 'Calling handleProductsTool', {
+            functionName,
+            params: currentParams,
+          });
+          response = await handleProductsTool(functionName, currentParams);
+          debugLog('search-engine', 'handleProductsTool returned', {
+            hasContent: !!response?.content,
+            contentLength:
+              typeof response?.content?.[0]?.text === 'string'
+                ? response.content[0].text.length
+                : 0,
+          });
+          break;
+        case 'components':
+          response = await handleComponentsTool(functionName, currentParams);
+          break;
+        case 'notes':
+          response = await handleNotesTool(functionName, currentParams);
+          break;
+        case 'companies':
+          response = await handleCompaniesTool(functionName, currentParams);
+          break;
+        case 'users':
+          response = await handleUsersTool(functionName, currentParams);
+          break;
+        case 'releases':
+        case 'release_groups':
+          response = await handleReleasesTool(functionName, currentParams);
+          break;
+        case 'objectives':
+        case 'initiatives':
+        case 'key_results':
+          response = await handleObjectivesTool(functionName, currentParams);
+          break;
+        case 'custom_fields':
+          response = await handleCustomFieldsTool(functionName, currentParams);
+          break;
+        case 'webhooks':
+          response = await handleWebhooksTool(functionName, currentParams);
+          break;
+        case 'plugin_integrations':
+          response = await handlePluginIntegrationsTool(
+            functionName,
+            currentParams
+          );
+          break;
+        case 'jira_integrations':
+          response = await handleJiraIntegrationsTool(
+            functionName,
+            currentParams
+          );
+          break;
+        default:
+          throw new Error(
+            `No handler available for entity type: ${entityType}`
+          );
       }
-      case 'components':
-        return await handleComponentsTool(functionName, params);
 
-      case 'notes':
-        return await handleNotesTool(functionName, params);
+      // Parse the response to check for data and pagination
+      if (response?.content?.[0]?.text) {
+        try {
+          const parsed = JSON.parse(response.content[0].text);
 
-      case 'companies':
-        return await handleCompaniesTool(functionName, params);
+          // Handle different response formats
+          if (Array.isArray(parsed)) {
+            // Simple array response - add all items
+            allData.push(...parsed);
+            hasMorePages = false; // Arrays don't have pagination info
+          } else if (parsed.data) {
+            // Structured response with data array
+            allData.push(...(parsed.data || []));
 
-      case 'users':
-        return await handleUsersTool(functionName, params);
-
-      case 'releases':
-      case 'release_groups':
-        return await handleReleasesTool(functionName, params);
-
-      case 'objectives':
-      case 'initiatives':
-      case 'key_results':
-        return await handleObjectivesTool(functionName, params);
-
-      case 'custom_fields':
-        return await handleCustomFieldsTool(functionName, params);
-
-      case 'webhooks':
-        return await handleWebhooksTool(functionName, params);
-
-      case 'plugin_integrations':
-        return await handlePluginIntegrationsTool(functionName, params);
-
-      case 'jira_integrations':
-        return await handleJiraIntegrationsTool(functionName, params);
-
-      default:
-        throw new Error(`No handler available for entity type: ${entityType}`);
+            // Check for pagination via links.next
+            if (parsed.links?.next) {
+              // Extract cursor from next URL for cursor-based pagination
+              const nextUrl = new URL(parsed.links.next);
+              const pageCursor = nextUrl.searchParams.get('pageCursor');
+              if (pageCursor) {
+                currentParams = {
+                  ...currentParams,
+                  pageCursor,
+                };
+                debugLog(
+                  'search-engine',
+                  `Found links.next, fetching next page with cursor ${pageCursor}`
+                );
+              } else {
+                // Fallback to offset-based pagination if no cursor
+                const nextOffset =
+                  (currentParams.startWith || 0) + (currentParams.limit || 100);
+                currentParams = {
+                  ...currentParams,
+                  startWith: nextOffset,
+                };
+                debugLog(
+                  'search-engine',
+                  `Found links.next, fetching next page at offset ${nextOffset}`
+                );
+              }
+            } else {
+              hasMorePages = false;
+            }
+          } else if (parsed.links?.next) {
+            // Response with pagination but data at root level
+            // This shouldn't happen but handle it just in case
+            allData.push(parsed);
+            const nextOffset =
+              (currentParams.startWith || 0) + (currentParams.limit || 100);
+            currentParams = {
+              ...currentParams,
+              startWith: nextOffset,
+            };
+          } else {
+            // Single object response
+            allData.push(parsed);
+            hasMorePages = false;
+          }
+        } catch (error) {
+          debugLog('search-engine', 'Failed to parse response for pagination', {
+            error: (error as Error).message,
+          });
+          hasMorePages = false;
+        }
+      } else {
+        hasMorePages = false;
+      }
     }
+
+    if (pageCount >= maxPages) {
+      debugLog(
+        'search-engine',
+        `Warning: Reached max page limit (${maxPages}) for ${entityType}`
+      );
+    }
+
+    debugLog(
+      'search-engine',
+      `Fetched ${pageCount} page(s) with ${allData.length} total records for ${entityType}`
+    );
+
+    // Apply limit to final results if specified
+    const limitedData =
+      params.limit && params.limit < allData.length
+        ? allData.slice(0, params.limit)
+        : allData;
+
+    const hasMoreDueToLimit = params.limit && allData.length > params.limit;
+    const hasMoreDueToPagination = pageCount >= maxPages;
+
+    debugLog(
+      'search-engine',
+      `Applied limit ${params.limit} - returning ${limitedData.length} of ${allData.length} records`
+    );
+
+    // Return the combined results in the expected format
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            data: limitedData,
+            totalRecords: allData.length, // Keep total for pagination info
+            hasMore: hasMoreDueToLimit || hasMoreDueToPagination,
+          }),
+        },
+      ],
+    };
   }
 
   /**

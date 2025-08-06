@@ -330,7 +330,9 @@ async function listComponents(args: any) {
         pageOffset: normalizedParams.startWith,
       };
 
-      if (args.productId) params['product.id'] = args.productId;
+      // Note: The Productboard API /components endpoint doesn't support filtering
+      // We'll need to fetch all and filter client-side
+      // if (args.productId) params['parent.id'] = args.productId;
 
       const response = await context.axios.get('/components', { params });
 
