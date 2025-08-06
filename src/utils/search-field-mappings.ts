@@ -74,28 +74,23 @@ export const EntityFieldMappings: Record<
     summaryFields: ['id', 'name', 'status.name', 'owner.email'],
     endpoint: '/features',
     listFunction: 'get_features',
+    // The /features API supports these server-side filters as per API documentation:
+    // status.id, status.name, parent.id, archived, owner.email, note.id
     serverSideFilters: [
-      'archived',
       'status.id',
       'status.name',
-      'owner.email',
-      'owner.id',
       'parent.id',
-      'parent.product.id',
-      'parent.component.id',
-      'name',
+      'archived',
+      'owner.email',
+      'note.id',
     ],
     filterMappings: {
-      'status.id': 'statusId',
-      'status.name': 'statusName',
-      'owner.email': 'ownerEmail',
-      'owner.id': 'ownerId',
-      'parent.id': 'parentId',
-      'parent.product.id': 'parent.product.id',
-      'parent.component.id': 'parent.component.id',
-      timeframeDuration: 'timeframeDuration',
-      timeframeDurationMin: 'timeframeDurationMin',
-      timeframeDurationMax: 'timeframeDurationMax',
+      'status.id': 'status.id',
+      'status.name': 'status.name',
+      'parent.id': 'parent.id',
+      archived: 'archived',
+      'owner.email': 'owner.email',
+      'note.id': 'note.id',
     },
   },
 
@@ -210,10 +205,15 @@ export const EntityFieldMappings: Record<
       'parent',
       'parent.product',
       'parent.product.id',
+      'parent.product.links',
+      'parent.product.links.self',
       'owner',
       'owner.email',
       'createdAt',
       'updatedAt',
+      'links',
+      'links.self',
+      'links.html',
     ],
     displayNames: {
       name: 'component name',
@@ -224,10 +224,10 @@ export const EntityFieldMappings: Record<
     summaryFields: ['id', 'name', 'parent.product.id'],
     endpoint: '/components',
     listFunction: 'get_components',
-    serverSideFilters: ['parent.product.id'],
-    filterMappings: {
-      'parent.product.id': 'productId',
-    },
+    // Note: The /components API endpoint doesn't support any query parameters for filtering
+    // All filtering must be done client-side
+    serverSideFilters: [],
+    filterMappings: {},
   },
 
   releases: {

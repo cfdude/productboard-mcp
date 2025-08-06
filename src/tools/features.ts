@@ -497,8 +497,14 @@ async function listFeatures(args: any) {
       const normalizedParams = normalizeListParams(args);
       const params: any = {
         pageLimit: normalizedParams.limit,
-        pageOffset: normalizedParams.startWith,
       };
+
+      // Use cursor-based pagination if available, otherwise use offset
+      if (args.pageCursor) {
+        params.pageCursor = args.pageCursor;
+      } else {
+        params.pageOffset = normalizedParams.startWith;
+      }
 
       // Add filters
       if (args.archived !== undefined) params.archived = args.archived;
@@ -516,15 +522,18 @@ async function listFeatures(args: any) {
         normalizedParams.detail
       );
 
+      // Return complete response structure for pagination support
+      const responseData = {
+        data: result,
+        links: response.data.links || {},
+        totalRecords: result.length,
+      };
+
       return {
         content: [
           {
             type: 'text',
-            text: formatResponse(
-              result,
-              args.outputFormat || 'json',
-              'feature'
-            ),
+            text: JSON.stringify(responseData),
           },
         ],
       };

@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.3] - 2025-08-06
+
+### 🚨 **CRITICAL BUG FIX - Search Limit Parameter**
+
+This patch release fixes a critical bug where the search engine was returning ALL records instead of respecting the limit parameter, causing responses to exceed MCP token limits and making the search functionality unusable for large datasets.
+
+### Fixed
+
+- **🔥 Critical Search Engine Bug**
+  - Fixed `routeToEntityHandler` method in `src/utils/search-engine.ts` that was ignoring the limit parameter
+  - Search was fetching ALL pages from the API and returning complete datasets (223+ records)
+  - Response sizes were exceeding 39,695 tokens when limit was 25,000 tokens
+  - Applied proper limit enforcement AFTER pagination to respect the requested limit
+  - Added `hasMore` flag to indicate when results are limited vs when pagination is exhausted
+- **📊 Performance Impact**
+  - **Before**: 99,349 character responses returning 223 records when limit=10
+  - **After**: 5,283 character responses returning 10 records when limit=10
+  - **Result**: 94.7% reduction in response size, making search usable again
+  - Debug logging now shows: "Applied limit 10 - returning 10 of 223 records"
+
+### Technical Details
+
+- **Root Cause**: The `routeToEntityHandler` method was fetching all pages from the API to support pagination but was not applying the limit parameter to the final result set
+- **Solution**: Added limit application after pagination with proper slicing: `allData.slice(0, params.limit)`
+- **Validation**: Comprehensive testing across all entity types confirmed the fix works correctly:
+  - ✅ Features: Returns 10 of 223 with hasMore=true
+  - ✅ Companies: Returns 5 of 47 with hasMore=true
+  - ✅ Notes: Returns 3 of 93 with hasMore=true
+  - ✅ Users: Returns 20 of 127 with hasMore=true
+  - ✅ All entity types properly respect limit parameter
+
+### Impact
+
+This fix restores the search functionality to a usable state:
+
+- AI models can now process search results without hitting token limits
+- Search operations complete successfully without truncation errors
+- Response times improved due to smaller payload sizes
+- Memory usage reduced by not holding excessive data in responses
+
 ## [2.0.1] - 2025-08-04
 
 ### 🔧 **CRITICAL MCP COMPATIBILITY FIXES**
