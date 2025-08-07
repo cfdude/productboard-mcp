@@ -9,6 +9,7 @@ import {
   filterByDetailLevel,
   isEnterpriseError,
 } from '../utils/parameter-utils.js';
+import { fetchAllPages } from '../utils/pagination-handler.js';
 import { UpdateFeatureParams } from '../types/parameter-types.js';
 import { fieldSelector } from '../utils/field-selection.js';
 import { withContext } from '../utils/tool-wrapper.js';
@@ -499,18 +500,9 @@ async function listFeatures(args: any) {
   return await withContext(
     async context => {
       const normalizedParams = normalizeListParams(args);
-      const params: any = {
-        pageLimit: normalizedParams.limit,
-      };
+      const params: any = {};
 
-      // Use cursor-based pagination if available, otherwise use offset
-      if (args.pageCursor) {
-        params.pageCursor = args.pageCursor;
-      } else {
-        params.pageOffset = normalizedParams.startWith;
-      }
-
-      // Add filters
+      // Add filters (no pagination parameters - handled by fetchAllPages)
       if (args.archived !== undefined) params.archived = args.archived;
       if (args.noteId) params['linkedNote.id'] = args.noteId;
       if (args.ownerEmail) params['owner.email'] = args.ownerEmail;
@@ -518,19 +510,37 @@ async function listFeatures(args: any) {
       if (args.statusId) params['status.id'] = args.statusId;
       if (args.statusName) params['status.name'] = args.statusName;
 
-      const response = await context.axios.get('/features', { params });
+      // Use proper pagination handler to fetch all pages
+      const paginatedResponse = await fetchAllPages(
+        context.axios,
+        '/features',
+        params,
+        {
+          maxItems:
+            normalizedParams.limit > 100 ? normalizedParams.limit : undefined,
+          onPageFetched: (pageData, pageNum, totalSoFar) => {
+            console.log(
+              `📄 Fetched page ${pageNum}: ${pageData.length} features (total: ${totalSoFar})`
+            );
+          },
+        }
+      );
 
       const result = filterArrayByDetailLevel(
-        response.data.data,
+        paginatedResponse.data,
         'feature',
         normalizedParams.detail
       );
 
-      // Return complete response structure for pagination support
+      // Return complete response structure with proper pagination info
       const responseData = {
         data: result,
-        links: response.data.links || {},
-        totalRecords: result.length,
+        meta: {
+          totalRecords: result.length,
+          totalPages: paginatedResponse.meta?.totalPages || 1,
+          wasLimited: paginatedResponse.meta?.wasLimited || false,
+        },
+        links: {}, // Links are no longer relevant since we fetched all pages
       };
 
       return {

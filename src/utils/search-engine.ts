@@ -280,7 +280,7 @@ export class SearchEngine {
     const warnings = [...rawResults.warnings];
 
     // Apply client-side filtering for complex operators
-    processedData = this.applyClientSideFiltering(processedData, params);
+    processedData = await this.applyClientSideFiltering(processedData, params);
 
     // Check for parameter conflicts and add warnings
     if (params.output !== 'full' && params.detail !== 'standard') {
@@ -810,10 +810,10 @@ export class SearchEngine {
   /**
    * Apply client-side filtering for complex operators
    */
-  private applyClientSideFiltering(
+  private async applyClientSideFiltering(
     data: any[],
     params: NormalizedSearchParams
-  ): any[] {
+  ): Promise<any[]> {
     let filtered = data;
 
     // Compile patterns once for reuse
@@ -826,6 +826,18 @@ export class SearchEngine {
         this.canFilterServerSide(params.entityTypes[0], field)
       ) {
         continue; // Already filtered server-side
+      }
+
+      // Handle hierarchical filtering for cross-entity relationships
+      const hierarchicalResult = await this.handleHierarchicalFiltering(
+        filtered,
+        field,
+        value,
+        params
+      );
+      if (hierarchicalResult !== null) {
+        filtered = hierarchicalResult;
+        continue; // Skip normal filtering for this field
       }
 
       const operator = params.operators[field] || 'equals';
@@ -866,12 +878,187 @@ export class SearchEngine {
 
       // Apply pattern-based filtering using the compiled pattern
       const pattern = compiledPatterns.get(field)!;
-      filtered = filtered.filter(item =>
-        applyPatternFilter(item, field, pattern, operator)
+      debugLog(
+        'search-engine',
+        `Applying client-side filter for field "${field}"`,
+        {
+          operator,
+          patternValue: pattern.pattern,
+          patternMode: pattern.mode,
+          isWildcard: pattern.isWildcard,
+          caseSensitive: !pattern.regex.flags.includes('i'),
+          itemsBeforeFilter: filtered.length,
+        }
       );
+
+      const filteredResults = filtered.filter(item => {
+        const fieldValue = this.getNestedFieldValue(item, field);
+        const matches = applyPatternFilter(item, field, pattern, operator);
+
+        // Debug log first few matches/non-matches
+        if (filtered.indexOf(item) < 3) {
+          debugLog(
+            'search-engine',
+            `Filter test for item ${filtered.indexOf(item)}`,
+            {
+              field,
+              fieldValue,
+              searchPattern: pattern.pattern,
+              operator,
+              matches,
+            }
+          );
+        }
+
+        return matches;
+      });
+
+      debugLog('search-engine', `Filter "${field}" completed`, {
+        itemsAfterFilter: filteredResults.length,
+        itemsFiltered: filtered.length - filteredResults.length,
+      });
+
+      filtered = filteredResults;
     }
 
     return filtered;
+  }
+
+  /**
+   * Handle hierarchical filtering for cross-entity relationships
+   * Inspects actual parent object structure rather than assuming fixed hierarchy
+   */
+  private async handleHierarchicalFiltering(
+    data: any[],
+    field: string,
+    value: any,
+    params: NormalizedSearchParams
+  ): Promise<any[] | null> {
+    // Only handle specific hierarchical cases
+    if (
+      field === 'parent.product.id' &&
+      params.entityTypes.includes('features')
+    ) {
+      debugLog(
+        'search-engine',
+        'Handling hierarchical filtering for parent.product.id on features',
+        {
+          targetProductId: value,
+          itemCount: data.length,
+        }
+      );
+
+      const matchingFeatures = data.filter(item => {
+        // Check direct parent.product.id (Product -> Feature)
+        if (item.parent?.product?.id === value) {
+          debugLog(
+            'search-engine',
+            'Feature matches via direct parent.product.id',
+            {
+              featureId: item.id,
+              parentProductId: item.parent.product.id,
+            }
+          );
+          return true;
+        }
+
+        // Check indirect via parent.component.id (Product -> Component -> Feature)
+        if (item.parent?.component?.id) {
+          debugLog(
+            'search-engine',
+            'Feature has component parent, checking for component match',
+            {
+              featureId: item.id,
+              parentComponentId: item.parent.component.id,
+            }
+          );
+
+          // For now, we need to get components for this product to check if this component belongs to it
+          // This would require a separate API call, but for immediate testing we can check
+          // if the component structure has a parent reference to the product
+          if (item.parent.component.parent?.product?.id === value) {
+            debugLog(
+              'search-engine',
+              'Feature matches via component parent.product.id',
+              {
+                featureId: item.id,
+                componentId: item.parent.component.id,
+                productId: item.parent.component.parent.product.id,
+              }
+            );
+            return true;
+          }
+          return false;
+        }
+
+        // Check if it's a sub-feature (Feature -> Sub-feature)
+        if (item.parent?.feature?.id) {
+          debugLog(
+            'search-engine',
+            'Found sub-feature, checking parent feature hierarchy',
+            {
+              subFeatureId: item.id,
+              parentFeatureId: item.parent.feature.id,
+            }
+          );
+
+          // For sub-features, we need to check if the parent feature belongs to our target product
+          // This could be done by checking the parent feature's parent structure
+          if (item.parent.feature.parent?.product?.id === value) {
+            debugLog(
+              'search-engine',
+              'Sub-feature matches via parent feature product',
+              {
+                subFeatureId: item.id,
+                parentFeatureId: item.parent.feature.id,
+                productId: item.parent.feature.parent.product.id,
+              }
+            );
+            return true;
+          }
+
+          // Also check if parent feature goes through a component to the product
+          if (
+            item.parent.feature.parent?.component?.parent?.product?.id === value
+          ) {
+            debugLog(
+              'search-engine',
+              'Sub-feature matches via parent feature component product',
+              {
+                subFeatureId: item.id,
+                parentFeatureId: item.parent.feature.id,
+                componentId: item.parent.feature.parent.component.id,
+                productId:
+                  item.parent.feature.parent.component.parent.product.id,
+              }
+            );
+            return true;
+          }
+
+          return false;
+        }
+
+        return false;
+      });
+
+      debugLog('search-engine', 'Hierarchical filtering completed', {
+        field,
+        matchingCount: matchingFeatures.length,
+        totalCount: data.length,
+      });
+
+      return matchingFeatures;
+    }
+
+    // Return null to indicate this field doesn't need hierarchical processing
+    return null;
+  }
+
+  /**
+   * Get nested field value using dot notation (helper for debugging)
+   */
+  private getNestedFieldValue(obj: any, path: string): any {
+    return path.split('.').reduce((current, key) => current?.[key], obj);
   }
 
   /**

@@ -325,10 +325,10 @@ async function listComponents(args: any) {
   return await withContext(
     async context => {
       const normalizedParams = normalizeListParams(args);
-      const params: any = {
-        pageLimit: normalizedParams.limit,
-        pageOffset: normalizedParams.startWith,
-      };
+      const params: any = {};
+
+      // Remove problematic pagination parameters that cause API errors
+      // ProductBoard API doesn't accept 'limit', 'pageLimit', or 'pageOffset'
 
       // Note: The Productboard API /components endpoint doesn't support filtering
       // We'll need to fetch all and filter client-side
