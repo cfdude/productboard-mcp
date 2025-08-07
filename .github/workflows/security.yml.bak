@@ -39,8 +39,7 @@ jobs:
            grep -v "throw new" | \
            grep -v "Check API token" | \
            grep -v "Object.keys" | \
-           grep -v "test\.ts" | \
-           grep -v "check your API token"; then
+           grep -v "test\.ts"; then
           echo "Potential secrets found in code. Please review."
           exit 1
         fi
