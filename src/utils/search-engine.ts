@@ -72,7 +72,7 @@ export class SearchEngine {
       filters: params.filters || {},
       operators: params.operators || {},
       output: output,
-      limit: Math.min(Math.max(params.limit || 50, 1), 100), // Ensure minimum limit of 1
+      limit: Math.min(Math.max(params.limit ?? 50, 1), 100), // Ensure minimum limit of 1
       startWith: Math.max(params.startWith || 0, 0),
       detail: params.detail || 'standard',
       includeSubData: params.includeSubData || false,

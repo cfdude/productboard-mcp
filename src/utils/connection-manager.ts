@@ -196,7 +196,20 @@ class ConnectionManager {
 // Singleton instance
 export const connectionManager = new ConnectionManager();
 
-// Cleanup interval
-setInterval(() => {
-  connectionManager.cleanupStaleConnections();
-}, 60000); // Every minute
+// Cleanup interval - store reference for testing
+let cleanupInterval: ReturnType<typeof setInterval> | null = null;
+
+// Only set interval if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+  cleanupInterval = setInterval(() => {
+    connectionManager.cleanupStaleConnections();
+  }, 60000); // Every minute
+}
+
+// Export function to clear interval for testing
+export const clearCleanupInterval = () => {
+  if (cleanupInterval) {
+    clearInterval(cleanupInterval);
+    cleanupInterval = null;
+  }
+};

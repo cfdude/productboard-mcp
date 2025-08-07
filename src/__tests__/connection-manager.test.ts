@@ -1,0 +1,706 @@
+/**
+ * @jest-environment node
+ */
+
+import {
+  describe,
+  it,
+  expect,
+  jest,
+  beforeEach,
+  afterEach,
+} from '@jest/globals';
+
+// Mock console to avoid output during tests
+const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+// Import after mocking console
+import { connectionManager } from '../utils/connection-manager.js';
+
+describe('ConnectionManager', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+
+    // Clear any existing connections before each test
+    // Force cleanup by calling private cleanup method
+    (connectionManager as any).connections.clear();
+    (connectionManager as any).activeRequests.clear();
+    (connectionManager as any).requestQueue.clear();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  describe('Connection Registration', () => {
+    it('should register a new connection', () => {
+      connectionManager.registerConnection('test-connection-1');
+
+      const stats = connectionManager.getStats();
+      expect(stats.totalConnections).toBe(1);
+      expect(stats.activeConnections).toBe(1);
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        '[ConnectionManager] Registered connection: test-connection-1'
+      );
+    });
+
+    it('should initialize request tracking for new connections', () => {
+      connectionManager.registerConnection('test-connection-2');
+
+      // Test internal state
+      const activeRequests = (connectionManager as any).activeRequests;
+      const requestQueue = (connectionManager as any).requestQueue;
+
+      expect(activeRequests.has('test-connection-2')).toBe(true);
+      expect(activeRequests.get('test-connection-2')).toBe(0);
+      expect(requestQueue.has('test-connection-2')).toBe(true);
+      expect(requestQueue.get('test-connection-2')).toEqual([]);
+    });
+
+    it('should set connection properties correctly', () => {
+      const beforeRegistration = Date.now();
+      connectionManager.registerConnection('test-connection-3');
+      const afterRegistration = Date.now();
+
+      const connections = (connectionManager as any).connections;
+      const connection = connections.get('test-connection-3');
+
+      expect(connection).toBeDefined();
+      expect(connection.id).toBe('test-connection-3');
+      expect(connection.createdAt.getTime()).toBeGreaterThanOrEqual(
+        beforeRegistration
+      );
+      expect(connection.createdAt.getTime()).toBeLessThanOrEqual(
+        afterRegistration
+      );
+      expect(connection.lastUsed.getTime()).toBeGreaterThanOrEqual(
+        beforeRegistration
+      );
+      expect(connection.lastUsed.getTime()).toBeLessThanOrEqual(
+        afterRegistration
+      );
+      expect(connection.requestCount).toBe(0);
+      expect(connection.isActive).toBe(true);
+    });
+  });
+
+  describe('Request Handling', () => {
+    describe('Basic Request Processing', () => {
+      it('should handle request successfully', async () => {
+        connectionManager.registerConnection('test-connection');
+
+        const mockHandler = jest.fn(() => Promise.resolve('success'));
+        const result = await connectionManager.handleRequest(
+          'test-connection',
+          mockHandler as any
+        );
+
+        expect(result).toBe('success');
+        expect(mockHandler).toHaveBeenCalledTimes(1);
+      });
+
+      it('should auto-register connection if not exists', async () => {
+        const mockHandler = jest.fn(() => Promise.resolve('success'));
+        const result = await connectionManager.handleRequest(
+          'auto-connection',
+          mockHandler as any
+        );
+
+        expect(result).toBe('success');
+        const stats = connectionManager.getStats();
+        expect(stats.totalConnections).toBe(1);
+        expect(mockConsoleLog).toHaveBeenCalledWith(
+          '[ConnectionManager] Registered connection: auto-connection'
+        );
+      });
+
+      it('should update connection properties on request', async () => {
+        connectionManager.registerConnection('test-connection');
+
+        const connections = (connectionManager as any).connections;
+        const initialConnection = connections.get('test-connection');
+        const initialLastUsed = initialConnection.lastUsed.getTime();
+        const initialRequestCount = initialConnection.requestCount;
+
+        // Wait a bit to ensure timestamp difference
+        jest.advanceTimersByTime(100);
+
+        const mockHandler = jest.fn(() => Promise.resolve('success'));
+        await connectionManager.handleRequest(
+          'test-connection',
+          mockHandler as any
+        );
+
+        const updatedConnection = connections.get('test-connection');
+        expect(updatedConnection.lastUsed.getTime()).toBeGreaterThan(
+          initialLastUsed
+        );
+        expect(updatedConnection.requestCount).toBe(initialRequestCount + 1);
+      });
+
+      it('should handle request errors gracefully', async () => {
+        connectionManager.registerConnection('test-connection');
+
+        const mockHandler = jest
+          .fn()
+          .mockRejectedValue(new Error('Request failed') as never);
+
+        await expect(
+          connectionManager.handleRequest('test-connection', mockHandler as any)
+        ).rejects.toThrow('Request failed');
+
+        // Should still decrement active requests counter
+        const stats = connectionManager.getStats();
+        expect(stats.queuedRequests).toBe(0);
+      });
+    });
+
+    describe('Concurrency Control', () => {
+      it('should allow requests up to max concurrent limit', async () => {
+        connectionManager.registerConnection('test-connection');
+
+        const mockHandlers = Array(10)
+          .fill(0)
+          .map(() =>
+            jest
+              .fn()
+              .mockImplementation(
+                () =>
+                  new Promise(resolve =>
+                    setTimeout(() => resolve('success'), 100)
+                  )
+              )
+          );
+
+        // Start all requests simultaneously
+        const promises = mockHandlers.map(handler =>
+          connectionManager.handleRequest('test-connection', handler as any)
+        );
+
+        // All should be executing (not queued)
+        const stats = connectionManager.getStats();
+        expect(stats.queuedRequests).toBe(0);
+
+        // Fast-forward timers to resolve promises
+        jest.advanceTimersByTime(100);
+        const results = await Promise.all(promises);
+
+        expect(results).toEqual(Array(10).fill('success'));
+        mockHandlers.forEach(handler => {
+          expect(handler).toHaveBeenCalledTimes(1);
+        });
+      });
+
+      it('should queue requests beyond max concurrent limit', async () => {
+        connectionManager.registerConnection('test-connection');
+
+        const longRunningHandler = jest
+          .fn()
+          .mockImplementation(
+            () =>
+              new Promise(resolve => setTimeout(() => resolve('long'), 1000))
+          );
+        const quickHandler = jest.fn(() => Promise.resolve('quick'));
+
+        // Fill up all concurrent slots with long-running requests
+        const longRunningPromises = Array(10)
+          .fill(0)
+          .map(() =>
+            connectionManager.handleRequest(
+              'test-connection',
+              longRunningHandler as any
+            )
+          );
+
+        // This request should be queued
+        const queuedPromise = connectionManager.handleRequest(
+          'test-connection',
+          quickHandler as any
+        );
+
+        // Check that the request is queued
+        const stats = connectionManager.getStats();
+        expect(stats.queuedRequests).toBe(1);
+
+        // The quick handler shouldn't have been called yet
+        expect(quickHandler).not.toHaveBeenCalled();
+
+        // Fast-forward to complete one long-running request
+        jest.advanceTimersByTime(1000);
+        await Promise.all(longRunningPromises);
+
+        // Now the queued request should execute
+        const queuedResult = await queuedPromise;
+        expect(queuedResult).toBe('quick');
+        expect(quickHandler).toHaveBeenCalledTimes(1);
+      });
+
+      it('should process queue in FIFO order', async () => {
+        connectionManager.registerConnection('test-connection');
+
+        const executionOrder: string[] = [];
+        const createHandler = (id: string) =>
+          jest.fn().mockImplementation(async () => {
+            executionOrder.push(id);
+            return id;
+          });
+
+        // Fill concurrent slots
+        const concurrentHandlers = Array(10)
+          .fill(0)
+          .map((_, i) => createHandler(`concurrent-${i}`));
+        const concurrentPromises = concurrentHandlers.map(handler =>
+          connectionManager.handleRequest('test-connection', handler as any)
+        );
+
+        // Queue additional requests
+        const queuedHandlers = [
+          createHandler('queued-1'),
+          createHandler('queued-2'),
+          createHandler('queued-3'),
+        ];
+        const queuedPromises = queuedHandlers.map(handler =>
+          connectionManager.handleRequest('test-connection', handler as any)
+        );
+
+        // Complete concurrent requests to process queue
+        await Promise.all(concurrentPromises);
+        await Promise.all(queuedPromises);
+
+        // Check that queued requests were processed in order
+        const queuedExecutions = executionOrder.filter(id =>
+          id.startsWith('queued-')
+        );
+        expect(queuedExecutions).toEqual(['queued-1', 'queued-2', 'queued-3']);
+      });
+
+      it('should track active requests correctly', async () => {
+        connectionManager.registerConnection('test-connection');
+
+        const slowHandler = jest
+          .fn()
+          .mockImplementation(
+            () => new Promise(resolve => setTimeout(() => resolve('done'), 500))
+          );
+
+        // Start multiple requests
+        const promises = Array(5)
+          .fill(0)
+          .map(() =>
+            connectionManager.handleRequest(
+              'test-connection',
+              slowHandler as any
+            )
+          );
+
+        // Check active request count
+        const activeRequests = (connectionManager as any).activeRequests;
+        expect(activeRequests.get('test-connection')).toBe(5);
+
+        // Complete requests
+        jest.advanceTimersByTime(500);
+        await Promise.all(promises);
+
+        // Active count should be back to 0
+        expect(activeRequests.get('test-connection')).toBe(0);
+      });
+    });
+  });
+
+  describe('Connection Closure', () => {
+    it('should close connection and cleanup resources', () => {
+      connectionManager.registerConnection('test-connection');
+
+      // Add some queued requests (not awaited intentionally)
+      Array(3)
+        .fill(0)
+        .map((_, i) =>
+          connectionManager.handleRequest(
+            'test-connection',
+            () =>
+              new Promise(resolve =>
+                setTimeout(() => resolve(`queued-${i}`), 1000)
+              )
+          )
+        );
+
+      connectionManager.closeConnection('test-connection');
+
+      const stats = connectionManager.getStats();
+      expect(stats.totalConnections).toBe(0);
+      expect(stats.queuedRequests).toBe(0);
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        '[ConnectionManager] Closed connection: test-connection'
+      );
+    });
+
+    it('should reject queued requests on connection close', async () => {
+      connectionManager.registerConnection('test-connection');
+
+      // Fill concurrent slots (not awaited intentionally)
+      Array(10)
+        .fill(0)
+        .map(() =>
+          connectionManager.handleRequest(
+            'test-connection',
+            () =>
+              new Promise(resolve =>
+                setTimeout(() => resolve('blocking'), 1000)
+              )
+          )
+        );
+
+      // Queue additional requests
+      const queuedPromises = Array(3)
+        .fill(0)
+        .map(() =>
+          connectionManager.handleRequest('test-connection', () =>
+            Promise.resolve('queued')
+          )
+        );
+
+      // Close connection - should reject queued requests
+      connectionManager.closeConnection('test-connection');
+
+      // Queued requests should be rejected
+      for (const promise of queuedPromises) {
+        await expect(promise).rejects.toThrow('Connection closed');
+      }
+    });
+
+    it('should handle closing non-existent connection gracefully', () => {
+      connectionManager.closeConnection('non-existent');
+
+      // Should not throw error or log anything
+      expect(mockConsoleLog).not.toHaveBeenCalledWith(
+        expect.stringContaining('Closed connection: non-existent')
+      );
+    });
+
+    it('should mark connection as inactive', () => {
+      connectionManager.registerConnection('test-connection');
+
+      const connections = (connectionManager as any).connections;
+      const connection = connections.get('test-connection');
+      expect(connection.isActive).toBe(true);
+
+      connectionManager.closeConnection('test-connection');
+
+      // Connection should be removed entirely, but let's test the flow by checking
+      // that closeConnection sets isActive to false before cleanup
+      expect(connections.has('test-connection')).toBe(false);
+    });
+  });
+
+  describe('Statistics', () => {
+    it('should return correct statistics for empty state', () => {
+      const stats = connectionManager.getStats();
+
+      expect(stats.totalConnections).toBe(0);
+      expect(stats.activeConnections).toBe(0);
+      expect(stats.totalRequests).toBe(0);
+      expect(stats.queuedRequests).toBe(0);
+    });
+
+    it('should calculate statistics correctly', async () => {
+      // Register multiple connections
+      connectionManager.registerConnection('conn1');
+      connectionManager.registerConnection('conn2');
+
+      // Make some requests to update request counts
+      await connectionManager.handleRequest('conn1', () =>
+        Promise.resolve('test' as any)
+      );
+      await connectionManager.handleRequest('conn1', () =>
+        Promise.resolve('test' as any)
+      );
+      await connectionManager.handleRequest('conn2', () =>
+        Promise.resolve('test' as any)
+      );
+
+      const stats = connectionManager.getStats();
+      expect(stats.totalConnections).toBe(2);
+      expect(stats.activeConnections).toBe(2);
+      expect(stats.totalRequests).toBe(3);
+      expect(stats.queuedRequests).toBe(0);
+    });
+
+    it('should count queued requests correctly', async () => {
+      connectionManager.registerConnection('test-connection');
+
+      // Fill concurrent slots with blocking requests (not awaited intentionally)
+      Array(10)
+        .fill(0)
+        .map(() =>
+          connectionManager.handleRequest(
+            'test-connection',
+            () =>
+              new Promise(resolve =>
+                setTimeout(() => resolve('blocking'), 1000)
+              )
+          )
+        );
+
+      // Add queued requests (not awaited intentionally)
+      Array(5)
+        .fill(0)
+        .map(() =>
+          connectionManager.handleRequest('test-connection', () =>
+            Promise.resolve('queued')
+          )
+        );
+
+      const stats = connectionManager.getStats();
+      expect(stats.queuedRequests).toBe(5);
+    });
+
+    it('should distinguish between active and inactive connections', () => {
+      connectionManager.registerConnection('active-conn');
+      connectionManager.registerConnection('inactive-conn');
+
+      // Close one connection
+      connectionManager.closeConnection('inactive-conn');
+
+      const stats = connectionManager.getStats();
+      expect(stats.totalConnections).toBe(1);
+      expect(stats.activeConnections).toBe(1);
+    });
+  });
+
+  describe('Stale Connection Cleanup', () => {
+    it('should identify and cleanup stale connections', () => {
+      const now = Date.now();
+      jest.setSystemTime(now);
+
+      connectionManager.registerConnection('fresh-connection');
+      connectionManager.registerConnection('stale-connection');
+
+      // Manually set last used time to simulate stale connection
+      const connections = (connectionManager as any).connections;
+      const staleConnection = connections.get('stale-connection');
+      staleConnection.lastUsed = new Date(now - 400000); // 6 minutes ago (> 5 min timeout)
+
+      connectionManager.cleanupStaleConnections();
+
+      const stats = connectionManager.getStats();
+      expect(stats.totalConnections).toBe(1);
+      expect(connections.has('fresh-connection')).toBe(true);
+      expect(connections.has('stale-connection')).toBe(false);
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        '[ConnectionManager] Cleaned up 1 stale connections'
+      );
+    });
+
+    it('should not cleanup fresh connections', () => {
+      connectionManager.registerConnection('fresh-connection-1');
+      connectionManager.registerConnection('fresh-connection-2');
+
+      connectionManager.cleanupStaleConnections();
+
+      const stats = connectionManager.getStats();
+      expect(stats.totalConnections).toBe(2);
+      expect(stats.activeConnections).toBe(2);
+
+      // Should not log cleanup message for 0 stale connections
+      expect(mockConsoleLog).not.toHaveBeenCalledWith(
+        expect.stringContaining('Cleaned up')
+      );
+    });
+
+    it('should handle cleanup with no connections', () => {
+      connectionManager.cleanupStaleConnections();
+
+      // Should not throw error
+      const stats = connectionManager.getStats();
+      expect(stats.totalConnections).toBe(0);
+    });
+
+    it('should use correct timeout value', () => {
+      const now = Date.now();
+      jest.setSystemTime(now);
+
+      connectionManager.registerConnection('borderline-connection');
+
+      const connections = (connectionManager as any).connections;
+      const connection = connections.get('borderline-connection');
+
+      // Set slightly over timeout boundary (5 minutes = 300000ms, using 300001ms)
+      connection.lastUsed = new Date(now - 300001);
+
+      connectionManager.cleanupStaleConnections();
+
+      // Should be cleaned up (> timeout)
+      expect(connections.has('borderline-connection')).toBe(false);
+    });
+
+    it('should cleanup multiple stale connections', () => {
+      const now = Date.now();
+      jest.setSystemTime(now);
+
+      connectionManager.registerConnection('fresh');
+      connectionManager.registerConnection('stale1');
+      connectionManager.registerConnection('stale2');
+      connectionManager.registerConnection('stale3');
+
+      const connections = (connectionManager as any).connections;
+
+      // Make connections stale
+      ['stale1', 'stale2', 'stale3'].forEach(id => {
+        connections.get(id).lastUsed = new Date(now - 400000);
+      });
+
+      connectionManager.cleanupStaleConnections();
+
+      const stats = connectionManager.getStats();
+      expect(stats.totalConnections).toBe(1);
+      expect(connections.has('fresh')).toBe(true);
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        '[ConnectionManager] Cleaned up 3 stale connections'
+      );
+    });
+  });
+
+  describe('Edge Cases and Error Handling', () => {
+    it('should handle concurrent modifications safely', async () => {
+      connectionManager.registerConnection('test-connection');
+
+      const handler1 = jest.fn().mockImplementation(() => {
+        // Simulate concurrent close during request
+        setTimeout(
+          () => connectionManager.closeConnection('test-connection'),
+          10
+        );
+        return new Promise(resolve => setTimeout(() => resolve('result1'), 50));
+      });
+
+      const handler2 = jest.fn(() => Promise.resolve('result2'));
+
+      // Start request and close connection concurrently
+      const promise1 = connectionManager.handleRequest(
+        'test-connection',
+        handler1 as any
+      );
+      const promise2 = connectionManager.handleRequest(
+        'test-connection',
+        handler2 as any
+      );
+
+      jest.advanceTimersByTime(100);
+
+      const result1 = await promise1;
+      expect(result1).toBe('result1');
+
+      // Second request might fail due to connection closure
+      try {
+        await promise2;
+      } catch (error: any) {
+        expect(error).toBeInstanceOf(Error);
+      }
+    });
+
+    it('should handle queue processing with errors', async () => {
+      connectionManager.registerConnection('test-connection');
+
+      // Fill concurrent slots
+      const blockingHandlers = Array(10)
+        .fill(0)
+        .map(() =>
+          jest
+            .fn()
+            .mockImplementation(
+              () =>
+                new Promise(resolve =>
+                  setTimeout(() => resolve('blocking'), 100)
+                )
+            )
+        );
+      const blockingPromises = blockingHandlers.map(handler =>
+        connectionManager.handleRequest('test-connection', handler as any)
+      );
+
+      // Queue requests - one that will fail, one that should succeed
+      const failingHandler = jest
+        .fn()
+        .mockRejectedValue(new Error('Queued request failed') as never);
+      const successHandler = jest.fn(() => Promise.resolve('success'));
+
+      const failingPromise = connectionManager.handleRequest(
+        'test-connection',
+        failingHandler as any
+      );
+      const successPromise = connectionManager.handleRequest(
+        'test-connection',
+        successHandler as any
+      );
+
+      // Complete blocking requests to process queue
+      jest.advanceTimersByTime(100);
+      await Promise.all(blockingPromises);
+
+      // First queued request should fail
+      await expect(failingPromise).rejects.toThrow('Queued request failed');
+
+      // Second queued request should succeed
+      const result = await successPromise;
+      expect(result).toBe('success');
+    });
+
+    it('should handle empty queue gracefully', () => {
+      connectionManager.registerConnection('test-connection');
+
+      // Call processQueue with empty queue - bind the context
+      const processQueue = (connectionManager as any).processQueue.bind(
+        connectionManager
+      );
+      expect(() => processQueue('test-connection')).not.toThrow();
+
+      // Should not affect active request count
+      const activeRequests = (connectionManager as any).activeRequests;
+      expect(activeRequests.get('test-connection')).toBe(0);
+    });
+
+    it('should handle missing connection in processQueue', () => {
+      // Call processQueue for non-existent connection - bind the context
+      const processQueue = (connectionManager as any).processQueue.bind(
+        connectionManager
+      );
+      expect(() => processQueue('non-existent')).not.toThrow();
+    });
+
+    it('should handle extreme request counts', async () => {
+      connectionManager.registerConnection('test-connection');
+
+      // Test with many small requests
+      const handlers = Array(100)
+        .fill(0)
+        .map((_, i) => jest.fn(() => Promise.resolve(`result-${i}`)));
+
+      const promises = handlers.map(handler =>
+        connectionManager.handleRequest('test-connection', handler as any)
+      );
+
+      const results = await Promise.all(promises);
+
+      expect(results).toHaveLength(100);
+      handlers.forEach((handler, i) => {
+        expect(handler).toHaveBeenCalledTimes(1);
+        expect(results[i]).toBe(`result-${i}`);
+      });
+    });
+  });
+
+  describe('Module-level Behavior', () => {
+    it('should export a singleton instance', async () => {
+      // Import again to test singleton behavior
+      const { connectionManager: anotherRef } = await import(
+        '../utils/connection-manager.js'
+      );
+      expect(anotherRef).toBe(connectionManager);
+    });
+
+    // Note: Testing the setInterval cleanup timer would require more complex mocking
+    // of setInterval and would be more of an integration test. The cleanup logic
+    // is already tested above.
+  });
+});

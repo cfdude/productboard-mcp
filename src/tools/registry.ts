@@ -186,6 +186,11 @@ export class ToolRegistry {
               'custom-fields': 'custom-fields',
               'plugin-integrations': 'plugin-integrations',
               'jira-integrations': 'jira-integrations',
+              // Add new dynamic categories
+              performance: 'performance',
+              'bulk-operations': 'bulk-operations',
+              'context-aware': 'context-aware',
+              search: 'search',
             };
 
             // For components and products, they have their own module files
@@ -248,6 +253,11 @@ export class ToolRegistry {
             'custom-fields': 'custom-fields',
             'plugin-integrations': 'plugin-integrations',
             'jira-integrations': 'jira-integrations',
+            // Add new dynamic categories
+            performance: 'performance',
+            'bulk-operations': 'bulk-operations',
+            'context-aware': 'context-aware',
+            search: 'search',
             // Handle category name mismatches from manifest
             followers: 'notes',
             components: 'components',
