@@ -209,7 +209,7 @@ async function listProducts(args: any) {
         params,
         {
           maxItems: normalized.limit > 100 ? normalized.limit : undefined,
-          onPageFetched: (pageData, pageNum, totalSoFar) => {
+          onPageFetched: (_pageData, _pageNum, _totalSoFar) => {
             // Page fetched successfully
           },
         }
