@@ -518,10 +518,8 @@ async function listFeatures(args: any) {
         {
           maxItems:
             normalizedParams.limit > 100 ? normalizedParams.limit : undefined,
-          onPageFetched: (pageData, pageNum, totalSoFar) => {
-            console.log(
-              `📄 Fetched page ${pageNum}: ${pageData.length} features (total: ${totalSoFar})`
-            );
+          onPageFetched: (_pageData, _pageNum, _totalSoFar) => {
+            // Page fetched successfully
           },
         }
       );

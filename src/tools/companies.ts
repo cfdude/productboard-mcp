@@ -540,10 +540,8 @@ async function listCompanies(args: StandardListParams & any) {
         params,
         {
           maxItems: normalized.limit > 100 ? normalized.limit : undefined,
-          onPageFetched: (pageData, pageNum, totalSoFar) => {
-            console.log(
-              `📄 Fetched companies page ${pageNum}: ${pageData.length} companies (total: ${totalSoFar})`
-            );
+          onPageFetched: (_pageData, _pageNum, _totalSoFar) => {
+            // Page fetched successfully
           },
         }
       );

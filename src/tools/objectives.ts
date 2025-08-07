@@ -951,10 +951,8 @@ async function listObjectives(args: StandardListParams & any) {
         params,
         {
           maxItems: normalized.limit > 100 ? normalized.limit : undefined,
-          onPageFetched: (pageData, pageNum, totalSoFar) => {
-            console.log(
-              `📄 Fetched objectives page ${pageNum}: ${pageData.length} objectives (total: ${totalSoFar})`
-            );
+          onPageFetched: (_pageData, _pageNum, _totalSoFar) => {
+            // Page fetched successfully
           },
         }
       );
@@ -1278,10 +1276,8 @@ async function listInitiatives(args: StandardListParams & any) {
         params,
         {
           maxItems: normalized.limit > 100 ? normalized.limit : undefined,
-          onPageFetched: (pageData, pageNum, totalSoFar) => {
-            console.log(
-              `📄 Fetched initiatives page ${pageNum}: ${pageData.length} initiatives (total: ${totalSoFar})`
-            );
+          onPageFetched: (_pageData, _pageNum, _totalSoFar) => {
+            // Page fetched successfully
           },
         }
       );
@@ -1604,10 +1600,8 @@ async function listKeyResults(args: StandardListParams & any) {
         params,
         {
           maxItems: normalized.limit > 100 ? normalized.limit : undefined,
-          onPageFetched: (pageData, pageNum, totalSoFar) => {
-            console.log(
-              `📄 Fetched key results page ${pageNum}: ${pageData.length} key results (total: ${totalSoFar})`
-            );
+          onPageFetched: (_pageData, _pageNum, _totalSoFar) => {
+            // Page fetched successfully
           },
         }
       );

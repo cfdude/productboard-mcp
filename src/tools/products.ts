@@ -210,9 +210,7 @@ async function listProducts(args: any) {
         {
           maxItems: normalized.limit > 100 ? normalized.limit : undefined,
           onPageFetched: (pageData, pageNum, totalSoFar) => {
-            console.log(
-              `📄 Fetched products page ${pageNum}: ${pageData.length} products (total: ${totalSoFar})`
-            );
+            // Page fetched successfully
           },
         }
       );

@@ -573,10 +573,8 @@ async function listReleaseGroups(args: StandardListParams & any) {
         params,
         {
           maxItems: normalized.limit > 100 ? normalized.limit : undefined,
-          onPageFetched: (pageData, pageNum, totalSoFar) => {
-            console.log(
-              `📄 Fetched release groups page ${pageNum}: ${pageData.length} release groups (total: ${totalSoFar})`
-            );
+          onPageFetched: (_pageData, _pageNum, _totalSoFar) => {
+            // Page fetched successfully
           },
         }
       );
@@ -760,10 +758,8 @@ async function listReleases(args: StandardListParams & any) {
         params,
         {
           maxItems: normalized.limit > 100 ? normalized.limit : undefined,
-          onPageFetched: (pageData, pageNum, totalSoFar) => {
-            console.log(
-              `📄 Fetched releases page ${pageNum}: ${pageData.length} releases (total: ${totalSoFar})`
-            );
+          onPageFetched: (_pageData, _pageNum, _totalSoFar) => {
+            // Page fetched successfully
           },
         }
       );
@@ -924,10 +920,8 @@ async function listFeatureReleaseAssignments(args: StandardListParams & any) {
         params,
         {
           maxItems: normalized.limit > 100 ? normalized.limit : undefined,
-          onPageFetched: (pageData, pageNum, totalSoFar) => {
-            console.log(
-              `📄 Fetched feature release assignments page ${pageNum}: ${pageData.length} assignments (total: ${totalSoFar})`
-            );
+          onPageFetched: (_pageData, _pageNum, _totalSoFar) => {
+            // Page fetched successfully
           },
         }
       );

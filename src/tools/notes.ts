@@ -680,10 +680,8 @@ async function listNotes(args: StandardListParams & any) {
         params,
         {
           maxItems: normalized.limit > 100 ? normalized.limit : undefined,
-          onPageFetched: (pageData, pageNum, totalSoFar) => {
-            console.log(
-              `📄 Fetched notes page ${pageNum}: ${pageData.length} notes (total: ${totalSoFar})`
-            );
+          onPageFetched: (_pageData, _pageNum, _totalSoFar) => {
+            // Page fetched successfully
           },
         }
       );

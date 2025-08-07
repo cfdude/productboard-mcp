@@ -260,9 +260,7 @@ async function listUsers(args: StandardListParams & any) {
         {
           maxItems: normalized.limit > 100 ? normalized.limit : undefined,
           onPageFetched: (pageData, pageNum, totalSoFar) => {
-            console.log(
-              `📄 Fetched users page ${pageNum}: ${pageData.length} users (total: ${totalSoFar})`
-            );
+            // Page fetched successfully
           },
         }
       );
