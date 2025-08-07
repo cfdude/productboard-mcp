@@ -9,6 +9,7 @@ import {
   filterArrayByDetailLevel,
   isEnterpriseError,
 } from '../utils/parameter-utils.js';
+import { fetchAllPages } from '../utils/pagination-handler.js';
 import {
   StandardListParams,
   StandardGetParams,
@@ -940,22 +941,47 @@ async function createObjective(args: any) {
 async function listObjectives(args: StandardListParams & any) {
   return await withContext(
     async context => {
-      const normalizedParams = normalizeListParams(args);
-      const params: any = {
-        pageLimit: normalizedParams.limit,
-        pageOffset: normalizedParams.startWith,
+      const normalized = normalizeListParams(args);
+      const params: any = {};
+
+      // Use proper pagination handler to fetch all pages
+      const paginatedResponse = await fetchAllPages(
+        context.axios,
+        '/objectives',
+        params,
+        {
+          maxItems: normalized.limit > 100 ? normalized.limit : undefined,
+          onPageFetched: (pageData, pageNum, totalSoFar) => {
+            console.log(
+              `📄 Fetched objectives page ${pageNum}: ${pageData.length} objectives (total: ${totalSoFar})`
+            );
+          },
+        }
+      );
+
+      const result = {
+        data: paginatedResponse.data,
+        links: paginatedResponse.links,
+        meta: {
+          ...paginatedResponse.meta,
+          totalFetched: paginatedResponse.data.length,
+        },
       };
 
-      const response = await context.axios.get('/objectives', { params });
-
-      const result = response.data;
-
-      // Apply detail level filtering
-      if (!normalizedParams.includeSubData && result.data) {
+      // Apply detail level filtering after fetching all data
+      if (!normalized.includeSubData && result.data) {
         result.data = filterArrayByDetailLevel(
           result.data,
           'objective',
-          normalizedParams.detail
+          normalized.detail
+        );
+      }
+
+      // Apply client-side limit after filtering (if requested limit < total available)
+      if (normalized.limit && normalized.limit < result.data.length) {
+        result.data = result.data.slice(
+          normalized.startWith || 0,
+          (normalized.startWith || 0) + normalized.limit
         );
       }
 
@@ -1242,22 +1268,47 @@ async function createInitiative(args: any) {
 async function listInitiatives(args: StandardListParams & any) {
   return await withContext(
     async context => {
-      const normalizedParams = normalizeListParams(args);
-      const params: any = {
-        pageLimit: normalizedParams.limit,
-        pageOffset: normalizedParams.startWith,
+      const normalized = normalizeListParams(args);
+      const params: any = {};
+
+      // Use proper pagination handler to fetch all pages
+      const paginatedResponse = await fetchAllPages(
+        context.axios,
+        '/initiatives',
+        params,
+        {
+          maxItems: normalized.limit > 100 ? normalized.limit : undefined,
+          onPageFetched: (pageData, pageNum, totalSoFar) => {
+            console.log(
+              `📄 Fetched initiatives page ${pageNum}: ${pageData.length} initiatives (total: ${totalSoFar})`
+            );
+          },
+        }
+      );
+
+      const result = {
+        data: paginatedResponse.data,
+        links: paginatedResponse.links,
+        meta: {
+          ...paginatedResponse.meta,
+          totalFetched: paginatedResponse.data.length,
+        },
       };
 
-      const response = await context.axios.get('/initiatives', { params });
-
-      const result = response.data;
-
-      // Apply detail level filtering
-      if (!normalizedParams.includeSubData && result.data) {
+      // Apply detail level filtering after fetching all data
+      if (!normalized.includeSubData && result.data) {
         result.data = filterArrayByDetailLevel(
           result.data,
           'initiative',
-          normalizedParams.detail
+          normalized.detail
+        );
+      }
+
+      // Apply client-side limit after filtering (if requested limit < total available)
+      if (normalized.limit && normalized.limit < result.data.length) {
+        result.data = result.data.slice(
+          normalized.startWith || 0,
+          (normalized.startWith || 0) + normalized.limit
         );
       }
 
@@ -1543,22 +1594,47 @@ async function createKeyResult(args: any) {
 async function listKeyResults(args: StandardListParams & any) {
   return await withContext(
     async context => {
-      const normalizedParams = normalizeListParams(args);
-      const params: any = {
-        pageLimit: normalizedParams.limit,
-        pageOffset: normalizedParams.startWith,
+      const normalized = normalizeListParams(args);
+      const params: any = {};
+
+      // Use proper pagination handler to fetch all pages
+      const paginatedResponse = await fetchAllPages(
+        context.axios,
+        '/key-results',
+        params,
+        {
+          maxItems: normalized.limit > 100 ? normalized.limit : undefined,
+          onPageFetched: (pageData, pageNum, totalSoFar) => {
+            console.log(
+              `📄 Fetched key results page ${pageNum}: ${pageData.length} key results (total: ${totalSoFar})`
+            );
+          },
+        }
+      );
+
+      const result = {
+        data: paginatedResponse.data,
+        links: paginatedResponse.links,
+        meta: {
+          ...paginatedResponse.meta,
+          totalFetched: paginatedResponse.data.length,
+        },
       };
 
-      const response = await context.axios.get('/key-results', { params });
-
-      const result = response.data;
-
-      // Apply detail level filtering
-      if (!normalizedParams.includeSubData && result.data) {
+      // Apply detail level filtering after fetching all data
+      if (!normalized.includeSubData && result.data) {
         result.data = filterArrayByDetailLevel(
           result.data,
           'keyResult',
-          normalizedParams.detail
+          normalized.detail
+        );
+      }
+
+      // Apply client-side limit after filtering (if requested limit < total available)
+      if (normalized.limit && normalized.limit < result.data.length) {
+        result.data = result.data.slice(
+          normalized.startWith || 0,
+          (normalized.startWith || 0) + normalized.limit
         );
       }
 

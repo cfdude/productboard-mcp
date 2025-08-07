@@ -9,6 +9,7 @@ import {
   isEnterpriseError,
 } from '../utils/parameter-utils.js';
 import { withContext, formatResponse } from '../utils/tool-wrapper.js';
+import { fetchAllPages } from '../utils/pagination-handler.js';
 import { ProductboardError } from '../errors/index.js';
 import { ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 
@@ -198,23 +199,47 @@ export async function handleProductsTool(name: string, args: any) {
 async function listProducts(args: any) {
   return await withContext(
     async context => {
-      const normalizedParams = normalizeListParams(args);
-      const params: any = {
-        pageLimit: normalizedParams.limit,
-        pageOffset: normalizedParams.startWith,
+      const normalized = normalizeListParams(args);
+      const params: any = {};
+
+      // Use proper pagination handler to fetch all pages
+      const paginatedResponse = await fetchAllPages(
+        context.axios,
+        '/products',
+        params,
+        {
+          maxItems: normalized.limit > 100 ? normalized.limit : undefined,
+          onPageFetched: (pageData, pageNum, totalSoFar) => {
+            console.log(
+              `📄 Fetched products page ${pageNum}: ${pageData.length} products (total: ${totalSoFar})`
+            );
+          },
+        }
+      );
+
+      const result = {
+        data: paginatedResponse.data,
+        links: paginatedResponse.links,
+        meta: {
+          ...paginatedResponse.meta,
+          totalFetched: paginatedResponse.data.length,
+        },
       };
 
-      const response = await context.axios.get('/products', { params });
-
-      // Return the full response object with data array, matching companies pattern
-      const data = response.data;
-
-      // Apply detail level filtering if needed
-      if (data.data && Array.isArray(data.data)) {
-        data.data = filterArrayByDetailLevel(
-          data.data,
+      // Apply detail level filtering after fetching all data
+      if (!normalized.includeSubData && result.data) {
+        result.data = filterArrayByDetailLevel(
+          result.data,
           'product',
-          normalizedParams.detail
+          normalized.detail
+        );
+      }
+
+      // Apply client-side limit after filtering (if requested limit < total available)
+      if (normalized.limit && normalized.limit < result.data.length) {
+        result.data = result.data.slice(
+          normalized.startWith || 0,
+          (normalized.startWith || 0) + normalized.limit
         );
       }
 
@@ -222,7 +247,7 @@ async function listProducts(args: any) {
         content: [
           {
             type: 'text',
-            text: formatResponse(data),
+            text: formatResponse(result),
           },
         ],
       };
