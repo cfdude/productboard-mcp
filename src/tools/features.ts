@@ -41,10 +41,13 @@ function getFeatureToolSchemas() {
           },
           status: {
             type: 'object',
+            description:
+              'Feature status (required - use get_feature_statuses to see available options)',
             properties: {
-              id: { type: 'string', description: 'Status ID' },
+              id: { type: 'string', description: 'Status ID (UUID)' },
               name: { type: 'string', description: 'Status name' },
             },
+            required: ['id', 'name'],
           },
           owner: {
             type: 'object',
@@ -78,7 +81,7 @@ function getFeatureToolSchemas() {
             description: 'Workspace ID (optional)',
           },
         },
-        required: ['name'],
+        required: ['name', 'status'],
         additionalProperties: true,
       },
     },
@@ -456,10 +459,10 @@ async function createFeature(args: any) {
       const body: any = {
         name: args.name,
         type: 'feature', // Required field for ProductBoard API
+        status: args.status, // Required field - must have both id and name
       };
 
       if (args.description) body.description = args.description;
-      if (args.status) body.status = args.status;
       if (args.owner) body.owner = args.owner;
       if (args.parent) body.parent = args.parent;
 

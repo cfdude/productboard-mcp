@@ -14,7 +14,7 @@ console.log('🛑 Shutting down ProductBoard MCP Server...\n');
 // 1. Find and kill all productboard-mcp processes
 try {
   const processes = execSync(
-    'ps aux | grep "productboard-mcp/build/index.js" | grep -v grep || true',
+    'ps aux | grep "productboard-mcp.*build/index.js" | grep -v grep || true',
     { encoding: 'utf8' }
   ).trim();
 
