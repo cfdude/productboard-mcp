@@ -40,7 +40,7 @@ class ConnectionManager {
     this.activeRequests.set(connectionId, 0);
     this.requestQueue.set(connectionId, []);
 
-    console.log(`[ConnectionManager] Registered connection: ${connectionId}`);
+    // Connection registered successfully
   }
 
   /**
@@ -134,7 +134,7 @@ class ConnectionManager {
       this.activeRequests.delete(connectionId);
       this.requestQueue.delete(connectionId);
 
-      console.log(`[ConnectionManager] Closed connection: ${connectionId}`);
+      // Connection closed and cleaned up
     }
   }
 
@@ -186,9 +186,7 @@ class ConnectionManager {
     staleConnections.forEach(id => this.closeConnection(id));
 
     if (staleConnections.length > 0) {
-      console.log(
-        `[ConnectionManager] Cleaned up ${staleConnections.length} stale connections`
-      );
+      // Stale connections cleaned up successfully
     }
   }
 }
