@@ -465,11 +465,12 @@ const components = await search({
 ### Available Component Fields
 
 Components only include these parent relationship fields:
+
 - ✅ `parent.product.id` - Product UUID
 - ✅ `parent.product.links.self` - API link to product
 - ✅ `parent.component.id` - Parent component UUID (for sub-components)
 - ❌ `parent.name` - **NOT AVAILABLE**
-- ❌ `parent.product.name` - **NOT AVAILABLE** 
+- ❌ `parent.product.name` - **NOT AVAILABLE**
 - ❌ `parent.component.name` - **NOT AVAILABLE**
 
 ### Human-Friendly Search Pattern
@@ -485,7 +486,7 @@ const parentEntity = await search({
   output: ['id', 'name'],
 });
 
-// Step 2: Use UUID for hierarchical searches  
+// Step 2: Use UUID for hierarchical searches
 const childEntities = await search({
   entityType: 'components', // or 'features'
   filters: { 'parent.product.id': parentEntity.data[0].id },
@@ -500,6 +501,7 @@ The ProductBoard API returns component data with only parent UUIDs, not expanded
 ### Error Prevention
 
 If you attempt to use non-existent fields, the search will:
+
 1. **Not throw an error** (to avoid breaking workflows)
 2. **Return empty results** (because no items match non-existent fields)
 3. **Provide generic "no results found" messaging**
