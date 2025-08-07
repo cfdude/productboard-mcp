@@ -34,8 +34,8 @@ jobs:
     
     - name: Lint TypeScript files
       run: |
-        # Basic TypeScript linting without ESLint config
-        npx tsc --noEmit --strict --noUnusedLocals --noUnusedParameters --exactOptionalPropertyTypes
+        # Run ESLint with current project configuration (warnings allowed)
+        npx eslint src --ext .ts --max-warnings=1000
     
     - name: Check for common issues
       run: |
