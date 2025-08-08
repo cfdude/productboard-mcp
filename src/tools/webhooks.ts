@@ -240,10 +240,9 @@ async function listWebhooks(args: StandardListParams & any) {
   return await withContext(
     async context => {
       const normalizedParams = normalizeListParams(args);
-      const params: any = {
-        pageLimit: normalizedParams.limit,
-        pageOffset: normalizedParams.startWith,
-      };
+      const params: any = {};
+      // Remove problematic pagination parameters that cause API errors
+      // ProductBoard API doesn't accept 'limit', 'pageLimit', or 'pageOffset'
 
       const response = await context.axios.get('/webhooks', { params });
 

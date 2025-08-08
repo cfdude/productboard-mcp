@@ -9,6 +9,7 @@ import {
   filterArrayByDetailLevel,
   isEnterpriseError,
 } from '../utils/parameter-utils.js';
+import { fetchAllPages } from '../utils/pagination-handler.js';
 import {
   StandardListParams,
   StandardGetParams,
@@ -562,22 +563,45 @@ async function createReleaseGroup(args: any) {
 async function listReleaseGroups(args: StandardListParams & any) {
   return await withContext(
     async context => {
-      const normalizedParams = normalizeListParams(args);
-      const params: any = {
-        pageLimit: normalizedParams.limit,
-        pageOffset: normalizedParams.startWith,
+      const normalized = normalizeListParams(args);
+      const params: any = {};
+
+      // Use proper pagination handler to fetch all pages
+      const paginatedResponse = await fetchAllPages(
+        context.axios,
+        '/release-groups',
+        params,
+        {
+          maxItems: normalized.limit > 100 ? normalized.limit : undefined,
+          onPageFetched: (_pageData, _pageNum, _totalSoFar) => {
+            // Page fetched successfully
+          },
+        }
+      );
+
+      const result = {
+        data: paginatedResponse.data,
+        links: paginatedResponse.links,
+        meta: {
+          ...paginatedResponse.meta,
+          totalFetched: paginatedResponse.data.length,
+        },
       };
 
-      const response = await context.axios.get('/release-groups', { params });
-
-      const result = response.data;
-
-      // Apply detail level filtering
-      if (!normalizedParams.includeSubData && result.data) {
+      // Apply detail level filtering after fetching all data
+      if (!normalized.includeSubData && result.data) {
         result.data = filterArrayByDetailLevel(
           result.data,
           'releaseGroup',
-          normalizedParams.detail
+          normalized.detail
+        );
+      }
+
+      // Apply client-side limit after filtering (if requested limit < total available)
+      if (normalized.limit && normalized.limit < result.data.length) {
+        result.data = result.data.slice(
+          normalized.startWith || 0,
+          (normalized.startWith || 0) + normalized.limit
         );
       }
 
@@ -722,24 +746,47 @@ async function createRelease(args: any) {
 async function listReleases(args: StandardListParams & any) {
   return await withContext(
     async context => {
-      const normalizedParams = normalizeListParams(args);
-      const params: any = {
-        pageLimit: normalizedParams.limit,
-        pageOffset: normalizedParams.startWith,
-      };
+      const normalized = normalizeListParams(args);
+      const params: any = {};
 
       if (args.releaseGroupId) params['releaseGroup.id'] = args.releaseGroupId;
 
-      const response = await context.axios.get('/releases', { params });
+      // Use proper pagination handler to fetch all pages
+      const paginatedResponse = await fetchAllPages(
+        context.axios,
+        '/releases',
+        params,
+        {
+          maxItems: normalized.limit > 100 ? normalized.limit : undefined,
+          onPageFetched: (_pageData, _pageNum, _totalSoFar) => {
+            // Page fetched successfully
+          },
+        }
+      );
 
-      const result = response.data;
+      const result = {
+        data: paginatedResponse.data,
+        links: paginatedResponse.links,
+        meta: {
+          ...paginatedResponse.meta,
+          totalFetched: paginatedResponse.data.length,
+        },
+      };
 
-      // Apply detail level filtering
-      if (!normalizedParams.includeSubData && result.data) {
+      // Apply detail level filtering after fetching all data
+      if (!normalized.includeSubData && result.data) {
         result.data = filterArrayByDetailLevel(
           result.data,
           'release',
-          normalizedParams.detail
+          normalized.detail
+        );
+      }
+
+      // Apply client-side limit after filtering (if requested limit < total available)
+      if (normalized.limit && normalized.limit < result.data.length) {
+        result.data = result.data.slice(
+          normalized.startWith || 0,
+          (normalized.startWith || 0) + normalized.limit
         );
       }
 
@@ -855,11 +902,8 @@ async function deleteRelease(args: any) {
 async function listFeatureReleaseAssignments(args: StandardListParams & any) {
   return await withContext(
     async context => {
-      const normalizedParams = normalizeListParams(args);
-      const params: any = {
-        pageLimit: normalizedParams.limit,
-        pageOffset: normalizedParams.startWith,
-      };
+      const normalized = normalizeListParams(args);
+      const params: any = {};
 
       if (args.featureId) params['feature.id'] = args.featureId;
       if (args.releaseId) params['release.id'] = args.releaseId;
@@ -869,18 +913,42 @@ async function listFeatureReleaseAssignments(args: StandardListParams & any) {
       if (args.releaseEndDateTo)
         params['release.timeframe.endDate.to'] = args.releaseEndDateTo;
 
-      const response = await context.axios.get('/feature-release-assignments', {
+      // Use proper pagination handler to fetch all pages
+      const paginatedResponse = await fetchAllPages(
+        context.axios,
+        '/feature-release-assignments',
         params,
-      });
+        {
+          maxItems: normalized.limit > 100 ? normalized.limit : undefined,
+          onPageFetched: (_pageData, _pageNum, _totalSoFar) => {
+            // Page fetched successfully
+          },
+        }
+      );
 
-      const result = response.data;
+      const result = {
+        data: paginatedResponse.data,
+        links: paginatedResponse.links,
+        meta: {
+          ...paginatedResponse.meta,
+          totalFetched: paginatedResponse.data.length,
+        },
+      };
 
-      // Apply detail level filtering
-      if (!normalizedParams.includeSubData && result.data) {
+      // Apply detail level filtering after fetching all data
+      if (!normalized.includeSubData && result.data) {
         result.data = filterArrayByDetailLevel(
           result.data,
           'featureReleaseAssignment',
-          normalizedParams.detail
+          normalized.detail
+        );
+      }
+
+      // Apply client-side limit after filtering (if requested limit < total available)
+      if (normalized.limit && normalized.limit < result.data.length) {
+        result.data = result.data.slice(
+          normalized.startWith || 0,
+          (normalized.startWith || 0) + normalized.limit
         );
       }
 

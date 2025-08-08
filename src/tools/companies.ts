@@ -15,6 +15,7 @@ import {
 } from '../types/parameter-types.js';
 import { ProductboardError } from '../errors/index.js';
 import { ErrorCode } from '@modelcontextprotocol/sdk/types.js';
+import { fetchAllPages } from '../utils/pagination-handler.js';
 
 export function setupCompaniesTools() {
   return [
@@ -526,45 +527,58 @@ async function listCompanies(args: StandardListParams & any) {
     async context => {
       const normalized = normalizeListParams(args);
 
-      const params: any = {
-        pageLimit: normalized.limit,
-        pageOffset: normalized.startWith,
-      };
-
-      // Add optional filters
+      const params: any = {};
+      // Add filters (no pagination parameters - handled by fetchAllPages)
       if (args.featureId) params.featureId = args.featureId;
       if (args.hasNotes !== undefined) params.hasNotes = args.hasNotes;
       if (args.term) params.term = args.term;
 
-      const response = await context.axios.get('/companies', { params });
+      // Use proper pagination handler to fetch all pages
+      const paginatedResponse = await fetchAllPages(
+        context.axios,
+        '/companies',
+        params,
+        {
+          maxItems: normalized.limit > 100 ? normalized.limit : undefined,
+          onPageFetched: (_pageData, _pageNum, _totalSoFar) => {
+            // Progress tracking for paginated companies fetching
+          },
+        }
+      );
 
-      const data = response.data;
-
-      // Apply detail level filtering
-      if (data.data && Array.isArray(data.data)) {
-        data.data = filterArrayByDetailLevel(
-          data.data,
-          'company',
-          normalized.detail
-        );
-      }
+      const result = filterArrayByDetailLevel(
+        paginatedResponse.data,
+        'company',
+        normalized.detail
+      );
 
       // Remove sub-data if not requested
-      if (!normalized.includeSubData && data.data) {
-        data.data = data.data.map((item: any) => {
-          const filtered = { ...item };
-          // Remove complex nested objects
-          delete filtered._embedded;
-          delete filtered._links;
-          return filtered;
-        });
-      }
+      const processedData = !normalized.includeSubData
+        ? result.map((item: any) => {
+            const filtered = { ...item };
+            // Remove complex nested objects
+            delete filtered._embedded;
+            delete filtered._links;
+            return filtered;
+          })
+        : result;
+
+      // Return complete response structure with proper pagination info
+      const responseData = {
+        data: processedData,
+        meta: {
+          totalRecords: processedData.length,
+          totalPages: paginatedResponse.meta?.totalPages || 1,
+          wasLimited: paginatedResponse.meta?.wasLimited || false,
+        },
+        links: {}, // Links are no longer relevant since we fetched all pages
+      };
 
       return {
         content: [
           {
             type: 'text',
-            text: formatResponse(data),
+            text: formatResponse(responseData),
           },
         ],
       };

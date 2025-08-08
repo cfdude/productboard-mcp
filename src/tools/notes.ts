@@ -9,6 +9,7 @@ import {
   filterArrayByDetailLevel,
   isEnterpriseError,
 } from '../utils/parameter-utils.js';
+import { fetchAllPages } from '../utils/pagination-handler.js';
 import {
   StandardListParams,
   StandardGetParams,
@@ -652,19 +653,10 @@ async function createNote(args: any) {
 async function listNotes(args: StandardListParams & any) {
   return await withContext(
     async context => {
-      const normalizedParams = normalizeListParams(args);
-      const params: any = {
-        pageLimit: normalizedParams.limit,
-      };
+      const normalized = normalizeListParams(args);
+      const params: any = {};
 
-      // Handle startWith as pageCursor for notes API
-      if (args.pageCursor) {
-        params.pageCursor = args.pageCursor;
-      } else if (normalizedParams.startWith > 0) {
-        params.pageOffset = normalizedParams.startWith;
-      }
-
-      // Add filters
+      // Add filters (don't include pageCursor - handled by fetchAllPages)
       if (args.term) params.term = args.term;
       if (args.companyId) params.companyId = args.companyId;
       if (args.featureId) params.featureId = args.featureId;
@@ -681,16 +673,42 @@ async function listNotes(args: StandardListParams & any) {
       if (args.dateFrom) params.dateFrom = args.dateFrom;
       if (args.dateTo) params.dateTo = args.dateTo;
 
-      const response = await context.axios.get('/notes', { params });
+      // Use proper pagination handler to fetch all pages
+      const paginatedResponse = await fetchAllPages(
+        context.axios,
+        '/notes',
+        params,
+        {
+          maxItems: normalized.limit > 100 ? normalized.limit : undefined,
+          onPageFetched: (_pageData, _pageNum, _totalSoFar) => {
+            // Progress tracking for paginated notes fetching
+          },
+        }
+      );
 
-      const result = response.data;
+      const result = {
+        data: paginatedResponse.data,
+        links: paginatedResponse.links,
+        meta: {
+          ...paginatedResponse.meta,
+          totalFetched: paginatedResponse.data.length,
+        },
+      };
 
-      // Apply detail level filtering
-      if (!normalizedParams.includeSubData && result.data) {
+      // Apply detail level filtering after fetching all data
+      if (!normalized.includeSubData && result.data) {
         result.data = filterArrayByDetailLevel(
           result.data,
           'note',
-          normalizedParams.detail
+          normalized.detail
+        );
+      }
+
+      // Apply client-side limit after filtering (if requested limit < total available)
+      if (normalized.limit && normalized.limit < result.data.length) {
+        result.data = result.data.slice(
+          normalized.startWith || 0,
+          (normalized.startWith || 0) + normalized.limit
         );
       }
 

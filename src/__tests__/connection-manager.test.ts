@@ -40,9 +40,7 @@ describe('ConnectionManager', () => {
       const stats = connectionManager.getStats();
       expect(stats.totalConnections).toBe(1);
       expect(stats.activeConnections).toBe(1);
-      expect(mockConsoleLog).toHaveBeenCalledWith(
-        '[ConnectionManager] Registered connection: test-connection-1'
-      );
+      // Connection registration logging removed for CI compliance
     });
 
     it('should initialize request tracking for new connections', () => {
@@ -110,9 +108,7 @@ describe('ConnectionManager', () => {
         expect(result).toBe('success');
         const stats = connectionManager.getStats();
         expect(stats.totalConnections).toBe(1);
-        expect(mockConsoleLog).toHaveBeenCalledWith(
-          '[ConnectionManager] Registered connection: auto-connection'
-        );
+        // Auto-registration logging removed for CI compliance
       });
 
       it('should update connection properties on request', async () => {
@@ -330,9 +326,7 @@ describe('ConnectionManager', () => {
       const stats = connectionManager.getStats();
       expect(stats.totalConnections).toBe(0);
       expect(stats.queuedRequests).toBe(0);
-      expect(mockConsoleLog).toHaveBeenCalledWith(
-        '[ConnectionManager] Closed connection: test-connection'
-      );
+      // Connection closure logging removed for CI compliance
     });
 
     it('should reject queued requests on connection close', async () => {
@@ -487,9 +481,7 @@ describe('ConnectionManager', () => {
       expect(stats.totalConnections).toBe(1);
       expect(connections.has('fresh-connection')).toBe(true);
       expect(connections.has('stale-connection')).toBe(false);
-      expect(mockConsoleLog).toHaveBeenCalledWith(
-        '[ConnectionManager] Cleaned up 1 stale connections'
-      );
+      // Stale connection cleanup logging removed for CI compliance
     });
 
     it('should not cleanup fresh connections', () => {
@@ -555,9 +547,7 @@ describe('ConnectionManager', () => {
       const stats = connectionManager.getStats();
       expect(stats.totalConnections).toBe(1);
       expect(connections.has('fresh')).toBe(true);
-      expect(mockConsoleLog).toHaveBeenCalledWith(
-        '[ConnectionManager] Cleaned up 3 stale connections'
-      );
+      // Multiple stale connections cleanup logging removed for CI compliance
     });
   });
 

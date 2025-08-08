@@ -46,7 +46,30 @@ npm run inspector
 
 **Debug Logging**: The server writes debug logs to `mcp-debug.log` in the project root. Use `tail -f mcp-debug.log` to monitor logs in real-time during testing.
 
-### 3. Commit Preparation
+### 3. Git Worktree Workflow (CRITICAL)
+
+**Repository Setup**: This project uses git worktrees:
+
+- `/Users/robsherman/Servers/productboard-mcp` = **dev branch** (development work)
+- `/Users/robsherman/Servers/productboard-mcp-stable` = **main branch** (stable deployment)
+
+**After committing to dev branch, ALWAYS update the stable directory:**
+
+```bash
+# 1. Commit and push dev changes to main
+git push origin dev:main
+
+# 2. Update stable directory with latest main branch
+cd /Users/robsherman/Servers/productboard-mcp-stable
+git stash -u  # Stash any local changes
+git pull origin main  # Pull latest fixes
+git stash pop  # Restore local changes if needed
+
+# 3. Rebuild stable server
+npm run shutdown && npm run build
+```
+
+### 4. Commit Preparation
 
 ```bash
 # Pre-commit validation sequence
@@ -184,13 +207,18 @@ npm run inspector
 ### Multiple Instance Issues
 
 ```bash
-# Check for multiple running instances
-ps aux | grep "productboard-mcp/build/index.js" | grep -v grep
+# Check for multiple running instances (enhanced pattern matching)
+ps aux | grep "productboard-mcp.*build/index.js" | grep -v grep
 
-# Clean shutdown all instances
+# Clean shutdown all instances (kills ALL productboard-mcp variants)
 npm run shutdown
 
-# Rebuild and restart
+# If stable directory needs same fixes:
+cd /Users/robsherman/Servers/productboard-mcp-stable
+npm run shutdown && npm run build
+
+# Return to dev directory
+cd /Users/robsherman/Servers/productboard-mcp
 npm run build
 ```
 
