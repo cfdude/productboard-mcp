@@ -456,6 +456,9 @@ export class SearchEngine {
       'after',
       'regex',
       'wildcard',
+      'not',
+      'in',
+      'not_in',
     ];
     const errors: string[] = [];
     const warnings: string[] = [];
