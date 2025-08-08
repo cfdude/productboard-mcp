@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2025-01-30
+
+### Added
+
+- **🎯 Enhanced Filtering Operators**
+  - Added `not` operator for negation filtering (e.g., exclude "Parking Lot" status)
+  - Added `in` operator for multi-value inclusion filtering (e.g., status in "To Do,In Progress")
+  - Added `not_in` operator for multi-value exclusion filtering (e.g., exclude multiple statuses)
+  - All operators support comma-separated values for flexible filtering patterns
+  - Implemented client-side filtering with pattern matching and case-insensitive matching
+
+### Enhanced
+
+- **🔍 Search Engine Improvements**
+  - Updated `validOperators` array in search engine to include new filtering operators
+  - Enhanced search pattern utilities with negation and multi-value matching logic
+  - Improved operator validation and error handling for unknown operators
+  - Added comprehensive test coverage for new filtering operators
+
+### Technical Details
+
+- **Files Modified**:
+  - `src/utils/search-engine.ts`: Added 'not', 'in', 'not_in' to validOperators array
+  - `src/utils/search-pattern-utils.ts`: Implemented new operator logic with pattern matching
+- **Testing**: All operators tested with real Productboard data via MCP calls
+- **Use Cases**: Status-based filtering, multi-criteria searches, exclusion patterns
+- **Performance**: Client-side filtering maintains response efficiency while providing powerful search capabilities
+
 ## [2.0.4] - 2025-01-29
 
 ### Fixed
