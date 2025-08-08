@@ -40,7 +40,7 @@ describe('ConnectionManager', () => {
       const stats = connectionManager.getStats();
       expect(stats.totalConnections).toBe(1);
       expect(stats.activeConnections).toBe(1);
-      // Console logging removed - connection registration verified via stats
+      // Connection registration logging removed for CI compliance
     });
 
     it('should initialize request tracking for new connections', () => {
@@ -108,7 +108,7 @@ describe('ConnectionManager', () => {
         expect(result).toBe('success');
         const stats = connectionManager.getStats();
         expect(stats.totalConnections).toBe(1);
-        // Console logging removed - connection registration verified via stats
+        // Auto-registration logging removed for CI compliance
       });
 
       it('should update connection properties on request', async () => {
@@ -326,7 +326,7 @@ describe('ConnectionManager', () => {
       const stats = connectionManager.getStats();
       expect(stats.totalConnections).toBe(0);
       expect(stats.queuedRequests).toBe(0);
-      // Console logging removed - connection closure verified via stats
+      // Connection closure logging removed for CI compliance
     });
 
     it('should reject queued requests on connection close', async () => {
@@ -481,7 +481,7 @@ describe('ConnectionManager', () => {
       expect(stats.totalConnections).toBe(1);
       expect(connections.has('fresh-connection')).toBe(true);
       expect(connections.has('stale-connection')).toBe(false);
-      // Console logging removed - cleanup verified via connection state
+      // Stale connection cleanup logging removed for CI compliance
     });
 
     it('should not cleanup fresh connections', () => {
@@ -547,7 +547,7 @@ describe('ConnectionManager', () => {
       const stats = connectionManager.getStats();
       expect(stats.totalConnections).toBe(1);
       expect(connections.has('fresh')).toBe(true);
-      // Console logging removed - cleanup verified via connection state
+      // Multiple stale connections cleanup logging removed for CI compliance
     });
   });
 

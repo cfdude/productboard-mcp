@@ -210,7 +210,7 @@ async function listProducts(args: any) {
         {
           maxItems: normalized.limit > 100 ? normalized.limit : undefined,
           onPageFetched: (_pageData, _pageNum, _totalSoFar) => {
-            // Page fetched successfully
+            // Progress tracking for paginated products fetching
           },
         }
       );
