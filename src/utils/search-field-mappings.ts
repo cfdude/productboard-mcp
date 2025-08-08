@@ -47,6 +47,11 @@ export const EntityFieldMappings: Record<
       'granularity',
       'createdAt',
       'updatedAt',
+      // Custom fields support
+      'customFields',
+      'customFields.Parking Lot',
+      'customFields.T-Shirt Sizing',
+      'customFields.Business Value',
     ],
     displayNames: {
       name: 'name',

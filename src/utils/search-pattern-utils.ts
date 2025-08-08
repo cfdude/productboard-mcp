@@ -220,6 +220,26 @@ export function applyPatternFilter(
         return false;
       }
 
+    case 'not':
+      // Negation of equals match
+      return !matchesPattern(stringValue, pattern);
+
+    case 'in': {
+      // Check if value is in comma-separated list
+      const inValues = pattern.pattern
+        .split(',')
+        .map(v => v.trim().toLowerCase());
+      return inValues.includes(stringValue.toLowerCase());
+    }
+
+    case 'not_in': {
+      // Check if value is NOT in comma-separated list
+      const notInValues = pattern.pattern
+        .split(',')
+        .map(v => v.trim().toLowerCase());
+      return !notInValues.includes(stringValue.toLowerCase());
+    }
+
     default:
       return matchesPattern(stringValue, pattern);
   }
