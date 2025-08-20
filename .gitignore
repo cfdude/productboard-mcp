@@ -38,6 +38,11 @@ logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+mcp-debug.log
+search-debug.log
+server.log
+inspector*.log
+inspector*.pid
 
 # Runtime data
 pids/
@@ -101,9 +106,14 @@ jspm_packages/
 # DynamoDB Local files
 .dynamodb/
 
-# Test scripts
+# Test scripts and debug files
 test-*.js
+test-*.mjs
+debug-*.js
+debug-*.mjs
 scripts/test/test-*.js
+*.bak
+*.backup
 
 # OpenAPI files
 productboard_openapi.yaml
