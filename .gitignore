@@ -108,3 +108,4 @@ scripts/test/test-*.js
 # OpenAPI files
 productboard_openapi.yaml
 CLAUDE.local.md
+CLAUDE.md
