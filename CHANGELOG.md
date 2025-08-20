@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.1] - 2025-01-30
+
+### Changed
+
+- **🧹 Repository Cleanup & Organization**
+  - Removed debug files, log files, and temporary artifacts from root directory
+  - Moved integration test files to `tests/integration/` directory for better organization
+  - Removed backup files and duplicate manifests
+  - Enhanced .gitignore patterns to prevent future accumulation of temporary files
+
+### Improved
+
+- **📁 Project Structure**
+  - Better separation between production code, tests, and generated files
+  - Cleaner root directory with only essential configuration files
+  - Organized test files by type (unit tests in `src/__tests__/`, integration tests in `tests/integration/`)
+
+### Technical Details
+
+- **Files Removed**: ~75KB of debug logs, temporary files, and duplicates
+- **Files Reorganized**: Test files properly categorized by purpose
+- **Enhanced .gitignore**: Added patterns for debug files, log files, backup files, and test files
+- **Quality Maintained**: All 183 tests passing, no functional changes
+
 ## [2.1.0] - 2025-01-30
 
 ### Added

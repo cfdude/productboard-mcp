@@ -1,6 +1,6 @@
 /**
  * Auto-generated tool documentation
- * Generated: 2025-08-08T21:25:53.338Z
+ * Generated: 2025-08-20T04:13:56.905Z
  */
 import type { ToolDocumentation } from '../src/documentation/tool-documentation.js';
 
