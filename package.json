@@ -1,6 +1,6 @@
 {
   "name": "@the_cfdude/productboard-mcp",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Model Context Protocol server for Productboard REST API with dynamic tool loading",
   "type": "module",
   "bin": {
@@ -46,7 +46,7 @@
     "test-real-operations": "npm run build && node scripts/test-real-api-operations.js"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^0.6.0",
+    "@modelcontextprotocol/sdk": "^1.25.3",
     "axios": "^1.10.0"
   },
   "devDependencies": {
