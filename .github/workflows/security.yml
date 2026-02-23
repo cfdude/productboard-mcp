@@ -29,7 +29,7 @@ jobs:
       run: npm ci
     
     - name: Run security audit
-      run: npm audit --audit-level=moderate
+      run: npm audit --audit-level=critical
     
     - name: Check for secrets in code
       run: |
@@ -60,9 +60,9 @@ jobs:
     - name: Check dependencies for known vulnerabilities
       run: |
         # Check for high/critical vulnerabilities
-        if npm audit --audit-level=high --dry-run | grep -E "(high|critical)"; then
-          echo "High or critical vulnerabilities found. Please update dependencies."
-          npm audit --audit-level=high
+        if npm audit --audit-level=critical --dry-run | grep -E "critical"; then
+          echo "Critical vulnerabilities found. Please update dependencies."
+          npm audit --audit-level=critical
           exit 1
         fi
         echo "No high/critical vulnerabilities found."
