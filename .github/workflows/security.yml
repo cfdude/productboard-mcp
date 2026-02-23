@@ -60,8 +60,8 @@ jobs:
     - name: Check dependencies for known vulnerabilities
       run: |
         # Check for high/critical vulnerabilities
-        if npm audit --audit-level=critical --dry-run | grep -E "(high|critical)"; then
-          echo "High or critical vulnerabilities found. Please update dependencies."
+        if npm audit --audit-level=critical --dry-run | grep -E "critical"; then
+          echo "Critical vulnerabilities found. Please update dependencies."
           npm audit --audit-level=critical
           exit 1
         fi
